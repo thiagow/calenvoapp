@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import { Calendar, Clock, User, Loader2, AlertCircle } from 'lucide-react'
+import { Calendar, Clock, User, Loader2, AlertCircle, DollarSign } from 'lucide-react'
 import { AppointmentStatus, ModalityType } from '@prisma/client'
 import { STATUS_LABELS, STATUS_COLORS, MODALITY_LABELS } from '@/lib/types'
 import toast from 'react-hot-toast'
@@ -39,6 +39,9 @@ export function EditAppointmentDialog({
   onUpdate
 }: EditAppointmentDialogProps) {
   const [loading, setLoading] = useState(false)
+  const [loadingData, setLoadingData] = useState(false)
+  const [services, setServices] = useState<any[]>([])
+  const [professionals, setProfessionals] = useState<any[]>([])
   const [professionalName, setProfessionalName] = useState<string>('')
   const [formData, setFormData] = useState({
     date: '',
@@ -46,11 +49,42 @@ export function EditAppointmentDialog({
     duration: 30,
     status: 'SCHEDULED' as AppointmentStatus,
     modality: 'PRESENCIAL' as ModalityType,
-    specialty: '',
-    professional: '',
+    serviceId: '',
+    professionalId: '',
     notes: '',
     price: ''
   })
+
+  // Buscar dados de serviços e profissionais
+  useEffect(() => {
+    if (isOpen) {
+      const fetchData = async () => {
+        setLoadingData(true)
+        try {
+          const [servicesRes, professionalsRes] = await Promise.all([
+            fetch('/api/services'),
+            fetch('/api/professionals')
+          ])
+
+          if (servicesRes.ok) {
+            const data = await servicesRes.json()
+            setServices(data.filter((s: any) => s.isActive))
+          }
+
+          if (professionalsRes.ok) {
+            const data = await professionalsRes.json()
+            setProfessionals(data.filter((p: any) => p.isActive))
+          }
+        } catch (error) {
+          console.error('Error fetching data:', error)
+          toast.error('Erro ao carregar listas')
+        } finally {
+          setLoadingData(false)
+        }
+      }
+      fetchData()
+    }
+  }, [isOpen])
 
   useEffect(() => {
     if (appointment) {
@@ -64,49 +98,37 @@ export function EditAppointmentDialog({
         duration: appointment.duration || 30,
         status: appointment.status || 'SCHEDULED',
         modality: appointment.modality || 'PRESENCIAL',
-        specialty: appointment.specialty || '',
-        professional: appointment.professional || '',
+        serviceId: appointment.serviceId || (appointment.service?.id) || '',
+        professionalId: appointment.professionalId || (appointment.professionalRelation?.id) || '',
         notes: appointment.notes || '',
         price: appointment.price ? appointment.price.toString() : ''
       })
-      
-      // Buscar nome do profissional se houver professionalId
-      const fetchProfessionalName = async () => {
-        if (appointment.professionalId) {
-          try {
-            const response = await fetch(`/api/professionals/${appointment.professionalId}`)
-            if (response.ok) {
-              const prof = await response.json()
-              setProfessionalName(prof.name)
-            }
-          } catch (error) {
-            console.error('Error fetching professional:', error)
-          }
-        } else if (appointment.professional) {
-          // Usar o campo legado se não houver professionalId
-          setProfessionalName(appointment.professional)
-        } else {
-          // Buscar o usuário master (dono da conta)
-          try {
-            const response = await fetch(`/api/user/profile`)
-            if (response.ok) {
-              const user = await response.json()
-              setProfessionalName(user.name)
-            }
-          } catch (error) {
-            console.error('Error fetching user profile:', error)
-            setProfessionalName('Profissional não definido')
-          }
-        }
+
+      // Se não tiver professionalId mas tiver nome legado, tentar encontrar
+      if (!appointment.professionalId && appointment.professional) {
+        // Lógica de fallback será tratada na renderização do select ou busca
       }
-      
-      fetchProfessionalName()
     }
   }, [appointment])
 
+  const handleServiceChange = (serviceId: string) => {
+    const service = services.find(s => s.id === serviceId)
+    if (service) {
+      setFormData(prev => ({
+        ...prev,
+        serviceId,
+        duration: service.duration,
+        price: service.price ? service.price.toString() : prev.price,
+        specialty: service.name // Manter compatibilidade com campo legado
+      }))
+    } else {
+      setFormData(prev => ({ ...prev, serviceId }))
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!formData.date || !formData.time) {
       toast.error('Data e hora são obrigatórios')
       return
@@ -116,14 +138,16 @@ export function EditAppointmentDialog({
 
     try {
       const dateTime = new Date(`${formData.date}T${formData.time}`)
-      
+
       const updateData: any = {
         date: dateTime.toISOString(),
         duration: Number(formData.duration),
         status: formData.status,
         modality: formData.modality,
-        specialty: formData.specialty || null,
-        professional: formData.professional || null,
+        serviceId: formData.serviceId || null,
+        professionalId: formData.professionalId || null,
+        specialty: formData.serviceId ? (services.find(s => s.id === formData.serviceId)?.name || null) : null,
+        professional: formData.professionalId ? (professionals.find(p => p.id === formData.professionalId)?.name || null) : null,
         notes: formData.notes || null,
         price: formData.price ? parseFloat(formData.price) : null
       }
@@ -150,7 +174,7 @@ export function EditAppointmentDialog({
             Editar Agendamento
           </DialogTitle>
           <DialogDescription>
-            Atualize as informações do agendamento de {appointment.patient.name}
+            Atualize as informações do agendamento do cliente {appointment.patient.name}
           </DialogDescription>
         </DialogHeader>
 
@@ -159,7 +183,7 @@ export function EditAppointmentDialog({
           <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
             <div className="flex items-center space-x-2 text-sm">
               <User className="h-4 w-4 text-blue-600" />
-              <span className="font-medium text-blue-900">Paciente:</span>
+              <span className="font-medium text-blue-900">Cliente:</span>
               <span className="text-blue-700">{appointment.patient.name}</span>
             </div>
             {appointment.patient.phone && (
@@ -210,6 +234,9 @@ export function EditAppointmentDialog({
               step="15"
               value={formData.duration}
               onChange={(e) => setFormData({ ...formData, duration: Number(e.target.value) })}
+              disabled={!!formData.serviceId}
+              readOnly={!!formData.serviceId}
+              className={formData.serviceId ? "bg-gray-100 cursor-not-allowed" : ""}
             />
           </div>
 
@@ -238,60 +265,88 @@ export function EditAppointmentDialog({
 
             <div className="space-y-2">
               <Label htmlFor="modality">Modalidade</Label>
+              <Input
+                id="modality"
+                value="Presencial"
+                readOnly
+                disabled
+                className="bg-gray-50 cursor-not-allowed"
+              />
+              <p className="text-xs text-gray-500">
+                No momento, apenas atendimentos presenciais estão disponíveis
+              </p>
+            </div>
+          </div>
+
+          {/* Service and Professional */}
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="service">Serviço</Label>
               <Select
-                value={formData.modality}
-                onValueChange={(value) => setFormData({ ...formData, modality: value as ModalityType })}
+                value={formData.serviceId}
+                onValueChange={handleServiceChange}
+                disabled={loadingData}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder={formData.serviceId ? (services.find(s => s.id === formData.serviceId)?.name || 'Serviço não encontrado') : 'Selecione'} />
                 </SelectTrigger>
                 <SelectContent>
-                  {MODALITY_OPTIONS.map((modality) => (
-                    <SelectItem key={modality} value={modality}>
-                      {MODALITY_LABELS[modality]}
+                  {services.map((service) => (
+                    <SelectItem key={service.id} value={service.id}>
+                      {service.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-          </div>
-
-          {/* Service and Professional */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="specialty">Serviço</Label>
-              <Input
-                id="specialty"
-                value={formData.specialty}
-                onChange={(e) => setFormData({ ...formData, specialty: e.target.value })}
-                placeholder="Ex: Consulta"
-              />
-            </div>
 
             <div className="space-y-2">
-              <Label htmlFor="professionalName">Profissional</Label>
-              <Input
-                id="professionalName"
-                value={professionalName}
-                readOnly
-                disabled
-                className="bg-gray-50 cursor-not-allowed"
-              />
+              <Label htmlFor="professional">Profissional</Label>
+              {professionals.length > 1 ? (
+                <Select
+                  value={formData.professionalId}
+                  onValueChange={(value) => setFormData({ ...formData, professionalId: value })}
+                  disabled={loadingData}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {professionals.map((prof) => (
+                      <SelectItem key={prof.id} value={prof.id}>
+                        {prof.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  id="professionalName"
+                  value={professionals.length === 1 ? professionals[0].name : (professionalName || 'Carregando...')}
+                  readOnly
+                  disabled
+                  title={professionals.length === 1 ? 'Profissional único do plano' : ''}
+                />
+              )}
             </div>
           </div>
 
           {/* Price */}
           <div className="space-y-2">
             <Label htmlFor="price">Valor (R$)</Label>
-            <Input
-              id="price"
-              type="number"
-              step="0.01"
-              min="0"
-              value={formData.price}
-              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-              placeholder="0.00"
-            />
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+              <Input
+                id="price"
+                type="number"
+                step="0.01"
+                min="0"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                placeholder="0.00"
+                className="pl-9"
+              />
+            </div>
           </div>
 
           {/* Notes */}

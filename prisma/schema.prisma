@@ -1,11 +1,11 @@
 generator client {
-    provider = "prisma-client-js"
-    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Account {
@@ -41,61 +41,61 @@ enum PlanType {
 }
 
 enum UserRole {
-  MASTER        // Usuário que criou a conta
-  PROFESSIONAL  // Profissional da equipe
+  MASTER // Usuário que criou a conta
+  PROFESSIONAL // Profissional da equipe
 }
 
 enum SegmentType {
-  BEAUTY_SALON           // Salões de beleza
-  BARBERSHOP            // Barbearias
-  AESTHETIC_CLINIC      // Clínicas de estética
-  TECH_SAAS             // Tecnologia e SaaS
+  BEAUTY_SALON // Salões de beleza
+  BARBERSHOP // Barbearias
+  AESTHETIC_CLINIC // Clínicas de estética
+  TECH_SAAS // Tecnologia e SaaS
   PROFESSIONAL_SERVICES // Consultorias e Mentorias
-  HR                    // Recursos Humanos
-  PHYSIOTHERAPY         // Clínicas de fisioterapia
-  EDUCATION             // Aulas e Educação
-  PET_SHOP              // Pet shops
-  OTHER                 // Outros
+  HR // Recursos Humanos
+  PHYSIOTHERAPY // Clínicas de fisioterapia
+  EDUCATION // Aulas e Educação
+  PET_SHOP // Pet shops
+  OTHER // Outros
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String
-  password      String
-  role          UserRole  @default(MASTER)
-  whatsapp      String?
-  isActive      Boolean   @default(true)
-  businessName  String?   // Nome do negócio
-  phone         String?
-  segmentType   SegmentType @default(BEAUTY_SALON)
-  planType      PlanType  @default(FREEMIUM)
-  stripeCustomerId String?
-  subscriptionId String?
+  id                 String      @id @default(cuid())
+  name               String?
+  email              String
+  password           String
+  role               UserRole    @default(MASTER)
+  whatsapp           String?
+  isActive           Boolean     @default(true)
+  businessName       String? // Nome do negócio
+  phone              String?
+  segmentType        SegmentType @default(BEAUTY_SALON)
+  planType           PlanType    @default(FREEMIUM)
+  stripeCustomerId   String?
+  subscriptionId     String?
   subscriptionStatus String?
-  emailVerified DateTime?
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  emailVerified      DateTime?
+  image              String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
 
   // Relacionamentos
-  accounts      Account[]
-  sessions      Session[]
-  appointments  Appointment[]  // Agendamentos como master (dono da conta)
-  professionalAppointments Appointment[] @relation("ProfessionalAppointments") // Agendamentos como profissional
-  clients       Client[]  // Renomeado de patients para ser mais genérico
-  businessConfig BusinessConfig?
-  planUsage     PlanUsage?
-  schedules     Schedule[] // Agendas criadas (apenas para master)
-  services      Service[]  // Serviços criados (apenas para master)
-  scheduleProfessionals ScheduleProfessional[] // Agendas vinculadas como profissional
-  notifications Notification[] // Notificações do usuário
-  whatsappConfig WhatsAppConfig? // Configuração WhatsApp
-  
+  accounts                 Account[]
+  sessions                 Session[]
+  appointments             Appointment[] // Agendamentos como master (dono da conta)
+  professionalAppointments Appointment[]          @relation("ProfessionalAppointments") // Agendamentos como profissional
+  clients                  Client[] // Renomeado de patients para ser mais genérico
+  businessConfig           BusinessConfig?
+  planUsage                PlanUsage?
+  schedules                Schedule[] // Agendas criadas (apenas para master)
+  services                 Service[] // Serviços criados (apenas para master)
+  scheduleProfessionals    ScheduleProfessional[] // Agendas vinculadas como profissional
+  notifications            Notification[] // Notificações do usuário
+  whatsappConfig           WhatsAppConfig? // Configuração WhatsApp
+
   // Relacionamento hierárquico
-  masterId      String?   // ID do usuário master (para profissionais)
-  master        User?     @relation("MasterProfessionals", fields: [masterId], references: [id], onDelete: Cascade)
-  professionals User[]    @relation("MasterProfessionals")
+  masterId      String? // ID do usuário master (para profissionais)
+  master        User?   @relation("MasterProfessionals", fields: [masterId], references: [id], onDelete: Cascade)
+  professionals User[]  @relation("MasterProfessionals")
 
   @@unique([email, role])
 }
@@ -109,31 +109,31 @@ model VerificationToken {
 }
 
 model Client {
-  id          String   @id @default(cuid())
-  name        String
-  email       String?
-  phone       String
-  cpf         String?
-  birthDate   DateTime?
-  address     String?
-  notes       String?   // Observações gerais
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String    @id @default(cuid())
+  name      String
+  email     String?
+  phone     String
+  cpf       String?
+  birthDate DateTime?
+  address   String?
+  notes     String? // Observações gerais
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   appointments Appointment[]
 
   @@unique([cpf, userId])
 }
 
 enum AppointmentStatus {
-  SCHEDULED    // Agendado
-  CONFIRMED    // Confirmado
-  IN_PROGRESS  // Em andamento
-  COMPLETED    // Concluído
-  CANCELLED    // Cancelado
-  NO_SHOW      // Faltou
+  SCHEDULED // Agendado
+  CONFIRMED // Confirmado
+  IN_PROGRESS // Em andamento
+  COMPLETED // Concluído
+  CANCELLED // Cancelado
+  NO_SHOW // Faltou
 }
 
 enum ModalityType {
@@ -143,199 +143,199 @@ enum ModalityType {
 
 // Novo modelo: Agenda (Schedule) - Similar ao Calendly
 model Schedule {
-  id                String   @id @default(cuid())
-  name              String   // Ex: "Consultas Cardiologia", "Cortes e Barbas"
-  description       String?
-  color             String?  @default("#3B82F6") // Para visualização no calendário
-  isActive          Boolean  @default(true)
-  acceptWalkIn      Boolean  @default(false) // Aceitar encaixe
-  
+  id           String  @id @default(cuid())
+  name         String // Ex: "Consultas Cardiologia", "Cortes e Barbas"
+  description  String?
+  color        String? @default("#3B82F6") // Para visualização no calendário
+  isActive     Boolean @default(true)
+  acceptWalkIn Boolean @default(false) // Aceitar encaixe
+
   // Disponibilidade (padrão - usado quando não há configuração específica por dia)
-  workingDays       Int[]    // 0-6 (domingo a sábado)
-  startTime         String   @default("08:00")
-  endTime           String   @default("18:00")
-  slotDuration      Int      @default(30) // Duração padrão dos slots em minutos
-  bufferTime        Int      @default(0)  // Intervalo entre agendamentos em minutos
-  
+  workingDays  Int[] // 0-6 (domingo a sábado)
+  startTime    String @default("08:00")
+  endTime      String @default("18:00")
+  slotDuration Int    @default(30) // Duração padrão dos slots em minutos
+  bufferTime   Int    @default(0) // Intervalo entre agendamentos em minutos
+
   // Configurações de agendamento
-  lunchStart        String?  
-  lunchEnd          String?
+  lunchStart         String?
+  lunchEnd           String?
   advanceBookingDays Int     @default(30) // Quantos dias no futuro permitir agendamento
-  minNoticeHours    Int      @default(2)  // Horas mínimas de antecedência
-  
+  minNoticeHours     Int     @default(2) // Horas mínimas de antecedência
+
   // Controle de horários customizados
   useCustomDayConfig Boolean @default(false) // Se true, usa ScheduleDayConfig ao invés dos horários padrão
-  
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
 
-  userId            String
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   // Relações
-  services          ScheduleService[]
-  appointments      Appointment[]
-  professionals     ScheduleProfessional[] // Profissionais vinculados
-  dayConfigs        ScheduleDayConfig[] // Configurações específicas por dia da semana
-  blocks            ScheduleBlock[] // Bloqueios de períodos
+  services      ScheduleService[]
+  appointments  Appointment[]
+  professionals ScheduleProfessional[] // Profissionais vinculados
+  dayConfigs    ScheduleDayConfig[] // Configurações específicas por dia da semana
+  blocks        ScheduleBlock[] // Bloqueios de períodos
 }
 
 // Configuração de horários específicos por dia da semana
 model ScheduleDayConfig {
-  id          String   @id @default(cuid())
-  scheduleId  String
-  schedule    Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
-  
-  dayOfWeek   Int      // 0-6 (domingo a sábado)
-  isActive    Boolean  @default(true) // Se false, este dia não tem atendimento
-  
+  id         String   @id @default(cuid())
+  scheduleId String
+  schedule   Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  dayOfWeek Int // 0-6 (domingo a sábado)
+  isActive  Boolean @default(true) // Se false, este dia não tem atendimento
+
   // Cada dia pode ter múltiplos intervalos de horário
-  timeSlots   Json     // Array de objetos: [{startTime: "10:00", endTime: "12:00"}, {startTime: "15:00", endTime: "17:00"}]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  timeSlots Json // Array de objetos: [{startTime: "10:00", endTime: "12:00"}, {startTime: "15:00", endTime: "17:00"}]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@unique([scheduleId, dayOfWeek])
   @@index([scheduleId])
 }
 
 // Bloqueios de períodos específicos (ex: férias, feriados)
 model ScheduleBlock {
-  id          String   @id @default(cuid())
-  scheduleId  String
-  schedule    Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
-  
-  startDate   DateTime // Data/hora de início do bloqueio
-  endDate     DateTime // Data/hora de fim do bloqueio
-  reason      String?  // Motivo do bloqueio (ex: "Férias", "Feriado")
-  isAllDay    Boolean  @default(true) // Se true, bloqueia o dia inteiro
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  id         String   @id @default(cuid())
+  scheduleId String
+  schedule   Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  startDate DateTime // Data/hora de início do bloqueio
+  endDate   DateTime // Data/hora de fim do bloqueio
+  reason    String? // Motivo do bloqueio (ex: "Férias", "Feriado")
+  isAllDay  Boolean  @default(true) // Se true, bloqueia o dia inteiro
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([scheduleId, startDate, endDate])
 }
 
 // Tabela de junção: Agenda <-> Profissionais
 model ScheduleProfessional {
-  id            String   @id @default(cuid())
-  scheduleId    String
-  schedule      Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  id             String   @id @default(cuid())
+  scheduleId     String
+  schedule       Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
   professionalId String
-  professional  User     @relation(fields: [professionalId], references: [id], onDelete: Cascade)
-  
-  createdAt     DateTime @default(now())
-  
+  professional   User     @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
   @@unique([scheduleId, professionalId])
 }
 
 // Novo modelo: Serviço/Procedimento
 model Service {
-  id            String   @id @default(cuid())
-  name          String   // Ex: "Consulta Cardiologia", "Corte Masculino"
-  description   String?
-  duration      Int      @default(30) // em minutos
-  price         Float?
-  category      String?  // Ex: "Consultas", "Cortes", "Coloração"
-  isActive      Boolean  @default(true)
-  
-  // Campos específicos por segmento
-  requiresDeposit Boolean  @default(false)
-  depositAmount   Float?
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id          String  @id @default(cuid())
+  name        String // Ex: "Consulta Cardiologia", "Corte Masculino"
+  description String?
+  duration    Int     @default(30) // em minutos
+  price       Float?
+  category    String? // Ex: "Consultas", "Cortes", "Coloração"
+  isActive    Boolean @default(true)
 
-  userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  // Campos específicos por segmento
+  requiresDeposit Boolean @default(false)
+  depositAmount   Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   // Relações
-  schedules     ScheduleService[]
-  appointments  Appointment[]
+  schedules    ScheduleService[]
+  appointments Appointment[]
 }
 
 // Tabela de junção: Agenda <-> Serviços
 model ScheduleService {
-  id          String   @id @default(cuid())
-  scheduleId  String
-  schedule    Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
-  serviceId   String
-  service     Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  
+  id         String   @id @default(cuid())
+  scheduleId String
+  schedule   Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  serviceId  String
+  service    Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
   // Configurações específicas deste serviço nesta agenda
-  customDuration Int?   // Sobrescrever duração padrão do serviço
+  customDuration Int? // Sobrescrever duração padrão do serviço
   customPrice    Float? // Sobrescrever preço padrão do serviço
-  
-  createdAt   DateTime @default(now())
-  
+
+  createdAt DateTime @default(now())
+
   @@unique([scheduleId, serviceId])
 }
 
 model Appointment {
-  id            String      @id @default(cuid())
-  date          DateTime
-  duration      Int         @default(30) // em minutos
-  status        AppointmentStatus @default(SCHEDULED)
-  modality      ModalityType @default(PRESENCIAL)
-  
-  // Vinculação com Agenda e Serviço (novo sistema)
-  scheduleId    String?
-  schedule      Schedule?   @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
-  serviceId     String?
-  service       Service?    @relation(fields: [serviceId], references: [id], onDelete: SetNull)
-  
-  // Profissional responsável (novo sistema)
-  professionalId String?
-  professionalUser User?    @relation("ProfessionalAppointments", fields: [professionalId], references: [id], onDelete: SetNull)
-  
-  // Campos legados (mantidos para compatibilidade)
-  specialty     String?
-  insurance     String?     // Convênio
-  serviceType   String?     // Tipo de serviço (corte, coloração, manicure, etc.)
-  products      String?     // Produtos utilizados
-  professional  String?     // Nome do profissional (legado)
-  
-  // Campos gerais
-  notes         String?
-  price         Float?      // Preço final (pode sobrescrever o do serviço)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id       String            @id @default(cuid())
+  date     DateTime
+  duration Int               @default(30) // em minutos
+  status   AppointmentStatus @default(SCHEDULED)
+  modality ModalityType      @default(PRESENCIAL)
 
-  userId        String
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  clientId      String
-  client        Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  
+  // Vinculação com Agenda e Serviço (novo sistema)
+  scheduleId String?
+  schedule   Schedule? @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
+  serviceId  String?
+  service    Service?  @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+
+  // Profissional responsável (novo sistema)
+  professionalId   String?
+  professionalUser User?   @relation("ProfessionalAppointments", fields: [professionalId], references: [id], onDelete: SetNull)
+
+  // Campos legados (mantidos para compatibilidade)
+  specialty    String?
+  insurance    String? // Convênio
+  serviceType  String? // Tipo de serviço (corte, coloração, manicure, etc.)
+  products     String? // Produtos utilizados
+  professional String? // Nome do profissional (legado)
+
+  // Campos gerais
+  notes     String?
+  price     Float? // Preço final (pode sobrescrever o do serviço)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
   // Notificações relacionadas
   notifications Notification[]
 }
 
 model BusinessConfig {
-  id                String   @id @default(cuid())
-  workingDays       Int[]    // 0-6 (domingo a sábado)
-  startTime         String   @default("08:00")
-  endTime           String   @default("18:00")
-  defaultDuration   Int      @default(30) // em minutos
-  lunchStart        String?  @default("12:00")
-  lunchEnd          String?  @default("13:00")
-  timezone          String   @default("America/Sao_Paulo")
-  autoConfirm       Boolean  @default(false)
+  id                 String  @id @default(cuid())
+  workingDays        Int[] // 0-6 (domingo a sábado)
+  startTime          String  @default("08:00")
+  endTime            String  @default("18:00")
+  defaultDuration    Int     @default(30) // em minutos
+  lunchStart         String? @default("12:00")
+  lunchEnd           String? @default("13:00")
+  timezone           String  @default("America/Sao_Paulo")
+  autoConfirm        Boolean @default(false)
   allowOnlineBooking Boolean @default(true)
-  
-  // Personalização da página de agendamento do cliente
-  businessLogo      String?  // URL do logo
-  publicUrl         String?  // URL pública para agendamento (slug único)
-  
-  // Campos específicos para salões
-  multipleServices  Boolean  @default(false) // Permitir múltiplos serviços por agendamento
-  requiresDeposit   Boolean  @default(false) // Exigir sinal/depósito
-  cancellationHours Int      @default(24)    // Horas mínimas para cancelamento
-  
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
 
-  userId            String   @unique
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Personalização da página de agendamento do cliente
+  businessLogo String? // URL do logo
+  publicUrl    String? // URL pública para agendamento (slug único)
+
+  // Campos específicos para salões
+  multipleServices  Boolean @default(false) // Permitir múltiplos serviços por agendamento
+  requiresDeposit   Boolean @default(false) // Exigir sinal/depósito
+  cancellationHours Int     @default(24) // Horas mínimas para cancelamento
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model PlanUsage {
@@ -347,8 +347,8 @@ model PlanUsage {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
-  userId             String   @unique
-  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum NotificationType {
@@ -362,57 +362,72 @@ enum NotificationType {
 }
 
 enum NotificationChannel {
-  INTERNAL     // Notificação interna (sino)
-  WHATSAPP     // WhatsApp via Evolution API
-  BOTH         // Ambos
+  INTERNAL // Notificação interna (sino)
+  WHATSAPP // WhatsApp via Evolution API
+  BOTH // Ambos
 }
 
 model Notification {
-  id          String            @id @default(cuid())
-  title       String
-  message     String
-  type        NotificationType
-  isRead      Boolean           @default(false)
-  readAt      DateTime?
-  
+  id      String           @id @default(cuid())
+  title   String
+  message String
+  type    NotificationType
+  isRead  Boolean          @default(false)
+  readAt  DateTime?
+
   // Relacionamento com agendamento (opcional)
   appointmentId String?
-  appointment   Appointment?    @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
-  
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
   // Destinatário
-  userId      String
-  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   // Metadados adicionais
-  metadata    Json?
-  
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([userId, isRead])
   @@index([userId, createdAt])
 }
 
 model WhatsAppConfig {
-  id                String   @id @default(cuid())
-  instanceName      String   @unique   // Nome da instância na Evolution API
-  apiKey            String?             // API Key da Evolution
-  apiUrl            String              // URL da Evolution API
-  phoneNumber       String?             // Número do WhatsApp conectado
-  isConnected       Boolean  @default(false)
-  qrCode            String?  @db.Text   // QR Code para conexão
-  
-  // Configurações de notificações
-  enabled           Boolean  @default(false)
-  notifyOnCreate    Boolean  @default(true)
-  notifyOnConfirm   Boolean  @default(true)
-  notifyOnCancel    Boolean  @default(true)
-  notifyReminder    Boolean  @default(true)
-  reminderHours     Int      @default(24) // Horas antes do agendamento
-  
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
-  userId            String   @unique
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String  @id @default(cuid())
+  instanceName String  @unique // Nome da instância na Evolution API
+  apiKey       String? @db.Text // API Key da Evolution
+  apiUrl       String // URL da Evolution API
+  phoneNumber  String? // Número do WhatsApp conectado
+  isConnected  Boolean @default(false)
+  qrCode       String? @db.Text // QR Code para conexão
+
+  // Configuração geral
+  enabled Boolean @default(false)
+
+  // Confirmação de Agendamento (logo após criação)
+  notifyOnCreate     Boolean @default(true)
+  createDelayMinutes Int     @default(0)
+  createMessage      String? @db.Text
+
+  // Cancelamento (logo após cancelar)
+  notifyOnCancel     Boolean @default(true)
+  cancelDelayMinutes Int     @default(0)
+  cancelMessage      String? @db.Text
+
+  // Confirmação de Presença (X dias antes)
+  notifyConfirmation  Boolean @default(true)
+  confirmationDays    Int     @default(1)
+  confirmationMessage String? @db.Text
+
+  // Lembrete (X horas antes)
+  notifyReminder  Boolean @default(true)
+  reminderHours   Int     @default(24)
+  reminderMessage String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

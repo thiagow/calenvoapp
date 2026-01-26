@@ -6,6 +6,7 @@ import { prisma } from '@/lib/db'
 import { AppointmentStatus, ModalityType } from '@prisma/client'
 import { NotificationService } from '@/lib/notification-service'
 import { WhatsAppService } from '@/lib/whatsapp-service'
+import { WhatsAppTriggerService } from '@/lib/whatsapp-trigger'
 import { canCreateAppointment, getRemainingAppointments, shouldNotifyLimitApproaching } from '@/lib/plan-limits'
 
 export const dynamic = 'force-dynamic'
@@ -385,23 +386,14 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // Enviar notificação via WhatsApp se configurado
-      const whatsappConfig = appointment.user.whatsappConfig
-      if (
-        whatsappConfig?.enabled &&
-        whatsappConfig?.isConnected &&
-        whatsappConfig?.notifyOnCreate &&
-        appointment.client.phone
-      ) {
-        await WhatsAppService.sendAppointmentCreatedMessage(
-          userId,
-          appointment.client.name,
-          appointment.client.phone,
-          serviceName,
-          appointment.date,
-          appointment.user.businessName || undefined
-        )
-      }
+      // Enviar notificação via WhatsApp se configurado (usando novo sistema)
+      const professionalName = appointment.professionalUser?.name || appointment.professional || undefined
+      
+      await WhatsAppTriggerService.onAppointmentCreated(
+        appointment as any,
+        serviceName,
+        professionalName
+      )
     } catch (error) {
       console.error('Erro ao enviar notificações:', error)
       // Não falhar a criação do agendamento se houver erro nas notificações

@@ -116,6 +116,22 @@ export default function EditSchedulePage() {
     }
   }
 
+  // Auto-preencher slotDuration baseado no primeiro serviço selecionado
+  useEffect(() => {
+    if (formData.selectedServices.length > 0 && services.length > 0) {
+      const firstSelectedService = services.find(s =>
+        s.id === formData.selectedServices[0]
+      )
+
+      if (firstSelectedService && firstSelectedService.duration) {
+        setFormData((prev: any) => ({
+          ...prev,
+          slotDuration: firstSelectedService.duration
+        }))
+      }
+    }
+  }, [formData.selectedServices, services])
+
   const handleDayToggle = (day: number) => {
     setFormData((prev: any) => ({
       ...prev,
@@ -218,210 +234,223 @@ export default function EditSchedulePage() {
 
         <TabsContent value="basic">
           <form onSubmit={handleSubmit} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Informações Básicas</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Status da Agenda</Label>
-                <p className="text-sm text-gray-500">Ativar ou desativar esta agenda</p>
-              </div>
-              <Switch
-                checked={formData.isActive}
-                onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Aceitar Encaixe</Label>
-                <p className="text-sm text-gray-500">Permitir agendamentos de encaixe</p>
-              </div>
-              <Switch
-                checked={formData.acceptWalkIn}
-                onCheckedChange={(checked) => setFormData({ ...formData, acceptWalkIn: checked })}
-              />
-            </div>
-            <div>
-              <Label htmlFor="name">Nome da Agenda *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="description">Descrição</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                rows={3}
-              />
-            </div>
-            <div>
-              <Label>Cor da Agenda</Label>
-              <div className="flex gap-2 mt-2">
-                {COLORS.map((color) => (
-                  <button
-                    key={color.value}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, color: color.value })}
-                    className={`w-10 h-10 rounded-full border-2 transition-all ${
-                      formData.color === color.value
-                        ? 'border-gray-900 scale-110'
-                        : 'border-gray-300 hover:scale-105'
-                    }`}
-                    style={{ backgroundColor: color.value }}
-                    title={color.label}
+            <Card>
+              <CardHeader>
+                <CardTitle>Informações Básicas</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Status da Agenda</Label>
+                    <p className="text-sm text-gray-500">Ativar ou desativar esta agenda</p>
+                  </div>
+                  <Switch
+                    checked={formData.isActive}
+                    onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
                   />
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Dias de Atendimento</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {WEEK_DAYS.map((day) => (
-                <div key={day.value} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`day-${day.value}`}
-                    checked={formData.workingDays.includes(day.value)}
-                    onCheckedChange={() => handleDayToggle(day.value)}
-                  />
-                  <label htmlFor={`day-${day.value}`} className="text-sm font-medium cursor-pointer">
-                    {day.label}
-                  </label>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Configurações de Agendamento</CardTitle>
-            <CardDescription>Configure os intervalos e durações para esta agenda</CardDescription>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="slotDuration">Duração do Slot (min)</Label>
-              <Input
-                id="slotDuration"
-                type="number"
-                min="15"
-                step="15"
-                value={formData.slotDuration}
-                onChange={(e) => setFormData({ ...formData, slotDuration: parseInt(e.target.value) })}
-              />
-            </div>
-            <div>
-              <Label htmlFor="bufferTime">Intervalo (min)</Label>
-              <Input
-                id="bufferTime"
-                type="number"
-                min="0"
-                step="5"
-                value={formData.bufferTime}
-                onChange={(e) => setFormData({ ...formData, bufferTime: parseInt(e.target.value) })}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {services.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Serviços Disponíveis</CardTitle>
-              <CardDescription>Selecione os serviços que podem ser agendados nesta agenda</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {services.map((service) => (
-                  <div key={service.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`service-${service.id}`}
-                      checked={formData.selectedServices.includes(service.id)}
-                      onCheckedChange={() => handleServiceToggle(service.id)}
-                    />
-                    <label htmlFor={`service-${service.id}`} className="text-sm font-medium cursor-pointer flex-1">
-                      {service.name} ({service.duration}min)
-                    </label>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Aceitar Encaixe</Label>
+                    <p className="text-sm text-gray-500">Permitir agendamentos de encaixe</p>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-600" />
-              <div>
-                <CardTitle>Profissionais</CardTitle>
-                <CardDescription>Selecione os profissionais que terão acesso a esta agenda</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {professionals.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {professionals.map((professional) => (
-                  <div key={professional.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`professional-${professional.id}`}
-                      checked={formData.selectedProfessionals.includes(professional.id)}
-                      onCheckedChange={() => handleProfessionalToggle(professional.id)}
-                    />
-                    <label htmlFor={`professional-${professional.id}`} className="text-sm font-medium cursor-pointer flex-1">
-                      {professional.name}
-                      {professional.email && <span className="text-xs text-gray-500 block">{professional.email}</span>}
-                    </label>
+                  <Switch
+                    checked={formData.acceptWalkIn}
+                    onCheckedChange={(checked) => setFormData({ ...formData, acceptWalkIn: checked })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="name">Nome da Agenda *</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="description">Descrição</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <Label>Cor da Agenda</Label>
+                  <div className="flex gap-2 mt-2">
+                    {COLORS.map((color) => (
+                      <button
+                        key={color.value}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, color: color.value })}
+                        className={`w-10 h-10 rounded-full border-2 transition-all ${formData.color === color.value
+                          ? 'border-gray-900 scale-110'
+                          : 'border-gray-300 hover:scale-105'
+                          }`}
+                        style={{ backgroundColor: color.value }}
+                        title={color.label}
+                      />
+                    ))}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-6 text-gray-500">
-                <Users className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-                <p className="text-sm">Nenhum profissional cadastrado</p>
-                <p className="text-xs mt-1">Cadastre profissionais na seção de equipe</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                </div>
+              </CardContent>
+            </Card>
 
-        <div className="flex justify-end gap-4 sticky bottom-0 bg-white py-4 border-t">
-          <Button type="button" variant="outline" onClick={() => router.back()}>
-            Cancelar
-          </Button>
-          <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700">
-            {loading ? 'Salvando...' : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Salvar Alterações
-              </>
+            {services.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Serviços Disponíveis</CardTitle>
+                  <CardDescription>Selecione os serviços que podem ser agendados nesta agenda</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {services.map((service) => (
+                      <div key={service.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`service-${service.id}`}
+                          checked={formData.selectedServices.includes(service.id)}
+                          onCheckedChange={() => handleServiceToggle(service.id)}
+                        />
+                        <label htmlFor={`service-${service.id}`} className="text-sm font-medium cursor-pointer flex-1">
+                          {service.name} ({service.duration}min)
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             )}
-          </Button>
-        </div>
-      </form>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-blue-600" />
+                  <div>
+                    <CardTitle>Profissionais</CardTitle>
+                    <CardDescription>Selecione os profissionais que terão acesso a esta agenda</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {professionals.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {professionals.map((professional) => (
+                      <div key={professional.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`professional-${professional.id}`}
+                          checked={formData.selectedProfessionals.includes(professional.id)}
+                          onCheckedChange={() => handleProfessionalToggle(professional.id)}
+                        />
+                        <label htmlFor={`professional-${professional.id}`} className="text-sm font-medium cursor-pointer flex-1">
+                          {professional.name}
+                          {professional.email && <span className="text-xs text-gray-500 block">{professional.email}</span>}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-gray-500">
+                    <Users className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+                    <p className="text-sm">Nenhum profissional cadastrado</p>
+                    <p className="text-xs mt-1">Cadastre profissionais na seção de equipe</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Dias de Atendimento</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {WEEK_DAYS.map((day) => (
+                    <div key={day.value} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`day-${day.value}`}
+                        checked={formData.workingDays.includes(day.value)}
+                        onCheckedChange={() => handleDayToggle(day.value)}
+                      />
+                      <label htmlFor={`day-${day.value}`} className="text-sm font-medium cursor-pointer">
+                        {day.label}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Horários e Slots</CardTitle>
+                <CardDescription>Configure os intervalos e durações para esta agenda</CardDescription>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="slotDuration">
+                    Duração do Slot (min)
+                    {formData.selectedServices.length > 0 && (
+                      <span className="text-xs text-gray-500 ml-2">
+                        (Preenchido automaticamente pelo serviço)
+                      </span>
+                    )}
+                  </Label>
+                  <Input
+                    id="slotDuration"
+                    type="number"
+                    min="15"
+                    step="15"
+                    value={formData.slotDuration}
+                    onChange={(e) => setFormData({ ...formData, slotDuration: parseInt(e.target.value) })}
+                    disabled={formData.selectedServices.length > 0}
+                    className={formData.selectedServices.length > 0 ? "bg-gray-50 cursor-not-allowed" : ""}
+                  />
+                  {formData.selectedServices.length === 0 && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Selecione um serviço acima para preencher automaticamente
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="bufferTime">Intervalo (min)</Label>
+                  <Input
+                    id="bufferTime"
+                    type="number"
+                    min="0"
+                    step="5"
+                    value={formData.bufferTime}
+                    onChange={(e) => setFormData({ ...formData, bufferTime: parseInt(e.target.value) })}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex justify-end gap-4 sticky bottom-0 bg-white py-4 border-t">
+              <Button type="button" variant="outline" onClick={() => router.back()}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700">
+                {loading ? 'Salvando...' : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Salvar Alterações
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
         </TabsContent>
 
         <TabsContent value="custom-hours">
-          <CustomDayConfig 
+          <CustomDayConfig
             scheduleId={params.id as string}
           />
         </TabsContent>
 
         <TabsContent value="blocks">
-          <ScheduleBlocks 
+          <ScheduleBlocks
             scheduleId={params.id as string}
             scheduleName={formData.name}
           />
