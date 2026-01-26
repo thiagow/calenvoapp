@@ -308,6 +308,8 @@ model Appointment {
 
   // Notificações relacionadas
   notifications Notification[]
+
+  @@index([userId, date])
 }
 
 model BusinessConfig {
@@ -324,7 +326,7 @@ model BusinessConfig {
 
   // Personalização da página de agendamento do cliente
   businessLogo String? // URL do logo
-  publicUrl    String? // URL pública para agendamento (slug único)
+  publicUrl    String? @unique // URL pública para agendamento (slug único)
 
   // Campos específicos para salões
   multipleServices  Boolean @default(false) // Permitir múltiplos serviços por agendamento

@@ -18,10 +18,42 @@ export async function GET(request: NextRequest) {
 
     const userId = (session.user as any).id
 
+    // Get filter parameters
+    const { searchParams } = new URL(request.url)
+    const monthParam = searchParams.get('month') // Format: "YYYY-MM"
+    
+    // Calculate date range
+    let startDate: Date
+    let endDate: Date
+    let periodLabel: string
+    
+    if (monthParam) {
+      // Use selected month
+      const [year, month] = monthParam.split('-').map(Number)
+      startDate = new Date(year, month - 1, 1, 0, 0, 0, 0)
+      endDate = new Date(year, month, 0, 23, 59, 59, 999)
+      periodLabel = startDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+    } else {
+      // Default to current month
+      const now = new Date()
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0)
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+      periodLabel = startDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+    }
+
+    // Date filter for all queries
+    const dateFilter = {
+      date: {
+        gte: startDate,
+        lte: endDate
+      }
+    }
+
     // Total de agendamentos
     const totalAppointments = await prisma.appointment.count({
       where: {
-        userId
+        userId,
+        ...dateFilter
       }
     })
 
@@ -29,7 +61,8 @@ export async function GET(request: NextRequest) {
     const confirmedAppointments = await prisma.appointment.count({
       where: {
         userId,
-        status: 'CONFIRMED'
+        status: 'CONFIRMED',
+        ...dateFilter
       }
     })
 
@@ -37,7 +70,8 @@ export async function GET(request: NextRequest) {
     const cancelledAppointments = await prisma.appointment.count({
       where: {
         userId,
-        status: 'CANCELLED'
+        status: 'CANCELLED',
+        ...dateFilter
       }
     })
 
@@ -45,7 +79,8 @@ export async function GET(request: NextRequest) {
     const noShowAppointments = await prisma.appointment.count({
       where: {
         userId,
-        status: 'NO_SHOW'
+        status: 'NO_SHOW',
+        ...dateFilter
       }
     })
 
@@ -56,7 +91,8 @@ export async function GET(request: NextRequest) {
         userId,
         serviceId: {
           not: null
-        }
+        },
+        ...dateFilter
       },
       _count: {
         id: true
@@ -85,16 +121,19 @@ export async function GET(request: NextRequest) {
       percentage: totalAppointments > 0 ? Math.round((item._count.id / totalAppointments) * 100) : 0
     }))
 
-    // Evolução mensal (últimos 6 meses)
-    const sixMonthsAgo = new Date()
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+    // Evolução mensal (últimos 6 meses incluindo o mês selecionado/atual)
+    const evolutionStartDate = new Date(startDate)
+    evolutionStartDate.setMonth(evolutionStartDate.getMonth() - 5)
+    evolutionStartDate.setDate(1)
+    evolutionStartDate.setHours(0, 0, 0, 0)
 
     const monthlyData = await prisma.appointment.groupBy({
       by: ['date'],
       where: {
         userId,
         date: {
-          gte: sixMonthsAgo
+          gte: evolutionStartDate,
+          lte: endDate
         }
       },
       _count: {
@@ -112,7 +151,7 @@ export async function GET(request: NextRequest) {
     // Gerar últimos 6 meses com dados
     const evolutionData = []
     for (let i = 5; i >= 0; i--) {
-      const date = new Date()
+      const date = new Date(startDate)
       date.setMonth(date.getMonth() - i)
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
       const count = monthlyStats.get(monthKey) || 0
@@ -124,6 +163,11 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
+      period: {
+        label: periodLabel,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString()
+      },
       mainStats: {
         total: totalAppointments,
         confirmed: confirmedAppointments,

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-options'
 import { prisma } from '@/lib/db'
+import { generateSlug } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -91,6 +92,23 @@ export async function PATCH(request: NextRequest) {
         createdAt: true,
       }
     })
+
+    // Update BusinessConfig with generated slug if businessName changed
+    if (body.businessName) {
+      const slug = generateSlug(body.businessName)
+      
+      await prisma.businessConfig.upsert({
+        where: { userId },
+        create: {
+          userId,
+          publicUrl: slug,
+          workingDays: [1, 2, 3, 4, 5], // Default Monday to Friday
+        },
+        update: {
+          publicUrl: slug
+        }
+      })
+    }
 
     return NextResponse.json(updatedUser)
   } catch (error) {
