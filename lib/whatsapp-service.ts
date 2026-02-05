@@ -1,4 +1,11 @@
 
+/**
+ * WhatsApp Service (Legacy)
+ * @deprecated This service interacts directly with Evolution API.
+ * As of v3.0, the application uses n8n workflows for WhatsApp integration.
+ * Refer to WhatsAppTriggerService and app/actions/whatsapp.ts for current implementation.
+ */
+
 import { prisma } from '@/lib/db'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'

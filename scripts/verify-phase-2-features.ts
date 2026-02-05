@@ -17,7 +17,7 @@ const testCases = [
 
 let passed = 0
 let failed = 0
-const results = []
+const results: Array<{ test: string; input: string; expected: string; actual: string; passed: boolean }> = []
 
 testCases.forEach(({ input, expected }, index) => {
   const result = generateSlug(input)

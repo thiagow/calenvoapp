@@ -3,10 +3,16 @@
 import { useState, useEffect } from 'react';
 import { WhatsAppConfig } from '@prisma/client';
 import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { NotificationCard } from './notification-card';
-import { Bell, CalendarCheck, CalendarX, Clock } from 'lucide-react';
+import { Bell, CalendarCheck, CalendarX, Clock, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { updateWhatsAppSettingsAction } from '@/app/actions/whatsapp';
+import { VariableHelper } from './variable-helper';
+import { MessagePreview } from './message-preview';
+import { Textarea } from '@/components/ui/textarea';
 
 interface NotificationSettingsProps {
   config: WhatsAppConfig;
@@ -24,7 +30,6 @@ export function NotificationSettings({ config, disabled = false }: NotificationS
 
   // Cancellation notification
   const [notifyOnCancel, setNotifyOnCancel] = useState(config.notifyOnCancel);
-  const [cancelDelayMinutes, setCancelDelayMinutes] = useState(config.cancelDelayMinutes);
   const [cancelMessage, setCancelMessage] = useState(config.cancelMessage || '');
 
   // Confirmation (days before)
@@ -46,7 +51,6 @@ export function NotificationSettings({ config, disabled = false }: NotificationS
       createDelayMinutes !== config.createDelayMinutes ||
       createMessage !== (config.createMessage || '') ||
       notifyOnCancel !== config.notifyOnCancel ||
-      cancelDelayMinutes !== config.cancelDelayMinutes ||
       cancelMessage !== (config.cancelMessage || '') ||
       notifyConfirmation !== config.notifyConfirmation ||
       confirmationDays !== config.confirmationDays ||
@@ -61,7 +65,6 @@ export function NotificationSettings({ config, disabled = false }: NotificationS
     createDelayMinutes,
     createMessage,
     notifyOnCancel,
-    cancelDelayMinutes,
     cancelMessage,
     notifyConfirmation,
     confirmationDays,
@@ -81,7 +84,7 @@ export function NotificationSettings({ config, disabled = false }: NotificationS
         createDelayMinutes,
         createMessage,
         notifyOnCancel,
-        cancelDelayMinutes,
+        cancelDelayMinutes: 0, // v3.0: Always send immediately
         cancelMessage,
         notifyConfirmation,
         confirmationDays,
@@ -135,22 +138,55 @@ export function NotificationSettings({ config, disabled = false }: NotificationS
         disabled={disabled}
       />
 
-      {/* 2. Cancellation Notification */}
-      <NotificationCard
-        title="Notificação de Cancelamento"
-        description="Enviada quando um agendamento é cancelado"
-        icon={<CalendarX className="h-5 w-5 text-destructive" />}
-        enabled={notifyOnCancel}
-        onEnabledChange={setNotifyOnCancel}
-        message={cancelMessage}
-        onMessageChange={setCancelMessage}
-        delayValue={cancelDelayMinutes}
-        onDelayChange={setCancelDelayMinutes}
-        delayLabel="Enviar após (em minutos)"
-        delayUnit="minutos"
-        testType="cancel"
-        disabled={disabled}
-      />
+      {/* 2. Cancellation Notification (v3.0 - Real-time only) */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-start gap-3">
+              <CalendarX className="h-5 w-5 text-destructive mt-1" />
+              <div className="space-y-1">
+                <CardTitle className="text-base">Notificação de Cancelamento</CardTitle>
+                <CardDescription>
+                  Enviada imediatamente quando um agendamento é cancelado
+                </CardDescription>
+              </div>
+            </div>
+            <Switch
+              checked={notifyOnCancel}
+              onCheckedChange={setNotifyOnCancel}
+              disabled={disabled}
+            />
+          </div>
+        </CardHeader>
+        {notifyOnCancel && (
+          <CardContent className="space-y-4">
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Esta notificação é enviada em tempo real, sem atraso configurável.
+              </AlertDescription>
+            </Alert>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Mensagem personalizada</label>
+              <Textarea
+                value={cancelMessage}
+                onChange={(e) => setCancelMessage(e.target.value)}
+                placeholder="Digite a mensagem de cancelamento"
+                disabled={disabled}
+                rows={3}
+                maxLength={1000}
+              />
+              <p className="text-xs text-muted-foreground">
+                Máximo 1000 caracteres
+              </p>
+            </div>
+
+            <VariableHelper />
+            <MessagePreview message={cancelMessage} />
+          </CardContent>
+        )}
+      </Card>
 
       {/* 3. Presence Confirmation (days before) */}
       <NotificationCard

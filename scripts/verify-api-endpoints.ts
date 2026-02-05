@@ -26,7 +26,7 @@ async function testReportsAPI() {
     }
 
   } catch (error) {
-    console.log('❌ Reports API error:', error.message)
+    console.log('❌ Reports API error:', error instanceof Error ? error.message : String(error))
   }
 }
 
@@ -44,7 +44,7 @@ async function testPlansAPI() {
       console.log('❌ Plans API failed')
     }
   } catch (error) {
-    console.log('❌ Plans API error:', error.message)
+    console.log('❌ Plans API error:', error instanceof Error ? error.message : String(error))
   }
 }
 
@@ -66,7 +66,7 @@ async function testProfileAPI() {
       console.log('❌ Profile API failed:', response.status)
     }
   } catch (error) {
-    console.log('❌ Profile API error:', error.message)
+    console.log('❌ Profile API error:', error instanceof Error ? error.message : String(error))
   }
 }
 

@@ -3,8 +3,12 @@ import { prisma } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 
 /**
- * Webhook endpoint to receive Evolution API events
- * Handles connection status updates and message events
+ * Evolution API Webhook Handler v3.1
+ * 
+ * This endpoint is registered in n8n/Evolution to receive real-time events.
+ * Currently handles:
+ * - connection.update: Updates database when instance connects/disconnects.
+ * - messages.upsert: Placeholder for handling user replies or confirmations.
  */
 export async function POST(request: NextRequest) {
   try {

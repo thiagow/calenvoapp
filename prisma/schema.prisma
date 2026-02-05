@@ -395,16 +395,26 @@ model Notification {
   @@index([userId, createdAt])
 }
 
+/// Configuration for WhatsApp Integration via n8n (v3.1)
 model WhatsAppConfig {
-  id           String  @id @default(cuid())
-  instanceName String  @unique // Nome da instância na Evolution API
-  apiKey       String? @db.Text // API Key da Evolution
-  apiUrl       String // URL da Evolution API
-  phoneNumber  String? // Número do WhatsApp conectado
-  isConnected  Boolean @default(false)
-  qrCode       String? @db.Text // QR Code para conexão
+  id              String    @id @default(cuid())
+  /// Unique identifier for the instance in n8n/Evolution
+  instanceName    String    @unique
+  /// Legacy API Key for direct Evolution access
+  apiKey          String?   @db.Text
+  /// URL of the n8n webhook or Evolution API
+  apiUrl          String
+  /// The phone number connected to this instance
+  phoneNumber     String?   @db.Text
+  /// Whether the instance is currently in an 'open' state
+  isConnected     Boolean   @default(false)
+  /// Current base64 QR Code or Data URL
+  qrCode          String?   @db.Text
+  /// Expiration timestamp for the current QR Code
+  qrCodeExpiresAt DateTime?
 
   // Configuração geral
+  /// Whether automated notifications are globally enabled for this user
   enabled Boolean @default(false)
 
   // Confirmação de Agendamento (logo após criação)

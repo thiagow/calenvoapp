@@ -1,453 +1,131 @@
-# WhatsApp - Integração com Evolution API
+# WhatsApp Integration v3.1 (n8n Workflow)
 
-## 📋 Descrição
+## 📋 Overview
 
-Integração completa com WhatsApp via Evolution API para envio de notificações automatizadas aos clientes.
+The WhatsApp integration in CalenvoApp v3.1 uses a robust n8n-based architecture to handle automated notifications, instance management, and real-time connection monitoring. This system ensures high reliability and a seamless user experience for business owners to connect their WhatsApp Business accounts.
 
-## 📍 Localização no Código
+---
 
-### APIs
-- `POST /api/whatsapp/connect` - Conectar instância
-- `GET /api/whatsapp/qrcode` - Gerar QR Code
-- `POST /api/whatsapp/send` - Enviar mensagem
-- `GET /api/whatsapp/status` - Status da conexão
-- `POST /api/whatsapp/disconnect` - Desconectar
-- `POST /api/whatsapp/webhook` - Receber webhooks
+## 🏗️ Architecture
 
-## 🗄️ Modelo de Dados
+The integration follows a decoupled architecture:
+1. **Frontend (Next.js)**: React components for managing connection and settings.
+2. **Server Actions (Next.js)**: Secure logic for communicating with n8n and managing database state.
+3. **n8n Workflows**: Middleware that interfaces with the WhatsApp API (Evolution) for instance management and message dispatch.
+4. **PostgreSQL (Prisma)**: Stores configuration, connection states, and notification preferences.
+
+---
+
+## 📍 Key Components
+
+### 🖥️ UI Components
+- `WhatsAppConnection`: Main dashboard component for connection lifecycle.
+- `QRCodeModal`: Optimized 2-column responsive modal for scanning QR codes.
+- `NotificationSettings`: Form for customizing message templates and delays.
+
+### ⚙️ Server Logic
+- `app/actions/whatsapp.ts`: Core server actions for all WhatsApp operations.
+- `useStatusPolling`: Custom hook for 30s status verification with visual countdown.
+- `WhatsAppTriggerService`: Central logic for triggering notifications from business events.
+
+---
+
+## 🔄 Connection Lifecycle
+
+### 1. Instance Creation
+- **Endpoint**: `N8N_CREATE_INSTANCE_URL`
+- **Logic**: User enters their phone number. The system calls n8n to create or update an instance.
+- **Output**: A base64 QR code is returned and stored in the database.
+
+### 2. QR Code Scanning
+- **Modal**: Displays the QR code in a responsive, user-friendly layout.
+- **Persistence**: Modal state is saved in `sessionStorage`, allowing it to persist across accidental page reloads.
+- **Timer**: A 30-second visual countdown informs the user when the next automatic status check will occur.
+
+### 3. Real-time Status Polling
+- **Interval**: 30 seconds (optimized from 2s to reduce server load).
+- **Mechanism**: While the modal is open, the system automatically checks connection status.
+- **Completion**: Once connected, a single "Conectado ✓" toast is shown, followed by a controlled page reload after 1.5s.
+
+### 4. Manual Verification
+- **Button**: "Verificar Status" is always available on the dashboard when the modal is closed.
+- **Usage**: Allows users to force a status sync with n8n at any time.
+
+---
+
+## 🗄️ Data Model (`WhatsAppConfig`)
 
 ```prisma
 model WhatsAppConfig {
-  id                String   @id @default(cuid())
-  instanceName      String   @unique   // Nome da instância na Evolution API
-  apiKey            String?             // API Key da Evolution
-  apiUrl            String              // URL da Evolution API
-  phoneNumber       String?             // Número do WhatsApp conectado
-  isConnected       Boolean  @default(false)
-  qrCode            String?  @db.Text   // QR Code para conexão
+  id                  String    @id @default(cuid())
+  instanceName        String    @unique
+  phoneNumber         String?
+  isConnected         Boolean   @default(false)
+  qrCode              String?   @db.Text
+  qrCodeExpiresAt     DateTime?
+  enabled             Boolean   @default(false)
   
-  // Configurações de notificações
-  enabled           Boolean  @default(false)
-  notifyOnCreate    Boolean  @default(true)
-  notifyOnConfirm   Boolean  @default(true)
-  notifyOnCancel    Boolean  @default(true)
-  notifyReminder    Boolean  @default(true)
-  reminderHours     Int      @default(24) // Horas antes do agendamento
+  // Notification Templates
+  createMessage       String?   @db.Text
+  cancelMessage       String?   @db.Text
+  confirmationMessage String?   @db.Text
+  reminderMessage     String?   @db.Text
   
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  // Timings & Delays
+  createDelayMinutes  Int       @default(0)
+  cancelDelayMinutes  Int       @default(0)
+  reminderHours       Int       @default(24)
   
-  userId            String   @unique
-  user              User     @relation(fields: [userId], references: [id])
+  userId              String    @unique
+  user                User      @relation(fields: [userId], references: [id])
 }
 ```
 
-## 🎯 Funcionalidades
+---
 
-### 1. Conexão
+## 🔗 n8n Endpoints (v3.1)
 
-#### Gerar QR Code
-```typescript
-async function generateQRCode(userId: string) {
-  const config = await prisma.whatsAppConfig.findUnique({
-    where: { userId },
-  })
-  
-  // Criar ou recuperar instância na Evolution API
-  const response = await fetch(`${config.apiUrl}/instance/create`, {
-    method: 'POST',
-    headers: {
-      'apikey': config.apiKey,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      instanceName: config.instanceName,
-      qrcode: true,
-    }),
-  })
-  
-  const data = await response.json()
-  
-  // Salvar QR Code
-  await prisma.whatsAppConfig.update({
-    where: { userId },
-    data: { qrCode: data.qrcode.base64 },
-  })
-  
-  return data.qrcode.base64
-}
-```
+| Variable | Purpose |
+|----------|---------|
+| `N8N_CREATE_INSTANCE_URL` | Creates a new instance or refreshes QR for existing one |
+| `N8N_STATUS_URL` | Checks if the instance is currently connected (open/close) |
+| `N8N_DELETE_URL` | Completely removes the instance from n8n and local DB |
+| `N8N_WEBHOOK_URL` | Main webhook for generic actions like sending messages |
 
-#### Verificar Conexão
-```typescript
-async function checkConnection(userId: string) {
-  const config = await prisma.whatsAppConfig.findUnique({
-    where: { userId },
-  })
-  
-  const response = await fetch(
-    `${config.apiUrl}/instance/connectionState/${config.instanceName}`,
-    {
-      headers: { 'apikey': config.apiKey },
-    }
-  )
-  
-  const data = await response.json()
-  
-  const isConnected = data.state === 'open'
-  
-  await prisma.whatsAppConfig.update({
-    where: { userId },
-    data: {
-      isConnected,
-      phoneNumber: isConnected ? data.instance.phoneNumber : null,
-    },
-  })
-  
-  return isConnected
-}
-```
+---
 
-### 2. Envio de Mensagens
+## 📝 Notification Templates
 
-#### Função Base
-```typescript
-async function sendWhatsAppMessage(
-  userId: string,
-  to: string,
-  message: string
-) {
-  const config = await prisma.whatsAppConfig.findUnique({
-    where: { userId },
-  })
-  
-  if (!config?.isConnected || !config?.enabled) {
-    throw new Error('WhatsApp não configurado ou desconectado')
-  }
-  
-  // Formatar número (remover caracteres especiais)
-  const number = to.replace(/\D/g, '')
-  
-  // Enviar mensagem
-  const response = await fetch(`${config.apiUrl}/message/sendText`, {
-    method: 'POST',
-    headers: {
-      'apikey': config.apiKey,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      instance: config.instanceName,
-      number: `${number}@s.whatsapp.net`,
-      text: message,
-    }),
-  })
-  
-  if (!response.ok) {
-    throw new Error('Falha ao enviar mensagem WhatsApp')
-  }
-  
-  return response.json()
-}
-```
+Templates support dynamic variables:
+- `{{nome_cliente}}`: Client's full name
+- `{{data}}`: Appointment date (DD/MM/YYYY)
+- `{{hora}}`: Appointment time (HH:mm)
+- `{{servico}}`: Name of the service
+- `{{profissional}}`: Assigned professional's name
+- `{{empresa}}`: Your business name
 
-### 3. Templates de Mensagens
+---
 
-```typescript
-const WHATSAPP_TEMPLATES = {
-  APPOINTMENT_CREATED: (data: AppointmentData) => `
-🎉 *Agendamento Confirmado!*
+## 🔧 Troubleshooting (v3.1)
 
-Olá *${data.clientName}*!
+### QR Code not loading
+- Check if `N8N_CREATE_INSTANCE_URL` is correctly configured in `.env`.
+- Ensure n8n workflow is active and reachable.
 
-Seu agendamento foi confirmado com sucesso:
+### Modal closes too fast
+- *Fixed in v3.1*: The system now uses 30s polling and sessionStorage persistence. If it still closes, check for browser console errors.
 
-📅 *Data:* ${format(data.date, "dd/MM/yyyy")}
-🕐 *Horário:* ${format(data.date, "HH:mm")}
-💼 *Serviço:* ${data.serviceName}
-👤 *Profissional:* ${data.professionalName || 'A definir'}
+### Instance "Ghosting"
+- *Fixed in v3.1*: "Desconectar" now performs a hard DELETE in the database instead of just updating fields.
 
-📍 *Local:* ${data.businessName}
-${data.address ? `📌 ${data.address}` : ''}
+### Status stays "Pendente" after scan
+- Use the "Verificar Status Manualmente" button to force a sync.
+- Ensure the phone has a stable internet connection.
 
-${data.phone ? `📞 *Telefone:* ${data.phone}` : ''}
+---
 
-Caso precise cancelar ou reagendar, entre em contato.
+## 🛠️ Developer Notes
 
-_Mensagem automática - Não responder_
-  `.trim(),
-
-  APPOINTMENT_REMINDER: (data: AppointmentData) => `
-⏰ *Lembrete de Agendamento*
-
-Olá *${data.clientName}*!
-
-Lembrando que você tem um agendamento *amanhã*:
-
-🕐 *Horário:* ${format(data.date, "HH:mm")}
-💼 *Serviço:* ${data.serviceName}
-👤 *Com:* ${data.professionalName}
-
-📍 ${data.businessName}
-
-Confirme sua presença respondendo *SIM*.
-Para cancelar, responda *CANCELAR*.
-
-_Mensagem automática - Não responder_
-  `.trim(),
-
-  APPOINTMENT_CANCELLED: (data: AppointmentData) => `
-❌ *Agendamento Cancelado*
-
-Olá *${data.clientName}*,
-
-Seu agendamento foi cancelado:
-
-📅 ${format(data.date, "dd/MM/yyyy")} às ${format(data.date, "HH:mm")}
-💼 ${data.serviceName}
-
-${data.cancelReason ? `Motivo: ${data.cancelReason}` : ''}
-
-Para reagendar, acesse: ${data.bookingUrl}
-
-_Mensagem automática - Não responder_
-  `.trim(),
-
-  APPOINTMENT_CONFIRMED: (data: AppointmentData) => `
-✅ *Confirmação Recebida!*
-
-Olá *${data.clientName}*,
-
-Sua presença foi confirmada para:
-
-📅 ${format(data.date, "dd/MM/yyyy")}
-🕐 ${format(data.date, "HH:mm")}
-
-Nos vemos lá! 🙌
-
-_Mensagem automática - Não responder_
-  `.trim(),
-}
-```
-
-### 4. Automações
-
-#### Lembrete Automático
-```typescript
-// Cron job que roda a cada hora
-export async function sendAppointmentReminders() {
-  const now = new Date()
-  
-  // Buscar configs com lembretes habilitados
-  const configs = await prisma.whatsAppConfig.findMany({
-    where: {
-      enabled: true,
-      notifyReminder: true,
-      isConnected: true,
-    },
-    include: { user: true },
-  })
-  
-  for (const config of configs) {
-    const reminderTime = addHours(now, config.reminderHours)
-    
-    // Buscar agendamentos no período de lembrete
-    const appointments = await prisma.appointment.findMany({
-      where: {
-        userId: config.userId,
-        date: {
-          gte: reminderTime,
-          lte: addHours(reminderTime, 1),
-        },
-        status: { in: ['SCHEDULED', 'CONFIRMED'] },
-      },
-      include: {
-        client: true,
-        service: true,
-        professionalUser: true,
-      },
-    })
-    
-    // Enviar lembrete para cada agendamento
-    for (const apt of appointments) {
-      const message = WHATSAPP_TEMPLATES.APPOINTMENT_REMINDER({
-        clientName: apt.client.name,
-        date: apt.date,
-        serviceName: apt.service?.name || 'Atendimento',
-        professionalName: apt.professionalUser?.name || 'Equipe',
-        businessName: config.user.businessName || 'Nossa empresa',
-      })
-      
-      try {
-        await sendWhatsAppMessage(
-          config.userId,
-          apt.client.phone,
-          message
-        )
-        
-        // Criar notificação interna
-        await prisma.notification.create({
-          data: {
-            userId: config.userId,
-            type: 'APPOINTMENT_REMINDER',
-            title: 'Lembrete enviado',
-            message: `Lembrete enviado para ${apt.client.name}`,
-            appointmentId: apt.id,
-          },
-        })
-      } catch (error) {
-        console.error('Erro ao enviar lembrete:', error)
-      }
-    }
-  }
-}
-```
-
-## 🎨 Interface de Configuração
-
-```tsx
-<WhatsAppSettings>
-  <Header>
-    <h2>Integração WhatsApp</h2>
-    <StatusBadge 
-      status={config.isConnected ? 'connected' : 'disconnected'} 
-    />
-  </Header>
-  
-  {!config.isConnected ? (
-    <ConnectionSection>
-      <p>Conecte seu WhatsApp para enviar notificações aos clientes</p>
-      
-      <Form onSubmit={handleConnect}>
-        <Input 
-          name="apiUrl" 
-          label="URL da Evolution API"
-          placeholder="https://api.evolution.com"
-        />
-        <Input 
-          name="apiKey" 
-          label="API Key"
-          type="password"
-        />
-        
-        <Button type="submit">Gerar QR Code</Button>
-      </Form>
-      
-      {qrCode && (
-        <QRCodeSection>
-          <QRCode value={qrCode} size={256} />
-          <p>Escaneie com o WhatsApp</p>
-          <Button onClick={checkConnection}>
-            Verificar Conexão
-          </Button>
-        </QRCodeSection>
-      )}
-    </ConnectionSection>
-  ) : (
-    <ConfigSection>
-      <ConnectedInfo>
-        <CheckCircle />
-        <span>Conectado: {config.phoneNumber}</span>
-        <Button variant="ghost" onClick={handleDisconnect}>
-          Desconectar
-        </Button>
-      </ConnectedInfo>
-      
-      <Switch 
-        name="enabled" 
-        label="Enviar notificações via WhatsApp"
-        checked={config.enabled}
-        onChange={handleToggle}
-      />
-      
-      {config.enabled && (
-        <>
-          <CheckboxGroup label="Enviar em:">
-            <Checkbox 
-              name="notifyOnCreate" 
-              label="Criação de agendamento"
-              checked={config.notifyOnCreate}
-            />
-            <Checkbox 
-              name="notifyOnConfirm" 
-              label="Confirmação"
-              checked={config.notifyOnConfirm}
-            />
-            <Checkbox 
-              name="notifyOnCancel" 
-              label="Cancelamento"
-              checked={config.notifyOnCancel}
-            />
-            <Checkbox 
-              name="notifyReminder" 
-              label="Lembretes"
-              checked={config.notifyReminder}
-            />
-          </CheckboxGroup>
-          
-          <NumberInput 
-            name="reminderHours" 
-            label="Enviar lembrete (horas antes)"
-            value={config.reminderHours}
-            min={1}
-            max={72}
-          />
-          
-          <Button onClick={handleTestMessage}>
-            Enviar Mensagem de Teste
-          </Button>
-        </>
-      )}
-    </ConfigSection>
-  )}
-</WhatsAppSettings>
-```
-
-## 🔐 Segurança
-
-### Proteção de Dados
-```typescript
-// API Key nunca exposta ao cliente
-// Armazenada de forma segura no banco
-
-// Validação de número
-function validatePhoneNumber(phone: string): boolean {
-  const cleaned = phone.replace(/\D/g, '')
-  return cleaned.length >= 10 && cleaned.length <= 15
-}
-
-// Rate limiting
-// Máximo 100 mensagens por hora por conta
-```
-
-## 🎯 Casos de Uso
-
-### 1. Configurar WhatsApp pela Primeira Vez
-**Fluxo**:
-1. Master acessa Configurações → Notificações
-2. Insere URL e API Key da Evolution
-3. Clica em "Gerar QR Code"
-4. Escaneia QR Code com WhatsApp
-5. Conexão estabelecida
-6. Ativa envio de notificações
-7. Configura tipos de mensagem
-8. Define lembrete para 24h antes
-
-### 2. Cliente Recebe Confirmação
-**Fluxo**:
-1. Master cria agendamento
-2. Sistema verifica WhatsApp habilitado
-3. Formata mensagem com template
-4. Envia via Evolution API
-5. Cliente recebe WhatsApp
-6. Mensagem salva no histórico
-
-## 🚀 Melhorias Futuras
-
-- [ ] Mensagens com mídia (imagens, PDFs)
-- [ ] Respostas automáticas (chatbot)
-- [ ] Confirmação via WhatsApp (botões interativos)
-- [ ] Templates personalizáveis
-- [ ] Histórico de mensagens
-- [ ] Métricas de entrega
-- [ ] Grupos de WhatsApp
-- [ ] Broadcast para múltiplos clientes
+- **Binary PNGs**: The `callN8nEndpoint` wrapper automatically detects raw PNG binary data from n8n and converts it to a base64 Data URL for the UI.
+- **State Management**: Uses an internal `InstanceState` enum to handle the complex transitions between None, Pending, Expired, and Connected.
+- **Cleanup**: Polling automatically stops when the modal is closed to preserve resources.

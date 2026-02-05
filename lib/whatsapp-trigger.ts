@@ -1,32 +1,52 @@
 /**
- * WhatsApp Notification Trigger Service
- * Handles sending WhatsApp notifications via n8n webhooks
+ * WhatsApp Notification Trigger Service v3.1
+ * 
+ * Centralized service for sending automated notifications to clients.
+ * It interacts with n8n workflows that handle the actual message delivery logic,
+ * including delays and scheduling.
  */
 
 import { prisma } from './db';
 import { Appointment, Client, WhatsAppConfig } from '@prisma/client';
 import axios from 'axios';
 
+/**
+ * Payload structure sent to the n8n generic webhook
+ */
 interface NotificationPayload {
+  /** Event identifier for the n8n workflow */
   event: 'appointment.created' | 'appointment.cancelled';
+  /** ID of the associated appointment */
   appointmentId: string;
+  /** ID of the owner user */
   userId: string;
+  /** The WhatsApp instance to use for sending */
   instanceName: string;
+  /** Destination phone number (client) */
   clientPhone: string;
+  /** Name of the recipient */
   clientName: string;
+  /** ISO timestamp of the appointment */
   appointmentDate: string;
+  /** Optional service name */
   serviceName?: string;
+  /** Optional assigned professional name */
   professionalName?: string;
+  /** Optional business name */
   businessName?: string;
+  /** The final formatted message to send */
   messageTemplate: string;
+  /** Configured delay in minutes (handled by n8n) */
   delayMinutes: number;
 }
 
 export class WhatsAppTriggerService {
+  /** Main webhook URL for generic notification actions */
   private static n8nWebhookUrl = process.env.N8N_WEBHOOK_URL;
 
   /**
-   * Replace variables in message template
+   * Replace mustache-style variables in message templates.
+   * Supported: {{nome_cliente}}, {{data}}, {{hora}}, {{servico}}, {{profissional}}, {{empresa}}
    */
   private static replaceVariables(
     template: string,
