@@ -40,13 +40,7 @@ import { AppointmentStatus, ModalityType } from '@prisma/client'
 export default function AgendaPage() {
   const { data: session, status } = useSession() || {}
   
-  // Redirect if not authenticated
-  if (status === 'loading') return <div className="flex items-center justify-center h-screen"><Loader2 className="h-8 w-8 animate-spin" /></div>
-  if (!session) {
-    redirect('/login')
-  }
-
-  // State
+  // State - All hooks must be declared before any conditional returns
   const [currentView, setCurrentView] = useState<ViewType>('week')
   const [currentDate, setCurrentDate] = useState(new Date())
   const [filters, setFilters] = useState<AgendaFilters>({})
@@ -72,7 +66,7 @@ export default function AgendaPage() {
     dateTo: filters.dateTo,
     view: currentView,
     currentDate: currentDate.toISOString(),
-    autoFetch: true
+    autoFetch: !!session
   })
 
   // Get stats
@@ -175,6 +169,19 @@ export default function AgendaPage() {
   const handleAppointmentClick = (appointment: any) => {
     setEditingAppointment(appointment)
     setShowEditDialog(true)
+  }
+
+  // Redirect if not authenticated - AFTER all hooks
+  if (status === 'loading') {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
+  }
+  
+  if (!session) {
+    redirect('/login')
   }
 
   return (

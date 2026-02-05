@@ -128,3 +128,27 @@ export function getWeekDays(): { value: number; label: string }[] {
     { value: 6, label: 'Sábado' }
   ]
 }
+
+/**
+ * Generates URL-friendly slug from business name
+ * @param businessName - Original business name
+ * @returns URL-safe slug (lowercase, no accents, hyphenated)
+ * @example
+ * generateSlug("Fernanda Guimarães Studio") // "fernanda-guimaraes-studio"
+ * generateSlug("Clínica São José") // "clinica-sao-jose"
+ */
+export function generateSlug(businessName: string): string {
+  if (!businessName || typeof businessName !== 'string') {
+    return ''
+  }
+  
+  return businessName
+    .toLowerCase()
+    .normalize('NFD')                      // Decompose accents
+    .replace(/[\u0300-\u036f]/g, '')      // Remove accent marks
+    .replace(/[^a-z0-9\s-]/g, '')         // Remove special characters
+    .replace(/\s+/g, '-')                  // Replace spaces with hyphens
+    .replace(/-+/g, '-')                   // Replace multiple hyphens
+    .replace(/^-|-$/g, '')                 // Trim hyphens from ends
+    .trim()
+}

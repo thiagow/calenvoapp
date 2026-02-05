@@ -6,6 +6,7 @@ import { prisma } from '@/lib/db'
 import { AppointmentStatus, ModalityType } from '@prisma/client'
 import { NotificationService } from '@/lib/notification-service'
 import { WhatsAppService } from '@/lib/whatsapp-service'
+import { WhatsAppTriggerService } from '@/lib/whatsapp-trigger'
 
 export const dynamic = 'force-dynamic'
 
@@ -143,7 +144,6 @@ export async function PUT(
               select: {
                 enabled: true,
                 isConnected: true,
-                notifyOnConfirm: true,
                 notifyOnCancel: true
               }
             }
@@ -171,21 +171,6 @@ export async function PUT(
               serviceName,
               updatedAppointment.date
             )
-            if (
-              whatsappConfig?.enabled &&
-              whatsappConfig?.isConnected &&
-              whatsappConfig?.notifyOnConfirm &&
-              updatedAppointment.client.phone
-            ) {
-              await WhatsAppService.sendAppointmentConfirmedMessage(
-                userId,
-                updatedAppointment.client.name,
-                updatedAppointment.client.phone,
-                serviceName,
-                updatedAppointment.date,
-                updatedAppointment.user.businessName || undefined
-              )
-            }
             break
             
           case 'CANCELLED':
@@ -196,20 +181,12 @@ export async function PUT(
               serviceName,
               updatedAppointment.date
             )
-            if (
-              whatsappConfig?.enabled &&
-              whatsappConfig?.isConnected &&
-              whatsappConfig?.notifyOnCancel &&
-              updatedAppointment.client.phone
-            ) {
-              await WhatsAppService.sendAppointmentCancelledMessage(
-                userId,
-                updatedAppointment.client.name,
-                updatedAppointment.client.phone,
-                serviceName,
-                updatedAppointment.date
-              )
-            }
+            // Enviar notificação via WhatsApp (usando novo sistema)
+            await WhatsAppTriggerService.onAppointmentCancelled(
+              updatedAppointment as any,
+              serviceName,
+              updatedAppointment.professional || undefined
+            )
             break
             
           case 'COMPLETED':

@@ -1,23 +1,51 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { CheckCircle, Star, CreditCard, Zap, Users, Calendar, BarChart3, Shield } from 'lucide-react'
+import { CheckCircle, Star, CreditCard, Zap, Users, Calendar, BarChart3, Shield, Loader2 } from 'lucide-react'
 import { PLAN_CONFIGS } from '@/lib/types'
 import { formatCurrency } from '@/lib/utils'
 import { toast } from 'sonner'
 
+interface PlanUsageData {
+  appointmentsThisMonth: number
+  monthlyLimit: number
+  usagePercentage: number
+  planType: string
+  userLimit: number
+}
+
 export default function PlansPage() {
   const { data: session } = useSession()
   const [loading, setLoading] = useState('')
+  const [usageLoading, setUsageLoading] = useState(true)
+  const [usageData, setUsageData] = useState<PlanUsageData | null>(null)
 
-  // Simular plano atual do usuário
-  const currentPlan = session?.user ? 'FREEMIUM' : 'FREEMIUM'
+  // Fetch real usage data
+  useEffect(() => {
+    const fetchUsageData = async () => {
+      try {
+        const response = await fetch('/api/plans/usage')
+        if (response.ok) {
+          const data = await response.json()
+          setUsageData(data)
+        }
+      } catch (error) {
+        console.error('Error fetching usage data:', error)
+      } finally {
+        setUsageLoading(false)
+      }
+    }
+
+    fetchUsageData()
+  }, [])
+
+  const currentPlan = usageData?.planType || 'FREEMIUM'
 
   const handleUpgrade = async (planId: string) => {
     setLoading(planId)
@@ -58,34 +86,49 @@ export default function PlansPage() {
       {/* Current Plan Status */}
       <Card className="border-blue-200 bg-blue-50">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-blue-600" />
+          <CardTitle className="flex items-center gap-2 text-gray-900">
+            <Zap className="h-5 w-5 text-blue-600 mr-2" />
             Status do Plano Atual
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {currentPlan === 'FREEMIUM' ? '15' : currentPlan === 'STANDARD' ? '87' : '230'}
-              </div>
-              <p className="text-sm text-gray-600">Agendamentos este mês</p>
+          {usageLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {PLAN_CONFIGS[currentPlan as keyof typeof PLAN_CONFIGS]?.monthlyLimit === -1 
-                  ? '∞' 
-                  : PLAN_CONFIGS[currentPlan as keyof typeof PLAN_CONFIGS]?.monthlyLimit}
+          ) : usageData ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900">
+                  {usageData.appointmentsThisMonth}
+                </div>
+                <p className="text-sm text-gray-600">Agendamentos este mês</p>
+                {usageData.usagePercentage > 0 && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    {usageData.usagePercentage}% utilizado
+                  </p>
+                )}
               </div>
-              <p className="text-sm text-gray-600">Limite mensal</p>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {PLAN_CONFIGS[currentPlan as keyof typeof PLAN_CONFIGS]?.userLimit}
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900">
+                  {usageData.monthlyLimit === -1 
+                    ? '∞' 
+                    : usageData.monthlyLimit}
+                </div>
+                <p className="text-sm text-gray-600">Limite mensal</p>
               </div>
-              <p className="text-sm text-gray-600">Usuários permitidos</p>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900">
+                  {usageData.userLimit}
+                </div>
+                <p className="text-sm text-gray-600">Usuários permitidos</p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="text-center text-gray-500 py-8">
+              Não foi possível carregar os dados de uso
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -121,6 +164,11 @@ export default function PlansPage() {
                 <div className="text-center py-4">
                   {config.price === 0 ? (
                     <span className="text-3xl font-bold">Grátis</span>
+                  ) : planId === 'PREMIUM' ? (
+                    <div>
+                      <span className="text-2xl font-bold text-gray-700">Sob Consulta</span>
+                      <p className="text-sm text-gray-500 mt-1">Entre em contato</p>
+                    </div>
                   ) : (
                     <>
                       <span className="text-3xl font-bold">
@@ -154,25 +202,40 @@ export default function PlansPage() {
                         variant={planId === 'STANDARD' ? 'default' : 'outline'}
                       >
                         <CreditCard className="h-4 w-4 mr-2" />
-                        Fazer Upgrade
+                        {planId === 'PREMIUM' ? 'Falar com Vendas' : 'Fazer Upgrade'}
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Confirmar Upgrade - {config.name}</DialogTitle>
+                        <DialogTitle>
+                          {planId === 'PREMIUM' ? 'Contatar Equipe de Vendas' : `Confirmar Upgrade - ${config.name}`}
+                        </DialogTitle>
                       </DialogHeader>
                       <div className="space-y-4">
                         <div className="text-center p-6 bg-blue-50 rounded-lg">
                           <h3 className="text-lg font-semibold mb-2">
                             {config.name}
                           </h3>
-                          <div className="text-3xl font-bold text-blue-600 mb-2">
-                            {formatCurrency(config.price)}
-                            <span className="text-sm font-normal text-gray-600">/mês</span>
-                          </div>
-                          <p className="text-sm text-gray-600">
-                            Cobrança recorrente mensal
-                          </p>
+                          {planId === 'PREMIUM' ? (
+                            <div>
+                              <div className="text-2xl font-bold text-blue-600 mb-2">
+                                Sob Consulta
+                              </div>
+                              <p className="text-sm text-gray-600">
+                                Entre em contato para um plano personalizado
+                              </p>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="text-3xl font-bold text-blue-600 mb-2">
+                                {formatCurrency(config.price)}
+                                <span className="text-sm font-normal text-gray-600">/mês</span>
+                              </div>
+                              <p className="text-sm text-gray-600">
+                                Cobrança recorrente mensal
+                              </p>
+                            </>
+                          )}
                         </div>
                         
                         <div className="space-y-2">
@@ -198,9 +261,14 @@ export default function PlansPage() {
                           >
                             {loading === planId ? (
                               <div className="flex items-center gap-2">
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                <Loader2 className="h-4 w-4 animate-spin" />
                                 Processando...
                               </div>
+                            ) : planId === 'PREMIUM' ? (
+                              <>
+                                <CreditCard className="h-4 w-4 mr-2" />
+                                Entrar em Contato
+                              </>
                             ) : (
                               <>
                                 <CreditCard className="h-4 w-4 mr-2" />

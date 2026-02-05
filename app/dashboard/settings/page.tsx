@@ -11,9 +11,7 @@ import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { 
   Settings, 
-  Clock, 
   Calendar, 
-  MessageSquare,
   Globe,
   Upload,
   Copy,
@@ -22,7 +20,7 @@ import {
   Loader2,
   Save
 } from 'lucide-react'
-import { BusinessHoursEditor } from '@/components/settings/business-hours-editor'
+import { generateSlug } from '@/lib/utils'
 import { toast } from 'sonner'
 
 interface BusinessConfig {
@@ -174,7 +172,7 @@ export default function SettingsPage() {
         })
       })
 
-      toast.success('Nome do negócio salvo com sucesso!')
+      toast.success('Nome do negócio salvo com sucesso! URL atualizada automaticamente.')
       await fetchConfig()
       await fetchUserProfile()
     } catch (error) {
@@ -193,7 +191,7 @@ export default function SettingsPage() {
 
   const getPublicUrl = () => {
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
-    const slug = config.publicUrl || (session?.user as any)?.id?.substring(0, 8) || 'agendamento'
+    const slug = config.publicUrl || generateSlug(businessName) || (session?.user as any)?.id?.substring(0, 8) || 'agendamento'
     return `${baseUrl}/booking/${slug}`
   }
 
@@ -221,9 +219,6 @@ export default function SettingsPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6">
-        {/* Horário de Funcionamento */}
-        <BusinessHoursEditor />
-
         {/* Configurações de Agendamento */}
         <Card>
           <CardHeader>
@@ -270,22 +265,6 @@ export default function SettingsPage() {
                 checked={config.autoConfirm}
                 onCheckedChange={(checked) => setConfig({ ...config, autoConfirm: checked })}
               />
-            </div>
-
-            {/* Lembretes por WhatsApp */}
-            <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
-              <div className="space-y-0.5 flex-1">
-                <Label className="text-base font-medium flex items-center gap-2">
-                  <MessageSquare className="h-4 w-4" />
-                  Lembretes por WhatsApp
-                </Label>
-                <p className="text-sm text-gray-600">
-                  Enviar lembretes automáticos via WhatsApp para clientes
-                </p>
-              </div>
-              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                Em Desenvolvimento
-              </Badge>
             </div>
 
             <div className="flex justify-end pt-2">
@@ -393,13 +372,13 @@ export default function SettingsPage() {
                   maxLength={100}
                 />
                 <p className="text-xs text-gray-500">
-                  Este nome aparecerá como título na sua página de agendamentos
+                  Este nome aparecerá como título na sua página de agendamentos e será usado para gerar a URL personalizada
                 </p>
               </div>
 
               {/* URL Pública */}
               <div className="space-y-2">
-                <Label htmlFor="publicUrl">URL Pública (somente leitura)</Label>
+                <Label htmlFor="publicUrl">URL Pública</Label>
                 <div className="flex gap-2">
                   <Input
                     id="publicUrl"
@@ -426,7 +405,7 @@ export default function SettingsPage() {
                   </Button>
                 </div>
                 <p className="text-xs text-gray-500">
-                  Compartilhe este link com seus clientes para que eles possam fazer agendamentos online
+                  A URL é gerada automaticamente a partir do nome do negócio (sem acentos, minúsculas, com hífens)
                 </p>
               </div>
 

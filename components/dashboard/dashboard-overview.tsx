@@ -5,11 +5,11 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { 
-  Calendar, 
-  Users, 
-  Clock, 
-  TrendingUp, 
+import {
+  Calendar,
+  Users,
+  Clock,
+  TrendingUp,
   CalendarCheck,
   UserCheck,
   AlertCircle,
@@ -147,7 +147,7 @@ export function DashboardOverview({ sessionData }: DashboardOverviewProps) {
         <Card className="hover:shadow-lg transition-shadow duration-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">
-              Pacientes
+              Clientes
             </CardTitle>
             <Users className="h-4 w-4 text-purple-600" />
           </CardHeader>
@@ -220,7 +220,7 @@ export function DashboardOverview({ sessionData }: DashboardOverviewProps) {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Badge 
+                      <Badge
                         variant={appointment.status === 'CONFIRMED' ? 'default' : 'secondary'}
                         className="text-xs"
                       >
@@ -265,12 +265,12 @@ export function DashboardOverview({ sessionData }: DashboardOverviewProps) {
                   </span>
                 </div>
                 <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
-                  <div 
+                  <div
                     className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    style={{ 
-                      width: planConfig?.monthlyLimit === -1 
-                        ? '20%' 
-                        : `${Math.min((stats.monthAppointments / planConfig?.monthlyLimit!) * 100, 100)}%` 
+                    style={{
+                      width: planConfig?.monthlyLimit === -1
+                        ? '20%'
+                        : `${Math.min((stats.monthAppointments / planConfig?.monthlyLimit!) * 100, 100)}%`
                     }}
                   />
                 </div>
@@ -286,7 +286,7 @@ export function DashboardOverview({ sessionData }: DashboardOverviewProps) {
                 <p className="text-xs text-gray-600 mt-1">
                   {planConfig?.price === 0 ? 'Gratuito' : `${formatCurrency(planConfig?.price!)} por mês`}
                 </p>
-                
+
                 {userPlan === 'FREEMIUM' && (
                   <div className="mt-4">
                     <Link href="/dashboard/plans">

@@ -91,3 +91,17 @@
   font-family: 'Satoshi', sans-serif;
   font-weight: 600;
 }
+
+@layer utilities {
+  /* Melhorar legibilidade de campos readonly/disabled globalmente */
+  input:disabled, 
+  input[readonly],
+  textarea:disabled,
+  textarea[readonly] {
+    opacity: 1;
+    background-color: #F3F4F6; /* bg-gray-100 */
+    color: #374151; /* text-gray-700 */
+    cursor: not-allowed;
+    font-weight: 500;
+  }
+}
