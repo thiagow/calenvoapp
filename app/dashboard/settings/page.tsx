@@ -18,10 +18,12 @@ import {
   ExternalLink,
   CheckCircle2,
   Loader2,
-  Save
+  Save,
+  Info
 } from 'lucide-react'
 import { generateSlug } from '@/lib/utils'
 import { toast } from 'sonner'
+import { useUserRole } from '@/hooks/use-user-role'
 
 interface BusinessConfig {
   autoConfirm: boolean
@@ -32,6 +34,7 @@ interface BusinessConfig {
 
 export default function SettingsPage() {
   const { data: session } = useSession()
+  const { isProfessional } = useUserRole()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [config, setConfig] = useState<BusinessConfig>({
@@ -209,7 +212,9 @@ export default function SettingsPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Configurações</h1>
           <p className="text-gray-600 mt-1">
-            Personalize o funcionamento do seu negócio
+            {isProfessional 
+              ? 'Visualize informações da conta' 
+              : 'Personalize o funcionamento do seu negócio'}
           </p>
         </div>
         <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
@@ -218,165 +223,193 @@ export default function SettingsPage() {
         </Badge>
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
-        {/* Configurações de Agendamento */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Calendar className="mr-2 h-5 w-5 text-green-600" />
-              Configurações de Agendamento
-            </CardTitle>
-            <CardDescription>
-              Regras e preferências para novos agendamentos
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Agendamento Online */}
-            <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
-              <div className="space-y-0.5 flex-1">
-                <Label htmlFor="allowOnlineBooking" className="text-base font-medium cursor-pointer">
-                  Agendamento Online
-                </Label>
-                <p className="text-sm text-gray-600">
-                  Permitir que clientes agendem pela internet através de uma página pública
+      {/* Aviso para profissionais */}
+      {isProfessional && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <h4 className="font-medium text-blue-900 text-sm mb-1">
+                  Visualização Limitada
+                </h4>
+                <p className="text-xs text-blue-700">
+                  Como profissional, você pode visualizar apenas as informações da URL pública de agendamento. 
+                  Para alterar configurações do negócio, entre em contato com o administrador da conta.
                 </p>
               </div>
-              <Switch
-                id="allowOnlineBooking"
-                checked={config.allowOnlineBooking}
-                onCheckedChange={(checked) => setConfig({ ...config, allowOnlineBooking: checked })}
-              />
-            </div>
-
-            {/* Confirmação Automática */}
-            <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
-              <div className="space-y-0.5 flex-1">
-                <Label htmlFor="autoConfirm" className="text-base font-medium cursor-pointer">
-                  Confirmação Automática
-                </Label>
-                <p className="text-sm text-gray-600">
-                  {config.autoConfirm 
-                    ? 'Agendamentos externos são confirmados automaticamente e bloqueiam o horário'
-                    : 'Agendamentos externos precisam de aprovação manual antes de bloquear o horário'}
-                </p>
-              </div>
-              <Switch
-                id="autoConfirm"
-                checked={config.autoConfirm}
-                onCheckedChange={(checked) => setConfig({ ...config, autoConfirm: checked })}
-              />
-            </div>
-
-            <div className="flex justify-end pt-2">
-              <Button
-                onClick={handleSaveAppointmentSettings}
-                disabled={saving}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Salvando...
-                  </>
-                ) : (
-                  <>
-                    <Save className="mr-2 h-4 w-4" />
-                    Salvar Configurações
-                  </>
-                )}
-              </Button>
             </div>
           </CardContent>
         </Card>
+      )}
 
-        {/* Personalizar Página de Agendamento - Só aparece se agendamento online estiver ativo */}
+      <div className="grid grid-cols-1 gap-6">
+        {/* Configurações de Agendamento - Apenas para MASTER */}
+        {!isProfessional && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Calendar className="mr-2 h-5 w-5 text-green-600" />
+                Configurações de Agendamento
+              </CardTitle>
+              <CardDescription>
+                Regras e preferências para novos agendamentos
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Agendamento Online */}
+              <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
+                <div className="space-y-0.5 flex-1">
+                  <Label htmlFor="allowOnlineBooking" className="text-base font-medium cursor-pointer">
+                    Agendamento Online
+                  </Label>
+                  <p className="text-sm text-gray-600">
+                    Permitir que clientes agendem pela internet através de uma página pública
+                  </p>
+                </div>
+                <Switch
+                  id="allowOnlineBooking"
+                  checked={config.allowOnlineBooking}
+                  onCheckedChange={(checked) => setConfig({ ...config, allowOnlineBooking: checked })}
+                />
+              </div>
+
+              {/* Confirmação Automática */}
+              <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
+                <div className="space-y-0.5 flex-1">
+                  <Label htmlFor="autoConfirm" className="text-base font-medium cursor-pointer">
+                    Confirmação Automática
+                  </Label>
+                  <p className="text-sm text-gray-600">
+                    {config.autoConfirm 
+                      ? 'Agendamentos externos são confirmados automaticamente e bloqueiam o horário'
+                      : 'Agendamentos externos precisam de aprovação manual antes de bloquear o horário'}
+                  </p>
+                </div>
+                <Switch
+                  id="autoConfirm"
+                  checked={config.autoConfirm}
+                  onCheckedChange={(checked) => setConfig({ ...config, autoConfirm: checked })}
+                />
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <Button
+                  onClick={handleSaveAppointmentSettings}
+                  disabled={saving}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2 h-4 w-4" />
+                      Salvar Configurações
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* URL Pública - Visível para todos, mas readonly para PROFESSIONAL */}
         {config.allowOnlineBooking && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Globe className="mr-2 h-5 w-5 text-purple-600" />
-                Personalizar Página de Agendamento do Cliente
+                {isProfessional ? 'URL de Agendamento' : 'Personalizar Página de Agendamento do Cliente'}
               </CardTitle>
               <CardDescription>
-                Configure a aparência da sua página pública de agendamentos
+                {isProfessional 
+                  ? 'URL pública para compartilhar com clientes' 
+                  : 'Configure a aparência da sua página pública de agendamentos'}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Logo */}
-              <div className="space-y-2">
-                <Label htmlFor="logo">Logo do Negócio</Label>
-                <div className="flex items-start gap-4">
-                  {/* Preview do logo */}
-                  <div className="w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50 overflow-hidden">
-                    {logoPreview || config.businessLogo ? (
-                      <img 
-                        src={logoPreview || (config.businessLogo ? `/api/files/logo?key=${config.businessLogo}` : '')} 
-                        alt="Logo preview" 
-                        className="w-full h-full object-contain p-2" 
-                      />
-                    ) : (
-                      <div className="text-center p-2">
-                        <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                        <p className="text-xs text-gray-500">Nenhuma imagem</p>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="flex-1 space-y-2">
-                    <div className="flex gap-2">
-                      <Input
-                        id="logo"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleLogoChange}
-                        className="cursor-pointer"
-                        disabled={saving}
-                      />
-                      {config.businessLogo && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setConfig({ ...config, businessLogo: null })
-                            setLogoPreview(null)
-                            setLogoFile(null)
-                          }}
-                        >
-                          Remover
-                        </Button>
+              {/* Logo - Apenas para MASTER */}
+              {!isProfessional && (
+                <div className="space-y-2">
+                  <Label htmlFor="logo">Logo do Negócio</Label>
+                  <div className="flex items-start gap-4">
+                    {/* Preview do logo */}
+                    <div className="w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50 overflow-hidden">
+                      {logoPreview || config.businessLogo ? (
+                        <img 
+                          src={logoPreview || (config.businessLogo ? `/api/files/logo?key=${config.businessLogo}` : '')} 
+                          alt="Logo preview" 
+                          className="w-full h-full object-contain p-2" 
+                        />
+                      ) : (
+                        <div className="text-center p-2">
+                          <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-xs text-gray-500">Nenhuma imagem</p>
+                        </div>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500">
-                      Recomendado: imagem quadrada, formato PNG ou JPG, até 5MB
-                    </p>
-                    {saving && (
-                      <div className="flex items-center gap-2 text-sm text-blue-600">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>Enviando imagem...</span>
+                    
+                    <div className="flex-1 space-y-2">
+                      <div className="flex gap-2">
+                        <Input
+                          id="logo"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleLogoChange}
+                          className="cursor-pointer"
+                          disabled={saving}
+                        />
+                        {config.businessLogo && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setConfig({ ...config, businessLogo: null })
+                              setLogoPreview(null)
+                              setLogoFile(null)
+                            }}
+                          >
+                            Remover
+                          </Button>
+                        )}
                       </div>
-                    )}
+                      <p className="text-xs text-gray-500">
+                        Recomendado: imagem quadrada, formato PNG ou JPG, até 5MB
+                      </p>
+                      {saving && (
+                        <div className="flex items-center gap-2 text-sm text-blue-600">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Enviando imagem...</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
-              {/* Nome da Empresa */}
-              <div className="space-y-2">
-                <Label htmlFor="businessName">Nome do Negócio</Label>
-                <Input
-                  id="businessName"
-                  type="text"
-                  placeholder="Ex: Clínica Saúde Total"
-                  value={businessName}
-                  onChange={(e) => setBusinessName(e.target.value)}
-                  maxLength={100}
-                />
-                <p className="text-xs text-gray-500">
-                  Este nome aparecerá como título na sua página de agendamentos e será usado para gerar a URL personalizada
-                </p>
-              </div>
+              {/* Nome da Empresa - Apenas para MASTER */}
+              {!isProfessional && (
+                <div className="space-y-2">
+                  <Label htmlFor="businessName">Nome do Negócio</Label>
+                  <Input
+                    id="businessName"
+                    type="text"
+                    placeholder="Ex: Clínica Saúde Total"
+                    value={businessName}
+                    onChange={(e) => setBusinessName(e.target.value)}
+                    maxLength={100}
+                  />
+                  <p className="text-xs text-gray-500">
+                    Este nome aparecerá como título na sua página de agendamentos e será usado para gerar a URL personalizada
+                  </p>
+                </div>
+              )}
 
-              {/* URL Pública */}
+              {/* URL Pública - Visível para todos */}
               <div className="space-y-2">
                 <Label htmlFor="publicUrl">URL Pública</Label>
                 <div className="flex gap-2">
@@ -405,44 +438,50 @@ export default function SettingsPage() {
                   </Button>
                 </div>
                 <p className="text-xs text-gray-500">
-                  A URL é gerada automaticamente a partir do nome do negócio (sem acentos, minúsculas, com hífens)
+                  {isProfessional 
+                    ? 'Compartilhe esta URL com seus clientes para que possam agendar online' 
+                    : 'A URL é gerada automaticamente a partir do nome do negócio (sem acentos, minúsculas, com hífens)'}
                 </p>
               </div>
 
-              {/* Preview */}
-              <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
-                <div className="flex items-start gap-3">
-                  <CheckCircle2 className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-medium text-blue-900 text-sm mb-1">
-                      Como seus clientes verão
-                    </h4>
-                    <p className="text-xs text-blue-700">
-                      A página pública exibirá seu logo, nome do negócio, e permitirá que os clientes selecionem serviços e horários disponíveis.
-                    </p>
+              {/* Preview - Apenas para MASTER */}
+              {!isProfessional && (
+                <>
+                  <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle2 className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <h4 className="font-medium text-blue-900 text-sm mb-1">
+                          Como seus clientes verão
+                        </h4>
+                        <p className="text-xs text-blue-700">
+                          A página pública exibirá seu logo, nome do negócio, e permitirá que os clientes selecionem serviços e horários disponíveis.
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
 
-              <div className="flex justify-end pt-2">
-                <Button
-                  onClick={handleSavePageCustomization}
-                  disabled={saving}
-                  className="bg-purple-600 hover:bg-purple-700"
-                >
-                  {saving ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Salvando...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-4 w-4" />
-                      Salvar Personalização
-                    </>
-                  )}
-                </Button>
-              </div>
+                  <div className="flex justify-end pt-2">
+                    <Button
+                      onClick={handleSavePageCustomization}
+                      disabled={saving}
+                      className="bg-purple-600 hover:bg-purple-700"
+                    >
+                      {saving ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Salvando...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="mr-2 h-4 w-4" />
+                          Salvar Personalização
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         )}

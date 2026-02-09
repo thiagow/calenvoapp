@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -21,23 +21,33 @@ import {
   UserCog,
   Bell
 } from 'lucide-react'
+import { useUserPermissions } from '@/hooks/use-user-permissions'
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: Home },
-  { name: 'Agendamentos', href: '/dashboard/agenda', icon: CalendarCheck },
-  { name: 'Agendas', href: '/dashboard/schedules', icon: Calendar },
-  { name: 'Serviços', href: '/dashboard/services', icon: Briefcase },
-  { name: 'Profissionais', href: '/dashboard/professionals', icon: UserCog },
-  { name: 'Clientes', href: '/dashboard/patients', icon: Users },
-  { name: 'Notificações', href: '/dashboard/notifications', icon: Bell },
-  { name: 'Relatórios', href: '/dashboard/reports', icon: BarChart3 },
-  { name: 'Planos', href: '/dashboard/plans', icon: CreditCard },
-  { name: 'Configurações', href: '/dashboard/settings', icon: Settings },
+  { name: 'Dashboard', href: '/dashboard', icon: Home, permission: 'canViewOwnAppointments' },
+  { name: 'Agendamentos', href: '/dashboard/agenda', icon: CalendarCheck, permission: 'canViewOwnAppointments' },
+  { name: 'Agendas', href: '/dashboard/schedules', icon: Calendar, permission: 'canManageSchedules' },
+  { name: 'Serviços', href: '/dashboard/services', icon: Briefcase, permission: 'canManageServices' },
+  { name: 'Profissionais', href: '/dashboard/professionals', icon: UserCog, permission: 'canManageProfessionals' },
+  { name: 'Clientes', href: '/dashboard/patients', icon: Users, permission: 'canViewAllClients' },
+  { name: 'Notificações', href: '/dashboard/notifications', icon: Bell, permission: 'canViewNotifications' },
+  { name: 'Relatórios', href: '/dashboard/reports', icon: BarChart3, permission: 'canViewFullReports' },
+  { name: 'Planos', href: '/dashboard/plans', icon: CreditCard, permission: 'canManagePlans' },
+  { name: 'Configurações', href: '/dashboard/settings', icon: Settings, permission: 'canViewPublicUrl' },
 ]
 
 export function DashboardSidebar() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const pathname = usePathname()
+  const permissions = useUserPermissions()
+
+  // Filtrar navegação baseado nas permissões
+  const filteredNavigation = useMemo(() => {
+    return navigation.filter(item => {
+      const permissionKey = item.permission as keyof typeof permissions
+      return permissions[permissionKey]
+    })
+  }, [permissions])
 
   return (
     <>
@@ -67,12 +77,12 @@ export function DashboardSidebar() {
 
       {/* Sidebar */}
       <div className={cn(
-        'fixed top-0 left-0 z-40 h-screen w-64 transform bg-white shadow-lg transition-transform duration-200 ease-in-out lg:translate-x-0',
+        'fixed top-0 left-0 z-40 h-screen w-64 transform bg-card shadow-lg transition-transform duration-200 ease-in-out lg:translate-x-0 border-r border-border',
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       )}>
         <div className="flex h-full flex-col">
           {/* Logo */}
-          <div className="flex h-16 items-center justify-center border-b border-gray-200">
+          <div className="flex h-16 items-center justify-center border-b border-border">
             <Link href="/dashboard" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
               <div className="relative h-10 w-10">
                 <Image
@@ -88,7 +98,7 @@ export function DashboardSidebar() {
 
           {/* Navigation */}
           <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
-            {navigation.map((item) => {
+            {filteredNavigation.map((item) => {
               const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
 
               return (
@@ -98,8 +108,8 @@ export function DashboardSidebar() {
                   className={cn(
                     'flex items-center rounded-lg px-4 py-2 text-sm font-medium transition-colors',
                     isActive
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                   )}
                   onClick={() => setSidebarOpen(false)}
                 >
@@ -111,17 +121,17 @@ export function DashboardSidebar() {
           </nav>
 
           {/* Bottom section */}
-          <div className="border-t border-gray-200 p-4">
-            <div className="rounded-lg bg-blue-50 p-3">
-              <h3 className="text-sm font-medium text-blue-900">
+          <div className="border-t border-border p-4">
+            <div className="rounded-lg bg-primary/5 p-3 border border-primary/10">
+              <h3 className="text-sm font-medium text-foreground">
                 Precisa de ajuda?
               </h3>
-              <p className="mt-1 text-xs text-blue-700">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Entre em contato com nosso suporte
               </p>
               <Button 
                 size="sm" 
-                className="mt-2 w-full bg-blue-600 hover:bg-blue-700"
+                className="mt-2 w-full bg-primary hover:bg-primary/90"
                 onClick={() => {
                   window.open('mailto:suporte@calenvo.com.br?subject=Preciso de Ajuda - Calenvo', '_blank')
                 }}

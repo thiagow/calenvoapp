@@ -58,6 +58,14 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = (session.user as any).id
+    const userRole = (session.user as any).role
+
+    // Apenas MASTER pode modificar configurações
+    if (userRole === 'PROFESSIONAL') {
+      return NextResponse.json({ 
+        error: 'Acesso negado. Apenas administradores podem modificar configurações.' 
+      }, { status: 403 })
+    }
     const body = await request.json()
     const {
       workingDays,

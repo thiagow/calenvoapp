@@ -1,48 +1,23 @@
 /**
- * WhatsApp Notification Trigger Service v3.1
+ * WhatsApp Notification Trigger Service v3.2
  * 
  * Centralized service for sending automated notifications to clients.
- * It interacts with n8n workflows that handle the actual message delivery logic,
- * including delays and scheduling.
+ * Interacts with n8n real-time messaging endpoint with exponential backoff.
  */
 
 import { prisma } from './db';
-import { Appointment, Client, WhatsAppConfig } from '@prisma/client';
+import { Appointment, Client } from '@prisma/client';
 import axios from 'axios';
+import { formatWhatsAppNumber } from './utils';
 
 /**
- * Payload structure sent to the n8n generic webhook
+ * Helper for exponential backoff delay
  */
-interface NotificationPayload {
-  /** Event identifier for the n8n workflow */
-  event: 'appointment.created' | 'appointment.cancelled';
-  /** ID of the associated appointment */
-  appointmentId: string;
-  /** ID of the owner user */
-  userId: string;
-  /** The WhatsApp instance to use for sending */
-  instanceName: string;
-  /** Destination phone number (client) */
-  clientPhone: string;
-  /** Name of the recipient */
-  clientName: string;
-  /** ISO timestamp of the appointment */
-  appointmentDate: string;
-  /** Optional service name */
-  serviceName?: string;
-  /** Optional assigned professional name */
-  professionalName?: string;
-  /** Optional business name */
-  businessName?: string;
-  /** The final formatted message to send */
-  messageTemplate: string;
-  /** Configured delay in minutes (handled by n8n) */
-  delayMinutes: number;
-}
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export class WhatsAppTriggerService {
-  /** Main webhook URL for generic notification actions */
-  private static n8nWebhookUrl = process.env.N8N_WEBHOOK_URL;
+  /** Real-time messaging endpoint */
+  private static sendMessageUrl = process.env.N8N_SEND_MESSAGE_URL;
 
   /**
    * Replace mustache-style variables in message templates.
@@ -74,31 +49,52 @@ export class WhatsAppTriggerService {
   }
 
   /**
-   * Send notification via n8n webhook
+   * Send message to n8n with automatic exponential backoff retry
    */
-  private static async sendToN8n(payload: NotificationPayload): Promise<boolean> {
-    if (!this.n8nWebhookUrl) {
-      console.warn('[WhatsAppTrigger] N8N webhook URL not configured');
+  private static async sendToN8n(
+    instanceName: string,
+    recipient: string,
+    message: string,
+    attempt: number = 1
+  ): Promise<boolean> {
+    if (!this.sendMessageUrl) {
+      console.warn('[WhatsAppTrigger] N8N_SEND_MESSAGE_URL not configured');
       return false;
     }
 
+    // Format recipient number (ensure 55 DDI)
+    const formattedRecipient = formatWhatsAppNumber(recipient);
+
+    const MAX_RETRIES = 3;
+    const BASE_DELAY = 1000;
+
     try {
-      await axios.post(this.n8nWebhookUrl, payload, {
-        headers: {
-          'Content-Type': 'application/json',
+      await axios.post(
+        this.sendMessageUrl,
+        {
+          instancia: instanceName,
+          mensagem: message,
+          destinatario: formattedRecipient,
         },
-        timeout: 10000, // 10 seconds
-      });
+        {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 10000,
+        }
+      );
 
-      console.log('[WhatsAppTrigger] Notification sent to n8n:', {
-        event: payload.event,
-        appointmentId: payload.appointmentId,
-      });
-
+      console.log(`[WhatsAppTrigger] Message sent to ${formattedRecipient} via ${instanceName}`);
       return true;
-    } catch (error) {
-      console.error('[WhatsAppTrigger] Error sending to n8n:', error);
-      return false;
+    } catch (error: any) {
+      if (attempt >= MAX_RETRIES) {
+        console.error(`[WhatsAppTrigger] Failed after ${MAX_RETRIES} attempts to ${formattedRecipient}:`, error.message);
+        return false;
+      }
+
+      const delay = BASE_DELAY * Math.pow(2, attempt - 1);
+      console.warn(`[WhatsAppTrigger] Attempt ${attempt} failed for ${formattedRecipient}. Retrying in ${delay}ms...`);
+      
+      await sleep(delay);
+      return this.sendToN8n(instanceName, recipient, message, attempt + 1);
     }
   }
 
@@ -111,26 +107,14 @@ export class WhatsAppTriggerService {
     professionalName?: string
   ): Promise<void> {
     try {
-      // Get WhatsApp config
       const config = await prisma.whatsAppConfig.findUnique({
         where: { userId: appointment.userId },
       });
 
-      // Check if notifications are enabled
-      if (!config || !config.enabled || !config.isConnected || !config.notifyOnCreate) {
-        console.log('[WhatsAppTrigger] Notifications disabled for appointment creation');
-        return;
-      }
+      if (!config || !config.enabled || !config.isConnected || !config.notifyOnCreate) return;
+      if (!appointment.client.phone) return;
 
-      // Check if client has phone
-      if (!appointment.client.phone) {
-        console.warn('[WhatsAppTrigger] Client has no phone number');
-        return;
-      }
-
-      // Prepare message
-      const messageTemplate = config.createMessage || '';
-      const message = this.replaceVariables(messageTemplate, {
+      const message = this.replaceVariables(config.createMessage || '', {
         clientName: appointment.client.name,
         appointmentDate: appointment.date,
         serviceName,
@@ -138,24 +122,9 @@ export class WhatsAppTriggerService {
         businessName: appointment.user.businessName || undefined,
       });
 
-      // Send to n8n
-      await this.sendToN8n({
-        event: 'appointment.created',
-        appointmentId: appointment.id,
-        userId: appointment.userId,
-        instanceName: config.instanceName,
-        clientPhone: appointment.client.phone,
-        clientName: appointment.client.name,
-        appointmentDate: appointment.date.toISOString(),
-        serviceName,
-        professionalName,
-        businessName: appointment.user.businessName || undefined,
-        messageTemplate: message,
-        delayMinutes: config.createDelayMinutes,
-      });
+      await this.sendToN8n(config.instanceName, appointment.client.phone, message);
     } catch (error) {
       console.error('[WhatsAppTrigger] Error in onAppointmentCreated:', error);
-      // Don't throw - notification failure shouldn't break appointment creation
     }
   }
 
@@ -168,26 +137,14 @@ export class WhatsAppTriggerService {
     professionalName?: string
   ): Promise<void> {
     try {
-      // Get WhatsApp config
       const config = await prisma.whatsAppConfig.findUnique({
         where: { userId: appointment.userId },
       });
 
-      // Check if notifications are enabled
-      if (!config || !config.enabled || !config.isConnected || !config.notifyOnCancel) {
-        console.log('[WhatsAppTrigger] Notifications disabled for appointment cancellation');
-        return;
-      }
+      if (!config || !config.enabled || !config.isConnected || !config.notifyOnCancel) return;
+      if (!appointment.client.phone) return;
 
-      // Check if client has phone
-      if (!appointment.client.phone) {
-        console.warn('[WhatsAppTrigger] Client has no phone number');
-        return;
-      }
-
-      // Prepare message
-      const messageTemplate = config.cancelMessage || '';
-      const message = this.replaceVariables(messageTemplate, {
+      const message = this.replaceVariables(config.cancelMessage || '', {
         clientName: appointment.client.name,
         appointmentDate: appointment.date,
         serviceName,
@@ -195,24 +152,69 @@ export class WhatsAppTriggerService {
         businessName: appointment.user.businessName || undefined,
       });
 
-      // Send to n8n
-      await this.sendToN8n({
-        event: 'appointment.cancelled',
-        appointmentId: appointment.id,
-        userId: appointment.userId,
-        instanceName: config.instanceName,
-        clientPhone: appointment.client.phone,
+      await this.sendToN8n(config.instanceName, appointment.client.phone, message);
+    } catch (error) {
+      console.error('[WhatsAppTrigger] Error in onAppointmentCancelled:', error);
+    }
+  }
+
+  /**
+   * Trigger notification on appointment confirmation
+   */
+  static async onAppointmentConfirmed(
+    appointment: Appointment & { client: Client; user: { businessName?: string | null } },
+    serviceName?: string,
+    professionalName?: string
+  ): Promise<void> {
+    try {
+      const config = await prisma.whatsAppConfig.findUnique({
+        where: { userId: appointment.userId },
+      });
+
+      if (!config || !config.enabled || !config.isConnected || !config.notifyConfirmation) return;
+      if (!appointment.client.phone) return;
+
+      const message = this.replaceVariables(config.confirmationMessage || '', {
         clientName: appointment.client.name,
-        appointmentDate: appointment.date.toISOString(),
+        appointmentDate: appointment.date,
         serviceName,
         professionalName,
         businessName: appointment.user.businessName || undefined,
-        messageTemplate: message,
-        delayMinutes: config.cancelDelayMinutes,
       });
+
+      await this.sendToN8n(config.instanceName, appointment.client.phone, message);
     } catch (error) {
-      console.error('[WhatsAppTrigger] Error in onAppointmentCancelled:', error);
-      // Don't throw - notification failure shouldn't break cancellation
+      console.error('[WhatsAppTrigger] Error in onAppointmentConfirmed:', error);
+    }
+  }
+
+  /**
+   * Trigger notification for appointment reminder
+   */
+  static async onAppointmentReminder(
+    appointment: Appointment & { client: Client; user: { businessName?: string | null } },
+    serviceName?: string,
+    professionalName?: string
+  ): Promise<void> {
+    try {
+      const config = await prisma.whatsAppConfig.findUnique({
+        where: { userId: appointment.userId },
+      });
+
+      if (!config || !config.enabled || !config.isConnected || !config.notifyReminder) return;
+      if (!appointment.client.phone) return;
+
+      const message = this.replaceVariables(config.reminderMessage || '', {
+        clientName: appointment.client.name,
+        appointmentDate: appointment.date,
+        serviceName,
+        professionalName,
+        businessName: appointment.user.businessName || undefined,
+      });
+
+      await this.sendToN8n(config.instanceName, appointment.client.phone, message);
+    } catch (error) {
+      console.error('[WhatsAppTrigger] Error in onAppointmentReminder:', error);
     }
   }
 }

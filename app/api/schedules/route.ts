@@ -15,11 +15,26 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = (session.user as any).id
+    const userRole = (session.user as any).role
     const { searchParams } = new URL(request.url)
     const includeInactive = searchParams.get('includeInactive') === 'true'
 
-    const whereConditions: any = {
-      userId: userId
+    let whereConditions: any = {}
+
+    if (userRole === 'PROFESSIONAL') {
+      // Professional sees schedules explicitly linked to them
+      whereConditions = {
+        professionals: {
+          some: {
+            professionalId: userId
+          }
+        }
+      }
+    } else {
+      // Master sees all schedules they created
+      whereConditions = {
+        userId: userId
+      }
     }
 
     if (!includeInactive) {

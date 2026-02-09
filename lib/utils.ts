@@ -51,6 +51,26 @@ export function formatPhone(phone: string): string {
   return phone
 }
 
+/**
+ * Formats a phone number for WhatsApp sending.
+ * Ensures the '55' DDI is present for Brazilian numbers.
+ * @param phone - Raw phone number string
+ */
+export function formatWhatsAppNumber(phone: string): string {
+  // Remove all non-numeric characters
+  const cleaned = phone.replace(/\D/g, '');
+  
+  // If it's empty, return as is
+  if (!cleaned) return '';
+
+  // If it doesn't start with 55 and has 10 or 11 digits (DDD + number), add 55
+  if (!cleaned.startsWith('55') && (cleaned.length === 10 || cleaned.length === 11)) {
+    return `55${cleaned}`;
+  }
+  
+  return cleaned;
+}
+
 export function formatCPF(cpf: string): string {
   const cleaned = cpf.replace(/\D/g, '')
   const match = cleaned.match(/^(\d{3})(\d{3})(\d{3})(\d{2})$/)

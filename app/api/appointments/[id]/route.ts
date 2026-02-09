@@ -160,8 +160,6 @@ export async function PUT(
       
       // Se o status mudou
       if (status && status !== existingAppointment.status) {
-        const whatsappConfig = updatedAppointment.user.whatsappConfig
-        
         switch (status) {
           case 'CONFIRMED':
             await NotificationService.notifyAppointmentConfirmed(
@@ -170,6 +168,12 @@ export async function PUT(
               updatedAppointment.client.name,
               serviceName,
               updatedAppointment.date
+            )
+            // Enviar notificação via WhatsApp
+            await WhatsAppTriggerService.onAppointmentConfirmed(
+              updatedAppointment as any,
+              serviceName,
+              updatedAppointment.professional || undefined
             )
             break
             

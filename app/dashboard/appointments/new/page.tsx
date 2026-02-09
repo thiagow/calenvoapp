@@ -397,10 +397,10 @@ export default function NewAppointmentPage() {
           <span className="hidden sm:inline">Voltar</span>
         </Button>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">
             {t.appointment === 'Consulta' ? 'Nova Consulta' : `Novo ${t.appointment}`}
           </h1>
-          <p className="text-sm sm:text-base text-gray-600">
+          <p className="text-sm sm:text-base text-muted-foreground">
             Preencha os dados para criar {t.appointment === 'Consulta' ? 'uma nova consulta' : `um novo ${t.appointment.toLowerCase()}`}
           </p>
         </div>
@@ -679,11 +679,11 @@ export default function NewAppointmentPage() {
                 value={`${formData.duration} minutos`}
                 readOnly
                 disabled
-                className="bg-gray-50 cursor-not-allowed"
+                className="bg-muted cursor-not-allowed"
                 title="A duração é definida automaticamente pelo serviço selecionado"
               />
               {formData.serviceId && (
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Duração automática do serviço selecionado
                 </p>
               )}
@@ -758,7 +758,7 @@ export default function NewAppointmentPage() {
         </Card>
 
         {/* Ações */}
-        <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 sticky bottom-0 sm:static bg-white py-3 sm:py-0 border-t sm:border-t-0 -mx-3 sm:mx-0 px-3 sm:px-0">
+        <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 sticky bottom-0 sm:static bg-background py-3 sm:py-0 border-t sm:border-t-0 -mx-3 sm:mx-0 px-3 sm:px-0">
           <Button
             type="button"
             variant="outline"
@@ -770,7 +770,7 @@ export default function NewAppointmentPage() {
           <Button
             type="submit"
             disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
+            className="bg-primary hover:bg-primary/90 w-full sm:w-auto"
           >
             {loading ? (
               <div className="flex items-center justify-center gap-2">

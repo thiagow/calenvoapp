@@ -34,7 +34,7 @@ export function MessagePreview({ message, title = 'Prévia da Mensagem' }: Messa
       </CardHeader>
       <CardContent>
         <div className="bg-white p-4 rounded-lg border shadow-sm">
-          <div className="whitespace-pre-wrap text-sm">
+          <div className="whitespace-pre-wrap text-sm text-slate-900">
             {previewMessage || (
               <span className="text-muted-foreground italic">
                 Digite uma mensagem para visualizar a prévia...

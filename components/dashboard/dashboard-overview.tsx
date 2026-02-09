@@ -88,15 +88,15 @@ export function DashboardOverview({ sessionData }: DashboardOverviewProps) {
       {/* Welcome Section */}
       <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900">
+          <h2 className="text-3xl font-bold text-foreground">
             Bem-vindo, {sessionData?.user?.name?.split(' ')[0]}!
           </h2>
-          <p className="text-gray-600 mt-1">
+          <p className="text-muted-foreground mt-1 font-medium">
             Aqui está um resumo do seu negócio hoje
           </p>
         </div>
         <div className="flex items-center space-x-3">
-          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
             Plano {planConfig?.name}
           </Badge>
           <Link href="/dashboard/appointments/new">
@@ -112,16 +112,16 @@ export function DashboardOverview({ sessionData }: DashboardOverviewProps) {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card className="hover:shadow-lg transition-shadow duration-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-sm font-semibold text-muted-foreground">
               Hoje
             </CardTitle>
-            <Calendar className="h-4 w-4 text-blue-600" />
+            <Calendar className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900">
+            <div className="text-3xl font-extrabold text-foreground">
               {stats.todayAppointments}
             </div>
-            <p className="text-xs text-gray-600">
+            <p className="text-xs font-medium text-muted-foreground">
               agendamentos hoje
             </p>
           </CardContent>
@@ -129,16 +129,16 @@ export function DashboardOverview({ sessionData }: DashboardOverviewProps) {
 
         <Card className="hover:shadow-lg transition-shadow duration-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-sm font-semibold text-muted-foreground">
               Esta Semana
             </CardTitle>
             <CalendarCheck className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900">
+            <div className="text-3xl font-extrabold text-foreground">
               {stats.weekAppointments}
             </div>
-            <p className="text-xs text-gray-600">
+            <p className="text-xs font-medium text-muted-foreground">
               agendamentos esta semana
             </p>
           </CardContent>
@@ -146,16 +146,16 @@ export function DashboardOverview({ sessionData }: DashboardOverviewProps) {
 
         <Card className="hover:shadow-lg transition-shadow duration-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-sm font-semibold text-muted-foreground">
               Clientes
             </CardTitle>
             <Users className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900">
+            <div className="text-3xl font-extrabold text-foreground">
               {stats.totalClients}
             </div>
-            <p className="text-xs text-gray-600">
+            <p className="text-xs font-medium text-muted-foreground">
               cadastrados
             </p>
           </CardContent>
@@ -163,16 +163,16 @@ export function DashboardOverview({ sessionData }: DashboardOverviewProps) {
 
         <Card className="hover:shadow-lg transition-shadow duration-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-sm font-semibold text-muted-foreground">
               Pendentes
             </CardTitle>
             <AlertCircle className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900">
+            <div className="text-3xl font-extrabold text-foreground">
               {stats.pendingAppointments}
             </div>
-            <p className="text-xs text-gray-600">
+            <p className="text-xs font-medium text-muted-foreground">
               aguardando confirmação
             </p>
           </CardContent>
@@ -184,37 +184,37 @@ export function DashboardOverview({ sessionData }: DashboardOverviewProps) {
         {/* Recent Appointments */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <Clock className="mr-2 h-5 w-5 text-blue-600" />
+            <CardTitle className="flex items-center text-foreground">
+              <Clock className="mr-2 h-5 w-5 text-primary" />
               Próximos Agendamentos
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-muted-foreground">
               Agendamentos programados para hoje
             </CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
               <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
             ) : recentAppointments.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-2" />
+              <div className="text-center py-8 text-muted-foreground">
+                <Calendar className="mx-auto h-12 w-12 text-muted-foreground/50 mb-2" />
                 <p>Nenhum agendamento para hoje</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {recentAppointments.map((appointment) => (
-                  <div key={appointment.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                  <div key={appointment.id} className="flex items-center justify-between p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors">
                     <div className="flex items-center space-x-3">
                       <div className="flex-shrink-0">
-                        <UserCheck className="h-8 w-8 text-gray-400" />
+                        <UserCheck className="h-8 w-8 text-muted-foreground" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-foreground">
                           {appointment.patient}
                         </p>
-                        <p className="text-xs text-gray-600">
+                        <p className="text-xs text-muted-foreground">
                           {appointment.type}
                         </p>
                       </div>
@@ -226,7 +226,7 @@ export function DashboardOverview({ sessionData }: DashboardOverviewProps) {
                       >
                         {appointment.status === 'CONFIRMED' ? 'Confirmado' : 'Pendente'}
                       </Badge>
-                      <span className="text-sm font-medium text-gray-900">
+                      <span className="text-sm font-medium text-foreground">
                         {appointment.time}
                       </span>
                     </div>
@@ -234,7 +234,7 @@ export function DashboardOverview({ sessionData }: DashboardOverviewProps) {
                 ))}
               </div>
             )}
-            <div className="mt-4 pt-4 border-t">
+            <div className="mt-4 pt-4 border-t border-border">
               <Link href="/dashboard/agenda">
                 <Button variant="outline" className="w-full">
                   Ver Agenda Completa
@@ -247,11 +247,11 @@ export function DashboardOverview({ sessionData }: DashboardOverviewProps) {
         {/* Plan Usage */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center">
+            <CardTitle className="flex items-center text-foreground">
               <TrendingUp className="mr-2 h-5 w-5 text-green-600" />
               Uso do Plano
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-muted-foreground">
               Limite de agendamentos do mês atual
             </CardDescription>
           </CardHeader>
@@ -259,31 +259,36 @@ export function DashboardOverview({ sessionData }: DashboardOverviewProps) {
             <div className="space-y-4">
               <div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium">Agendamentos este mês</span>
-                  <span className="text-gray-600">
+                  <span className="font-semibold text-foreground">Agendamentos este mês</span>
+                  <span className="font-bold text-foreground">
                     {stats.monthAppointments} / {planConfig?.monthlyLimit === -1 ? '∞' : planConfig?.monthlyLimit}
                   </span>
                 </div>
-                <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                <div className="mt-2 w-full bg-muted rounded-full h-3 shadow-inner">
                   <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    className="bg-primary h-3 rounded-full transition-all duration-300"
                     style={{
                       width: planConfig?.monthlyLimit === -1
-                        ? '20%'
+                        ? '0%' // No "progress" for unlimited plans, just a placeholder track
                         : `${Math.min((stats.monthAppointments / planConfig?.monthlyLimit!) * 100, 100)}%`
                     }}
                   />
                 </div>
+                {planConfig?.monthlyLimit === -1 && (
+                  <p className="text-xs text-muted-foreground mt-2 italic">
+                    * Plano ilimitado: monitorando uso global do ecossistema
+                  </p>
+                )}
               </div>
 
-              <div className="pt-4 border-t">
+              <div className="pt-4 border-t border-border">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Plano Atual</span>
-                  <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                  <span className="text-sm font-semibold text-foreground">Plano Atual</span>
+                  <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-bold">
                     {planConfig?.name}
                   </Badge>
                 </div>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs font-medium text-muted-foreground mt-1">
                   {planConfig?.price === 0 ? 'Gratuito' : `${formatCurrency(planConfig?.price!)} por mês`}
                 </p>
 

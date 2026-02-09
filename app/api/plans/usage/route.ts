@@ -17,25 +17,29 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = (session.user as any).id
+    const userRole = (session.user as any).role
     
-    // Get user's plan
+    // Get user's info and master's info if needed
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { planType: true }
+      select: { planType: true, masterId: true }
     })
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Count appointments this month
+    // Determine target userId for global stats
+    const targetUserId = userRole === 'PROFESSIONAL' ? (user.masterId || userId) : userId
+
+    // Count appointments this month (GLOBAL)
     const now = new Date()
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0)
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
 
     const appointmentsThisMonth = await prisma.appointment.count({
       where: {
-        userId,
+        userId: targetUserId,
         date: {
           gte: startOfMonth,
           lte: endOfMonth

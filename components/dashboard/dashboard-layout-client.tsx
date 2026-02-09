@@ -22,7 +22,7 @@ export function DashboardLayoutClient({ children, sessionData }: DashboardLayout
   return (
     <SessionProvider>
       <SegmentProvider>
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-background">
           <DashboardSidebar />
           <div className="lg:pl-64">
             <DashboardHeader sessionData={sessionData} />

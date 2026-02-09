@@ -76,8 +76,8 @@ export function AgendaWeekView({
   const formatDayHeader = (day: Date) => {
     const isToday = day.toDateString() === new Date().toDateString()
     return (
-      <div className={`text-center p-3 ${isToday ? 'bg-blue-50 text-blue-700 font-semibold' : ''}`}>
-        <div className="text-xs font-medium">
+      <div className={`text-center p-3 ${isToday ? 'bg-primary/10 text-primary font-semibold' : 'text-foreground'}`}>
+        <div className="text-xs font-medium text-muted-foreground">
           {day.toLocaleDateString('pt-BR', { weekday: 'short' }).toUpperCase()}
         </div>
         <div className={`text-lg ${isToday ? 'font-bold' : 'font-medium'}`}>
@@ -160,8 +160,8 @@ export function AgendaWeekView({
           )}
           
           {/* Week Title */}
-          <CardTitle className="flex items-center text-lg">
-            <Calendar className="mr-2 h-5 w-5 text-blue-600" />
+          <CardTitle className="flex items-center text-lg text-foreground">
+            <Calendar className="mr-2 h-5 w-5 text-primary" />
             Semana de {startOfWeek.toLocaleDateString('pt-BR', { 
               day: '2-digit', 
               month: '2-digit' 
@@ -171,7 +171,7 @@ export function AgendaWeekView({
               year: 'numeric' 
             })}
           </CardTitle>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted-foreground">
             {appointments.length} consultas agendadas esta semana
           </p>
         </CardHeader>
@@ -182,7 +182,7 @@ export function AgendaWeekView({
         <CardContent className="p-0 overflow-hidden">
           {/* Mobile: List View */}
           <div className="sm:hidden">
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-border">
               {weekDays.map((day, dayIndex) => {
                 const dayAppointments = appointments.filter(apt => {
                   const aptDate = new Date(apt.date)
@@ -192,17 +192,17 @@ export function AgendaWeekView({
                 const isToday = day.toDateString() === new Date().toDateString()
                 
                 return (
-                  <div key={dayIndex} className={`p-3 ${isToday ? 'bg-blue-50' : ''}`}>
+                  <div key={dayIndex} className={`p-3 ${isToday ? 'bg-primary/5' : ''}`}>
                     <div className="flex items-center justify-between mb-2">
                       <div>
-                        <div className="text-xs font-medium text-gray-500">
+                        <div className="text-xs font-medium text-muted-foreground">
                           {day.toLocaleDateString('pt-BR', { weekday: 'short' }).toUpperCase()}
                         </div>
-                        <div className={`text-lg font-semibold ${isToday ? 'text-blue-700' : 'text-gray-900'}`}>
+                        <div className={`text-lg font-semibold ${isToday ? 'text-primary' : 'text-foreground'}`}>
                           {day.getDate()}
                         </div>
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-muted-foreground">
                         {dayAppointments.length} consulta{dayAppointments.length !== 1 ? 's' : ''}
                       </div>
                     </div>
@@ -212,16 +212,16 @@ export function AgendaWeekView({
                         {dayAppointments.map((appointment, aptIndex) => (
                           <div
                             key={aptIndex}
-                            className="p-2 bg-white rounded border border-gray-200 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
+                            className="p-2 bg-background rounded border border-border hover:border-primary/50 hover:shadow-md transition-all cursor-pointer"
                             onClick={() => onEditAppointment?.(appointment.id)}
                           >
                             <div className="flex items-start justify-between">
                               <div className="flex-1 min-w-0">
-                                <div className="font-medium text-gray-900 text-sm mb-1">
+                                <div className="font-medium text-foreground text-sm mb-1">
                                   {appointment.patient.name}
                                 </div>
                                 <div className="space-y-1">
-                                  <div className="flex items-center space-x-1 text-xs text-gray-600">
+                                  <div className="flex items-center space-x-1 text-xs text-muted-foreground">
                                     <Clock className="h-3 w-3" />
                                     <span>
                                       {new Date(appointment.date).toLocaleTimeString('pt-BR', {
@@ -237,13 +237,13 @@ export function AgendaWeekView({
                                   </Badge>
                                 </div>
                               </div>
-                              <Edit2 className="h-4 w-4 text-gray-400 ml-2 flex-shrink-0" />
+                              <Edit2 className="h-4 w-4 text-muted-foreground/50 ml-2 flex-shrink-0" />
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="text-xs text-gray-400 italic text-center py-2">
+                      <div className="text-xs text-muted-foreground/70 italic text-center py-2">
                         Nenhuma consulta agendada
                       </div>
                     )}
@@ -257,12 +257,12 @@ export function AgendaWeekView({
           <div className="hidden sm:block overflow-x-auto">
             <div className="min-w-[600px]">
               {/* Header Days */}
-              <div className="grid grid-cols-8 border-b border-gray-200">
-                <div className="p-3 text-center text-xs font-medium text-gray-600">
+              <div className="grid grid-cols-8 border-b border-border">
+                <div className="p-3 text-center text-xs font-medium text-muted-foreground">
                   Horário
                 </div>
                 {weekDays.map((day, index) => (
-                  <div key={index} className="border-l border-gray-200">
+                  <div key={index} className="border-l border-border">
                     {formatDayHeader(day)}
                   </div>
                 ))}
@@ -271,9 +271,9 @@ export function AgendaWeekView({
               {/* Time Slots */}
               <div className="max-h-[500px] overflow-y-auto">
                 {timeSlots.map((hour) => (
-                  <div key={hour} className="grid grid-cols-8 border-b border-gray-100 min-h-[80px]">
+                  <div key={hour} className="grid grid-cols-8 border-b border-border/50 min-h-[80px]">
                     {/* Time Column */}
-                    <div className="p-3 text-center text-sm font-medium text-gray-600 border-r border-gray-200">
+                    <div className="p-3 text-center text-sm font-medium text-muted-foreground border-r border-border">
                       {hour.toString().padStart(2, '0')}:00
                     </div>
 
@@ -285,36 +285,36 @@ export function AgendaWeekView({
                         <div 
                           key={dayIndex}
                           className={`
-                            p-2 border-l border-gray-100 
-                            ${dayAppointments.length > 0 ? 'bg-blue-50/30' : 'hover:bg-gray-50'}
+                            p-2 border-l border-border/50 
+                            ${dayAppointments.length > 0 ? 'bg-primary/5' : 'hover:bg-muted/30'}
                           `}
                         >
                           {dayAppointments.map((appointment, aptIndex) => (
                             <div
                               key={aptIndex}
-                              className="mb-1 p-2 bg-white rounded border border-blue-200 text-xs hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
+                              className="mb-1 p-2 bg-background rounded border border-primary/20 text-xs hover:border-primary/50 hover:shadow-md transition-all cursor-pointer"
                               onClick={() => onEditAppointment?.(appointment.id)}
                             >
                               <div className="flex items-start justify-between">
                                 <div className="flex-1 min-w-0">
-                                  <div className="font-medium truncate text-gray-900 mb-1">
+                                  <div className="font-medium truncate text-foreground mb-1">
                                     {appointment.patient.name}
                                   </div>
                                   <div className="space-y-1">
                                     <div className="flex items-center space-x-1">
-                                      <Clock className="h-3 w-3 text-gray-400" />
-                                      <span className="text-gray-600">
+                                      <Clock className="h-3 w-3 text-muted-foreground/50" />
+                                      <span className="text-muted-foreground">
                                         {new Date(appointment.date).toLocaleTimeString('pt-BR', {
                                           hour: '2-digit',
                                           minute: '2-digit'
                                         })}
                                       </span>
                                     </div>
-                                    <div className="truncate text-gray-600">
+                                    <div className="truncate text-muted-foreground">
                                       {appointment.specialty}
                                     </div>
                                     {appointment.professional && (
-                                      <div className="truncate text-gray-500 text-xs">
+                                      <div className="truncate text-muted-foreground/70 text-xs">
                                         {appointment.professional}
                                       </div>
                                     )}
@@ -326,7 +326,7 @@ export function AgendaWeekView({
                                   </div>
                                 </div>
                                 
-                                <Edit2 className="h-3 w-3 text-gray-400 ml-1 flex-shrink-0" />
+                                <Edit2 className="h-3 w-3 text-muted-foreground/50 ml-1 flex-shrink-0" />
                               </div>
                             </div>
                           ))}

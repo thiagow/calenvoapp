@@ -17,6 +17,17 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = (session.user as any).id
+    const userRole = (session.user as any).role
+
+    // If professional, we need their master's data for plan usage
+    let masterId = userId
+    if (userRole === 'PROFESSIONAL') {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { masterId: true }
+      })
+      masterId = user?.masterId || userId
+    }
 
     // Data de hoje (início e fim)
     const todayStart = new Date()
@@ -34,6 +45,22 @@ export async function GET(request: NextRequest) {
     monthStart.setDate(1)
     monthStart.setHours(0, 0, 0, 0)
 
+    // Definir filtros baseados no role
+    // For general dashboard stats, professional sees the global ecosystem data
+    // to match the master/manager view as requested
+    const appointmentFilter = { userId: masterId }
+
+    const clientFilter = { userId: masterId }
+
+    // This filter is for the "Recent Appointments" list - we'll keep this PERSONAL
+    // so the professional still sees their own upcoming work
+    const recentAppointmentFilter = userRole === 'PROFESSIONAL'
+      ? { professionalId: userId }
+      : { userId }
+
+    // This filter is SPECIFICALLY for plan usage calculation (global ecosystem)
+    const globalAppointmentFilter = { userId: masterId }
+
     // Buscar estatísticas em paralelo
     const [
       todayAppointments,
@@ -47,7 +74,7 @@ export async function GET(request: NextRequest) {
       // Agendamentos de hoje
       prisma.appointment.count({
         where: {
-          userId,
+          ...appointmentFilter,
           date: {
             gte: todayStart,
             lte: todayEnd
@@ -61,7 +88,7 @@ export async function GET(request: NextRequest) {
       // Agendamentos desta semana
       prisma.appointment.count({
         where: {
-          userId,
+          ...appointmentFilter,
           date: {
             gte: weekStart,
             lte: todayEnd
@@ -72,10 +99,10 @@ export async function GET(request: NextRequest) {
         }
       }),
 
-      // Agendamentos deste mês
+      // Agendamentos deste mês (GLOBAL for plan usage)
       prisma.appointment.count({
         where: {
-          userId,
+          ...globalAppointmentFilter,
           date: {
             gte: monthStart
           },
@@ -87,15 +114,13 @@ export async function GET(request: NextRequest) {
 
       // Total de clientes/pacientes
       prisma.client.count({
-        where: {
-          userId
-        }
+        where: clientFilter
       }),
 
       // Agendamentos pendentes (aguardando confirmação)
       prisma.appointment.count({
         where: {
-          userId,
+          ...appointmentFilter,
           status: 'SCHEDULED',
           date: {
             gte: todayStart
@@ -106,15 +131,15 @@ export async function GET(request: NextRequest) {
       // Total de agendamentos completados
       prisma.appointment.count({
         where: {
-          userId,
+          ...appointmentFilter,
           status: 'COMPLETED'
         }
       }),
 
-      // Próximos agendamentos de hoje
+      // Próximos agendamentos de hoje (KEEP PERSONAL for professional)
       prisma.appointment.findMany({
         where: {
-          userId,
+          ...recentAppointmentFilter,
           date: {
             gte: new Date(),
             lte: todayEnd

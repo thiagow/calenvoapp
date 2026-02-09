@@ -147,6 +147,7 @@ export async function POST(request: NextRequest) {
         image: image || null,
         role: 'PROFESSIONAL',
         masterId: userId,
+        planType: masterUser.planType, // Inherit plan type from master
         isActive: true
       },
       select: {

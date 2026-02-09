@@ -143,8 +143,8 @@ export function AgendaDayView({
           )}
           
           {/* Day Title */}
-          <CardTitle className="flex items-center text-lg">
-            <Calendar className="mr-2 h-5 w-5 text-blue-600" />
+          <CardTitle className="flex items-center text-lg text-foreground">
+            <Calendar className="mr-2 h-5 w-5 text-primary" />
             {date.toLocaleDateString('pt-BR', { 
               weekday: 'long', 
               year: 'numeric', 
@@ -152,7 +152,7 @@ export function AgendaDayView({
               day: 'numeric' 
             })}
           </CardTitle>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted-foreground">
             {appointments.length} consultas agendadas
           </p>
         </CardHeader>
@@ -174,8 +174,8 @@ export function AgendaDayView({
                   `}
                 >
                   {/* Time Column */}
-                  <div className="w-20 flex-shrink-0 p-3 text-center border-r border-gray-100">
-                    <div className="text-sm font-medium text-gray-900">
+                  <div className="w-20 flex-shrink-0 p-3 text-center border-r border-border">
+                    <div className="text-sm font-medium text-foreground">
                       {formatSlotTime(slot)}
                     </div>
                   </div>
@@ -184,25 +184,25 @@ export function AgendaDayView({
                   <div className="flex-1 p-3">
                     {appointment ? (
                       <div 
-                        className="flex items-start justify-between cursor-pointer hover:bg-blue-50 -m-3 p-3 rounded transition-colors"
+                        className="flex items-start justify-between cursor-pointer hover:bg-muted/50 -m-3 p-3 rounded transition-colors"
                         onClick={() => onEditAppointment?.(appointment.id)}
                       >
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-2">
-                            <h4 className="font-medium text-gray-900">
+                            <h4 className="font-medium text-foreground">
                               {appointment.patient.name}
                             </h4>
                             <Badge className={STATUS_COLORS[appointment.status]}>
                               {STATUS_LABELS[appointment.status]}
                             </Badge>
-                            <Badge variant="outline" className="bg-purple-50 text-purple-700">
+                            <Badge variant="outline" className="bg-purple-500/10 text-purple-500 border-purple-500/20">
                               {MODALITY_LABELS[appointment.modality]}
                             </Badge>
                           </div>
                           
-                          <div className="space-y-1 text-sm text-gray-600">
+                          <div className="space-y-1 text-sm text-muted-foreground">
                             <div className="flex items-center space-x-4">
-                              <span className="font-medium">
+                              <span className="font-medium text-foreground/80">
                                 {appointment.specialty}
                               </span>
                               <span>•</span>
@@ -230,12 +230,12 @@ export function AgendaDayView({
                               )}
                             </div>
                             
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-muted-foreground/70">
                               🏥 {appointment.insurance}
                             </div>
                             
                             {appointment.notes && (
-                              <div className="text-xs text-gray-500 mt-1">
+                              <div className="text-xs text-muted-foreground/70 mt-1">
                                 {appointment.notes}
                               </div>
                             )}
@@ -243,11 +243,11 @@ export function AgendaDayView({
                         </div>
 
                         <div className="flex items-center ml-4">
-                          <Edit2 className="h-4 w-4 text-gray-400" />
+                          <Edit2 className="h-4 w-4 text-muted-foreground/50" />
                         </div>
                       </div>
                     ) : (
-                      <div className="text-xs text-gray-400 italic">
+                      <div className="text-xs text-muted-foreground/50 italic">
                         Horário disponível
                       </div>
                     )}

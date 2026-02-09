@@ -36,10 +36,11 @@ export const authOptions: NextAuthOptions = {
 
         console.log('🔍 Auth: Looking for user in database...')
         // Use findFirst since email is no longer unique (we have email_role unique constraint)
+        // Allow both MASTER and PROFESSIONAL users to login
         const user = await prisma.user.findFirst({
           where: { 
             email: credentials.email,
-            role: 'MASTER' // Only allow MASTER users to login
+            isActive: true // Only allow active users
           }
         })
 
@@ -48,7 +49,7 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        console.log('✅ Auth: User found:', user.email)
+        console.log('✅ Auth: User found:', user.email, '| Role:', user.role)
         console.log('🔒 Auth: Comparing passwords...')
         const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
 
@@ -62,9 +63,11 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.name,
+          role: user.role,
           businessName: user.businessName,
           segmentType: user.segmentType,
-          planType: user.planType
+          planType: user.planType,
+          masterId: user.masterId
         }
       }
     })
@@ -99,9 +102,11 @@ export const authOptions: NextAuthOptions = {
         if (user) {
           console.log('💾 JWT callback: Storing user data in token')
           token.id = user.id
+          token.role = (user as any).role
           token.planType = (user as any).planType
           token.businessName = (user as any).businessName
           token.segmentType = (user as any).segmentType
+          token.masterId = (user as any).masterId
         }
         return token
       } catch (error) {
@@ -116,9 +121,11 @@ export const authOptions: NextAuthOptions = {
           console.log('🔄 Session callback: Creating session from token')
           // Use token.id first, fallback to token.sub
           ;(session.user as any).id = token.id || token.sub!
+          ;(session.user as any).role = token.role
           ;(session.user as any).planType = token.planType
           ;(session.user as any).businessName = token.businessName
           ;(session.user as any).segmentType = token.segmentType
+          ;(session.user as any).masterId = token.masterId
         }
         return session
       } catch (error) {

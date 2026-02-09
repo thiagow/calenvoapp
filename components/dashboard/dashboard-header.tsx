@@ -62,14 +62,14 @@ export function DashboardHeader({ sessionData }: DashboardHeaderProps) {
   }
 
   return (
-    <header className="sticky top-0 z-30 bg-white shadow-sm border-b border-gray-200">
+    <header className="sticky top-0 z-30 bg-card shadow-sm border-b border-border">
       <div className="flex items-center justify-between px-3 sm:px-4 md:px-6 py-3 sm:py-4">
         {/* Left - Business Name & Plan */}
         <div className="flex items-center space-x-2 sm:space-x-4 min-w-0 flex-1 lg:pl-0 pl-12">
-          <h1 className="text-base sm:text-lg md:text-2xl font-semibold text-gray-900 truncate">
+          <h1 className="text-base sm:text-lg md:text-2xl font-semibold text-foreground truncate">
             {sessionData?.user?.businessName || 'Dashboard'}
           </h1>
-          <Badge variant="outline" className="hidden sm:inline-flex bg-blue-50 text-blue-700 border-blue-200 text-xs">
+          <Badge variant="outline" className="hidden sm:inline-flex bg-primary/10 text-primary border-primary/20 text-xs">
             {planConfig?.name}
           </Badge>
         </div>
@@ -87,34 +87,34 @@ export function DashboardHeader({ sessionData }: DashboardHeaderProps) {
           {/* User Menu */}
           <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
             <DropdownMenuTrigger 
-              className="relative h-8 w-8 sm:h-9 sm:w-9 rounded-full inline-flex items-center justify-center hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 border-0 bg-transparent cursor-pointer"
+              className="relative h-8 w-8 sm:h-9 sm:w-9 rounded-full inline-flex items-center justify-center hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary border-0 bg-transparent cursor-pointer"
               aria-label="Menu do usuário"
               title="Abrir menu do usuário"
               onClick={() => setMenuOpen(!menuOpen)}
             >
               <Avatar className="h-8 w-8 sm:h-9 sm:w-9 pointer-events-none">
-                <AvatarFallback className="bg-blue-100 text-blue-600 text-xs sm:text-sm">
+                <AvatarFallback className="bg-primary/10 text-primary text-xs sm:text-sm">
                   {getInitials(sessionData?.user?.name)}
                 </AvatarFallback>
               </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <div className="flex flex-col space-y-1 p-2">
-                <p className="text-sm font-medium truncate">{sessionData?.user?.name}</p>
+                <p className="text-sm font-medium truncate text-foreground">{sessionData?.user?.name}</p>
                 <p className="text-xs text-muted-foreground truncate">
                   {sessionData?.user?.email}
                 </p>
                 {/* Show plan on mobile in menu */}
-                <Badge variant="outline" className="sm:hidden w-fit bg-blue-50 text-blue-700 border-blue-200 text-xs mt-1">
+                <Badge variant="outline" className="sm:hidden w-fit bg-primary/10 text-primary border-primary/20 text-xs mt-1">
                   {planConfig?.name}
                 </Badge>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleProfileClick}>
+              <DropdownMenuItem onClick={handleProfileClick} className="cursor-pointer">
                 <User className="mr-2 h-4 w-4" />
                 Perfil
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleSettingsClick}>
+              <DropdownMenuItem onClick={handleSettingsClick} className="cursor-pointer">
                 <Settings className="mr-2 h-4 w-4" />
                 Configurações
               </DropdownMenuItem>
@@ -126,7 +126,7 @@ export function DashboardHeader({ sessionData }: DashboardHeaderProps) {
                 </div>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut}>
+              <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive focus:text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
                 Sair
               </DropdownMenuItem>

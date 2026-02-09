@@ -200,8 +200,8 @@ export default function AgendaPage() {
       <div className="flex flex-col space-y-3 sm:space-y-4">
         {/* Title */}
         <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">Agendamento</h1>
-          <p className="text-sm sm:text-base text-gray-600 mt-1">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">Agendamento</h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">
             Visualize e gerencie todos os seus agendamentos
           </p>
         </div>
@@ -209,7 +209,7 @@ export default function AgendaPage() {
         {/* Actions Row */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           {/* Stats - Hidden on very small screens */}
-          <div className="hidden md:flex items-center space-x-4 text-xs sm:text-sm text-gray-600">
+          <div className="hidden md:flex items-center space-x-4 text-xs sm:text-sm text-muted-foreground">
             <div className="flex items-center space-x-1">
               <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
               <span>
@@ -270,7 +270,7 @@ export default function AgendaPage() {
         </div>
 
         {/* Stats mobile - Only on small screens */}
-        <div className="md:hidden flex items-center justify-around text-xs text-gray-600 bg-gray-50 rounded-lg p-2">
+        <div className="md:hidden flex items-center justify-around text-xs text-muted-foreground bg-muted rounded-lg p-2">
           <div className="flex items-center space-x-1">
             <Calendar className="h-3 w-3" />
             <span>Hoje: {statsLoading ? <Loader2 className="inline h-3 w-3 animate-spin" /> : `${stats.todayAppointments} agendamento(s)`}</span>
@@ -297,8 +297,8 @@ export default function AgendaPage() {
         {appointmentsLoading ? (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-gray-400" />
-              <p className="text-gray-600">Carregando agendamentos...</p>
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-muted-foreground" />
+              <p className="text-muted-foreground">Carregando agendamentos...</p>
             </div>
           </div>
         ) : (
@@ -356,11 +356,11 @@ export default function AgendaPage() {
       {viewFilteredAppointments.length === 0 && Object.keys(filters).length > 0 && (
         <Card>
           <CardContent className="text-center py-8">
-            <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <Calendar className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
+            <h3 className="text-lg font-medium text-foreground mb-2">
               Nenhuma consulta encontrada
             </h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-muted-foreground mb-4">
               Não há consultas que correspondam aos filtros aplicados.
               Tente ajustar os filtros ou limpar todos os filtros.
             </p>

@@ -10,6 +10,7 @@ import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
 import { WhatsAppConfig } from '@prisma/client';
+import { formatWhatsAppNumber } from '@/lib/utils';
 
 /**
  * Extended user interface for NextAuth session
@@ -689,7 +690,7 @@ export async function checkConnectionStatusAction(): Promise<ActionState<{ isCon
     }
 
     const statusData = extractFirstFromArray(result.data);
-    const isConnected = mapN8nStateToConnected(statusData.instance.state);
+    const isConnected = (statusData.instance.state === 'open' || statusData.instance.state === 'connected');
     
     console.log('[checkConnectionStatusAction] n8n state:', statusData.instance.state, '→ connected:', isConnected);
 
@@ -812,6 +813,91 @@ export async function updateWhatsAppSettingsAction(
 }
 
 /**
+ * Send a real-time message via the dedicated n8n endpoint
+ * Pattern: instancia, mensagem, destinatario
+ */
+export async function sendMessageAction(
+  instanceName: string,
+  recipient: string,
+  message: string
+): Promise<ActionState<void>> {
+  try {
+    const sendUrl = process.env.N8N_SEND_MESSAGE_URL;
+    if (!sendUrl) {
+      console.error('[sendMessageAction] N8N_SEND_MESSAGE_URL not configured');
+      return { success: false, error: 'Endpoint de envio não configurado' };
+    }
+
+    // Format recipient number (ensure 55 DDI)
+    const formattedRecipient = formatWhatsAppNumber(recipient);
+
+    const payload = {
+      instancia: instanceName,
+      mensagem: message,
+      destinatario: formattedRecipient,
+    };
+
+    console.log('[sendMessageAction] Sending message to:', formattedRecipient);
+    
+    const response = await fetch(sendUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[sendMessageAction] HTTP error:', response.status, errorText);
+      throw new Error(`Erro no servidor de mensagens: ${response.status}`);
+    }
+
+    console.log('[sendMessageAction] Message sent successfully');
+    return { success: true };
+  } catch (error) {
+    console.error('[sendMessageAction] Error:', error);
+    throw error; // Let retry handle it
+  }
+}
+
+/**
+ * Helper for exponential backoff delay
+ */
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Send message with automatic exponential backoff retry
+ */
+export async function sendMessageWithRetry(
+  instanceName: string,
+  recipient: string,
+  message: string,
+  attempt: number = 1
+): Promise<ActionState<void>> {
+  const MAX_RETRIES = 3;
+  const BASE_DELAY = 1000;
+
+  try {
+    return await sendMessageAction(instanceName, recipient, message);
+  } catch (error) {
+    if (attempt >= MAX_RETRIES) {
+      console.error(`[sendMessageWithRetry] Failed after ${MAX_RETRIES} attempts:`, error);
+      return {
+        success: false,
+        error: `Falha ao enviar após ${MAX_RETRIES} tentativas. Verifique a conexão.`,
+      };
+    }
+
+    const delay = BASE_DELAY * Math.pow(2, attempt - 1);
+    console.warn(`[sendMessageWithRetry] Attempt ${attempt} failed. Retrying in ${delay}ms...`);
+    
+    await sleep(delay);
+    return sendMessageWithRetry(instanceName, recipient, message, attempt + 1);
+  }
+}
+
+/**
  * Sends a test message to the user's own number
  * Uses templates with dummy data for validation
  * 
@@ -863,18 +949,15 @@ export async function sendTestMessageAction(
       .replace(/\{\{profissional\}\}/g, 'Profissional Exemplo')
       .replace(/\{\{empresa\}\}/g, 'Sua Empresa');
 
-    const n8nResult = await callN8n({
-      action: 'sendMessage',
-      userId: session.user.id,
-      payload: {
-        instanceName: config.instanceName,
-        number: config.phoneNumber,
-        message: `📱 MENSAGEM DE TESTE:\n\n${message}`,
-      },
-    });
+    // Send using new real-time endpoint with retry
+    const result = await sendMessageWithRetry(
+      config.instanceName,
+      config.phoneNumber,
+      `📱 MENSAGEM DE TESTE:\n\n${message}`
+    );
 
-    if (!n8nResult.success) {
-      return { success: false, error: n8nResult.error || 'Falha ao enviar mensagem' };
+    if (!result.success) {
+      return { success: false, error: result.error };
     }
 
     return { success: true };
@@ -883,4 +966,3 @@ export async function sendTestMessageAction(
     return { success: false, error: 'Erro ao enviar mensagem de teste' };
   }
 }
-
