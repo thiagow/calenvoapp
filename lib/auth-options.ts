@@ -28,7 +28,7 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         console.log('🔐 Auth: authorize called')
         console.log('📧 Credentials email:', credentials?.email)
-        
+
         if (!credentials?.email || !credentials?.password) {
           console.log('❌ Auth: Missing credentials')
           return null
@@ -36,11 +36,15 @@ export const authOptions: NextAuthOptions = {
 
         console.log('🔍 Auth: Looking for user in database...')
         // Use findFirst since email is no longer unique (we have email_role unique constraint)
-        // Allow both MASTER and PROFESSIONAL users to login
+        // Allow MASTER, PROFESSIONAL, and SAAS_ADMIN users to login
         const user = await prisma.user.findFirst({
-          where: { 
+          where: {
             email: credentials.email,
-            isActive: true // Only allow active users
+            // SAAS_ADMIN can login even if inactive
+            OR: [
+              { role: 'SAAS_ADMIN' },
+              { AND: [{ role: { in: ['MASTER', 'PROFESSIONAL'] } }, { isActive: true }] }
+            ]
           }
         })
 
@@ -119,13 +123,13 @@ export const authOptions: NextAuthOptions = {
       try {
         if (token && session?.user) {
           console.log('🔄 Session callback: Creating session from token')
-          // Use token.id first, fallback to token.sub
-          ;(session.user as any).id = token.id || token.sub!
-          ;(session.user as any).role = token.role
-          ;(session.user as any).planType = token.planType
-          ;(session.user as any).businessName = token.businessName
-          ;(session.user as any).segmentType = token.segmentType
-          ;(session.user as any).masterId = token.masterId
+            // Use token.id first, fallback to token.sub
+            ; (session.user as any).id = token.id || token.sub!
+            ; (session.user as any).role = token.role
+            ; (session.user as any).planType = token.planType
+            ; (session.user as any).businessName = token.businessName
+            ; (session.user as any).segmentType = token.segmentType
+            ; (session.user as any).masterId = token.masterId
         }
         return session
       } catch (error) {

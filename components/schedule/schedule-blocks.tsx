@@ -20,6 +20,7 @@ import { Plus, Trash2, Calendar, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { useDialog } from '@/components/providers/dialog-provider'
 
 interface ScheduleBlock {
   id: string
@@ -38,6 +39,7 @@ export function ScheduleBlocks({ scheduleId, scheduleName }: ScheduleBlocksProps
   const [blocks, setBlocks] = useState<ScheduleBlock[]>([])
   const [loading, setLoading] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const { confirm } = useDialog()
   const [formData, setFormData] = useState({
     startDate: '',
     endDate: '',
@@ -53,7 +55,7 @@ export function ScheduleBlocks({ scheduleId, scheduleName }: ScheduleBlocksProps
     try {
       const response = await fetch(`/api/schedules/${scheduleId}/blocks`)
       if (!response.ok) throw new Error('Erro ao buscar bloqueios')
-      
+
       const data = await response.json()
       setBlocks(data)
     } catch (error) {
@@ -104,9 +106,14 @@ export function ScheduleBlocks({ scheduleId, scheduleName }: ScheduleBlocksProps
   }
 
   const handleDeleteBlock = async (blockId: string) => {
-    if (!confirm('Deseja realmente remover este bloqueio?')) {
-      return
-    }
+    const confirmed = await confirm({
+      title: 'Remover Bloqueio',
+      description: 'Deseja realmente remover este bloqueio?',
+      variant: 'destructive',
+      confirmText: 'Remover'
+    })
+
+    if (!confirmed) return
 
     try {
       const response = await fetch(

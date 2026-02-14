@@ -8,9 +8,9 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { 
-  Calendar, 
-  Search, 
+import {
+  Calendar,
+  Search,
   Filter,
   Plus,
   Clock,
@@ -29,6 +29,7 @@ import { AppointmentStatus } from '@prisma/client'
 import toast from 'react-hot-toast'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { useDialog } from '@/components/providers/dialog-provider'
 
 // Status mappings for backwards compatibility with the old interface
 const statusColors = {
@@ -53,6 +54,7 @@ export function AppointmentsList() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [dateFilter, setDateFilter] = useState('')
+  const { confirm } = useDialog()
 
   // Get appointments from database
   const {
@@ -69,11 +71,11 @@ export function AppointmentsList() {
   const filteredAppointments = useMemo(() => {
     return appointments.filter(appointment => {
       const matchesSearch = appointment.patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            appointment.specialty?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            appointment.professional?.toLowerCase().includes(searchTerm.toLowerCase())
-      
+        appointment.specialty?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        appointment.professional?.toLowerCase().includes(searchTerm.toLowerCase())
+
       const matchesStatus = statusFilter === 'all' || appointment.status === statusFilter
-      
+
       const matchesDate = !dateFilter || format(new Date(appointment.date), 'yyyy-MM-dd') === dateFilter
 
       return matchesSearch && matchesStatus && matchesDate
@@ -81,9 +83,14 @@ export function AppointmentsList() {
   }, [appointments, searchTerm, statusFilter, dateFilter])
 
   const handleDeleteAppointment = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir este agendamento?')) {
-      return
-    }
+    const confirmed = await confirm({
+      title: 'Excluir Agendamento',
+      description: 'Tem certeza que deseja excluir este agendamento?',
+      variant: 'destructive',
+      confirmText: 'Excluir'
+    })
+
+    if (!confirmed) return
 
     try {
       await deleteAppointment(id)
@@ -192,7 +199,7 @@ export function AppointmentsList() {
                 Nenhum agendamento encontrado
               </h3>
               <p className="text-gray-600 mb-6">
-                {searchTerm || statusFilter !== 'all' || dateFilter 
+                {searchTerm || statusFilter !== 'all' || dateFilter
                   ? 'Tente ajustar os filtros para ver mais resultados.'
                   : 'Você ainda não tem agendamentos. Crie seu primeiro agendamento agora!'}
               </p>
@@ -207,7 +214,7 @@ export function AppointmentsList() {
             <div className="space-y-4">
               {filteredAppointments.map((appointment) => {
                 const appointmentDate = new Date(appointment.date)
-                
+
                 return (
                   <div
                     key={appointment.id}
@@ -224,7 +231,7 @@ export function AppointmentsList() {
                           <h4 className="text-sm font-medium text-gray-900">
                             {appointment.patient.name}
                           </h4>
-                          <Badge 
+                          <Badge
                             className={`text-xs ${statusColors[appointment.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}`}
                             variant="secondary"
                           >
@@ -262,16 +269,16 @@ export function AppointmentsList() {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="sm"
                         onClick={() => toast('Função de editar será implementada em breve')}
                       >
                         <Edit2 className="h-4 w-4" />
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         className="text-red-600 hover:text-red-700"
                         onClick={() => handleDeleteAppointment(appointment.id)}
                       >

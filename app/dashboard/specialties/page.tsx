@@ -8,9 +8,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { 
-  Stethoscope, 
-  Search, 
+import {
+  Stethoscope,
+  Search,
   MoreVertical,
   Trash2,
   Edit,
@@ -32,6 +32,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { toast } from 'sonner'
+import { useDialog } from '@/components/providers/dialog-provider'
 
 interface Specialty {
   id: string
@@ -55,6 +56,7 @@ const COLORS = [
 
 export default function SpecialtiesPage() {
   const { data: session } = useSession() || {}
+  const { confirm } = useDialog()
   const [specialties, setSpecialties] = useState<Specialty[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -179,8 +181,15 @@ export default function SpecialtiesPage() {
     setIsDialogOpen(false)
   }
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Tem certeza que deseja excluir esta especialidade?')) {
+  const handleDelete = async (id: string) => {
+    const confirmed = await confirm({
+      title: 'Excluir Especialidade',
+      description: 'Tem certeza que deseja excluir esta especialidade?',
+      variant: 'destructive',
+      confirmText: 'Excluir'
+    })
+
+    if (confirmed) {
       setSpecialties(prev => prev.filter(s => s.id !== id))
       toast.success('Especialidade excluída com sucesso!')
     }
@@ -224,12 +233,12 @@ export default function SpecialtiesPage() {
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-start space-x-3">
-                  <div 
+                  <div
                     className="p-2 rounded-full"
                     style={{ backgroundColor: `${specialty.color}20` }}
                   >
-                    <Stethoscope 
-                      className="h-5 w-5" 
+                    <Stethoscope
+                      className="h-5 w-5"
                       style={{ color: specialty.color }}
                     />
                   </div>
@@ -349,11 +358,10 @@ export default function SpecialtiesPage() {
                   <button
                     key={color.value}
                     type="button"
-                    className={`h-10 rounded-md border-2 transition-all ${
-                      formData.color === color.value
+                    className={`h-10 rounded-md border-2 transition-all ${formData.color === color.value
                         ? 'border-gray-900 scale-110'
                         : 'border-gray-200'
-                    }`}
+                      }`}
                     style={{ backgroundColor: color.value }}
                     onClick={() => setFormData({ ...formData, color: color.value })}
                     title={color.label}

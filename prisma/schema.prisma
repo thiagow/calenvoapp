@@ -43,6 +43,7 @@ enum PlanType {
 enum UserRole {
   MASTER // Usuário que criou a conta
   PROFESSIONAL // Profissional da equipe
+  SAAS_ADMIN // Administrador global do SaaS
 }
 
 enum SegmentType {
@@ -442,4 +443,19 @@ model WhatsAppConfig {
 
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// Logs de auditoria para ações administrativas do SaaS
+model AdminAuditLog {
+  id        String   @id @default(cuid())
+  action    String // "TENANT_BLOCKED", "TENANT_UNBLOCKED", "ADMIN_LOGIN", etc.
+  adminId   String // ID do admin que realizou a ação
+  targetId  String? // ID do tenant alvo (quando aplicável)
+  details   Json? // Detalhes extras (motivo de bloqueio, etc.)
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([adminId])
+  @@index([action])
+  @@index([createdAt])
 }

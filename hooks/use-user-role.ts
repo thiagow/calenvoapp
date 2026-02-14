@@ -3,12 +3,13 @@
 
 import { useSession } from 'next-auth/react'
 
-export type UserRole = 'MASTER' | 'PROFESSIONAL'
+export type UserRole = 'MASTER' | 'PROFESSIONAL' | 'SAAS_ADMIN'
 
 export interface UserRoleData {
   role: UserRole
   isMaster: boolean
   isProfessional: boolean
+  isSaasAdmin: boolean
   isLoading: boolean
 }
 
@@ -26,14 +27,15 @@ export interface UserRoleData {
  */
 export function useUserRole(): UserRoleData {
   const { data: session, status } = useSession()
-  
+
   const role = (session?.user as any)?.role as UserRole || 'MASTER'
   const isLoading = status === 'loading'
-  
+
   return {
     role,
     isMaster: role === 'MASTER',
     isProfessional: role === 'PROFESSIONAL',
+    isSaasAdmin: role === 'SAAS_ADMIN',
     isLoading
   }
 }

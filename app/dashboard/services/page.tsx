@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Briefcase, Plus, Edit, Trash2, Clock, DollarSign } from 'lucide-react'
 import { toast } from 'sonner'
+import { useDialog } from '@/components/providers/dialog-provider'
 
 interface Service {
   id: string
@@ -29,6 +30,7 @@ interface Service {
 export default function ServicesPage() {
   const router = useRouter()
   const { data: session, status } = useSession()
+  const { confirm } = useDialog()
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -53,7 +55,14 @@ export default function ServicesPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir este serviço?')) return
+    const confirmed = await confirm({
+      title: 'Excluir Serviço',
+      description: 'Tem certeza que deseja excluir este serviço?',
+      variant: 'destructive',
+      confirmText: 'Excluir'
+    })
+
+    if (!confirmed) return
 
     try {
       const response = await fetch(`/api/services/${id}`, {

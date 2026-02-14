@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Calendar, Plus, Edit, Trash2, Clock, Users } from 'lucide-react'
 import { toast } from 'sonner'
+import { useDialog } from '@/components/providers/dialog-provider'
 
 interface Schedule {
   id: string
@@ -30,6 +31,7 @@ interface Schedule {
 export default function SchedulesPage() {
   const router = useRouter()
   const { data: session, status } = useSession()
+  const { confirm } = useDialog()
   const [schedules, setSchedules] = useState<Schedule[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -56,7 +58,14 @@ export default function SchedulesPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir esta agenda?')) return
+    const confirmed = await confirm({
+      title: 'Excluir Agenda',
+      description: 'Tem certeza que deseja excluir esta agenda?',
+      variant: 'destructive',
+      confirmText: 'Excluir'
+    })
+
+    if (!confirmed) return
 
     try {
       const response = await fetch(`/api/schedules/${id}`, {
@@ -173,11 +182,10 @@ export default function SchedulesPage() {
                       <Badge
                         key={day}
                         variant={schedule.workingDays.includes(day) ? 'default' : 'outline'}
-                        className={`text-xs px-2 ${
-                          schedule.workingDays.includes(day)
+                        className={`text-xs px-2 ${schedule.workingDays.includes(day)
                             ? 'bg-blue-600'
                             : 'text-gray-400'
-                        }`}
+                          }`}
                       >
                         {dayNames[day]}
                       </Badge>

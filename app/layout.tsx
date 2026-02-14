@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Providers } from '@/components/providers/session-provider'
+import { DialogProvider } from '@/components/providers/dialog-provider'
 import { Toaster } from 'react-hot-toast'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -27,8 +28,10 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {children}
-            <Toaster />
+            <DialogProvider>
+              {children}
+              <Toaster />
+            </DialogProvider>
           </ThemeProvider>
         </Providers>
       </body>

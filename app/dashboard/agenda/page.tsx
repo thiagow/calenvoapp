@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { 
+import {
   Plus,
   Filter,
   Eye,
@@ -18,6 +18,7 @@ import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { redirect } from 'next/navigation'
 import toast from 'react-hot-toast'
+import { useDialog } from '@/components/providers/dialog-provider'
 
 // Components
 import { AgendaViewSelector, ViewType } from '@/components/agenda/agenda-view-selector'
@@ -39,7 +40,8 @@ import { AppointmentStatus, ModalityType } from '@prisma/client'
 
 export default function AgendaPage() {
   const { data: session, status } = useSession() || {}
-  
+  const { confirm } = useDialog()
+
   // State - All hooks must be declared before any conditional returns
   const [currentView, setCurrentView] = useState<ViewType>('week')
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -105,11 +107,11 @@ export default function AgendaPage() {
         const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1)
         startOfWeek.setDate(diff)
         startOfWeek.setHours(0, 0, 0, 0)
-        
+
         const endOfWeek = new Date(startOfWeek)
         endOfWeek.setDate(startOfWeek.getDate() + 6)
         endOfWeek.setHours(23, 59, 59, 999)
-        
+
         return appointments.filter(apt => {
           const aptDate = new Date(apt.date)
           return aptDate >= startOfWeek && aptDate <= endOfWeek
@@ -118,8 +120,8 @@ export default function AgendaPage() {
       case 'month':
         return appointments.filter(apt => {
           const aptDate = new Date(apt.date)
-          return aptDate.getMonth() === currentDate.getMonth() && 
-                 aptDate.getFullYear() === currentDate.getFullYear()
+          return aptDate.getMonth() === currentDate.getMonth() &&
+            aptDate.getFullYear() === currentDate.getFullYear()
         })
 
       default:
@@ -149,9 +151,14 @@ export default function AgendaPage() {
   }
 
   const handleDeleteAppointment = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir este agendamento?')) {
-      return
-    }
+    const confirmed = await confirm({
+      title: 'Excluir Agendamento',
+      description: 'Tem certeza que deseja excluir este agendamento?',
+      variant: 'destructive',
+      confirmText: 'Excluir'
+    })
+
+    if (!confirmed) return
 
     try {
       await deleteAppointment(id)
@@ -179,7 +186,7 @@ export default function AgendaPage() {
       </div>
     )
   }
-  
+
   if (!session) {
     redirect('/login')
   }
@@ -205,7 +212,7 @@ export default function AgendaPage() {
             Visualize e gerencie todos os seus agendamentos
           </p>
         </div>
-        
+
         {/* Actions Row */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           {/* Stats - Hidden on very small screens */}
@@ -223,33 +230,33 @@ export default function AgendaPage() {
               </span>
             </div>
           </div>
-          
+
           {/* Action Buttons */}
           <div className="flex flex-wrap items-center gap-2">
             {/* Filters Toggle */}
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
               className={`text-xs sm:text-sm ${showFilters ? 'bg-blue-50 border-blue-200 text-blue-700' : ''}`}
             >
               <Filter className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2" />
               <span className="hidden sm:inline">Filtros</span>
-              {Object.keys(filters).filter(key => 
-                filters[key as keyof AgendaFilters] !== undefined && 
+              {Object.keys(filters).filter(key =>
+                filters[key as keyof AgendaFilters] !== undefined &&
                 filters[key as keyof AgendaFilters] !== '' &&
-                !(Array.isArray(filters[key as keyof AgendaFilters]) && 
+                !(Array.isArray(filters[key as keyof AgendaFilters]) &&
                   (filters[key as keyof AgendaFilters] as any[]).length === 0)
               ).length > 0 && (
-                <Badge variant="secondary" className="ml-1 sm:ml-2 text-xs h-4 w-4 sm:h-5 sm:w-auto flex items-center justify-center p-0 sm:px-2">
-                  {Object.keys(filters).filter(key => 
-                    filters[key as keyof AgendaFilters] !== undefined && 
-                    filters[key as keyof AgendaFilters] !== '' &&
-                    !(Array.isArray(filters[key as keyof AgendaFilters]) && 
-                      (filters[key as keyof AgendaFilters] as any[]).length === 0)
-                  ).length}
-                </Badge>
-              )}
+                  <Badge variant="secondary" className="ml-1 sm:ml-2 text-xs h-4 w-4 sm:h-5 sm:w-auto flex items-center justify-center p-0 sm:px-2">
+                    {Object.keys(filters).filter(key =>
+                      filters[key as keyof AgendaFilters] !== undefined &&
+                      filters[key as keyof AgendaFilters] !== '' &&
+                      !(Array.isArray(filters[key as keyof AgendaFilters]) &&
+                        (filters[key as keyof AgendaFilters] as any[]).length === 0)
+                    ).length}
+                  </Badge>
+                )}
             </Button>
 
             {/* View Selector */}

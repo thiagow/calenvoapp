@@ -10,9 +10,10 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2, XCircle, Smartphone, Trash2, RefreshCw, Clock, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  createInstanceAction, 
-  checkConnectionStatusAction, 
+import { useDialog } from '@/components/providers/dialog-provider';
+import {
+  createInstanceAction,
+  checkConnectionStatusAction,
   deleteInstanceAction,
   refreshQRCodeAction
 } from '@/app/actions/whatsapp';
@@ -49,13 +50,14 @@ export function WhatsAppConnection({ config: initialConfig }: WhatsAppConnection
   const [checkingStatus, setCheckingStatus] = useState(false);
   const [connectionToastShown, setConnectionToastShown] = useState(false);
   const { toast } = useToast();
+  const { confirm } = useDialog();
 
   const isConnected = config?.isConnected ?? false;
   const hasConfig = !!config;
-  
+
   // Check if QR code is expired
-  const isQRExpired = config?.qrCodeExpiresAt 
-    ? new Date(config.qrCodeExpiresAt) < new Date() 
+  const isQRExpired = config?.qrCodeExpiresAt
+    ? new Date(config.qrCodeExpiresAt) < new Date()
     : false;
 
   // Determine visual state
@@ -75,7 +77,7 @@ export function WhatsAppConnection({ config: initialConfig }: WhatsAppConnection
     // Restore modal state on mount
     const savedModalState = sessionStorage.getItem('whatsapp_qr_modal');
     const savedQrCode = sessionStorage.getItem('whatsapp_qr_code');
-    
+
     if (savedModalState === 'open' && savedQrCode && !isConnected) {
       setQrCode(savedQrCode);
       setShowQRModal(true);
@@ -101,26 +103,26 @@ export function WhatsAppConnection({ config: initialConfig }: WhatsAppConnection
     console.log('[WhatsAppConnection] Polling check triggered');
     try {
       const result = await checkConnectionStatusAction();
-      
+
       if (result.success && result.data) {
         const nowConnected = result.data.isConnected;
-        
+
         // Only show toast and reload if status changed to connected
         if (nowConnected && !isConnected && !connectionToastShown) {
           console.log('[WhatsAppConnection] Connection established!');
-          
+
           setConnectionToastShown(true);
-          
+
           toast({
             title: 'Conectado ✓',
             description: 'WhatsApp conectado com sucesso!',
           });
-          
+
           // Close modal and reload after toast is visible
           setShowQRModal(false);
           sessionStorage.removeItem('whatsapp_qr_modal');
           sessionStorage.removeItem('whatsapp_qr_code');
-          
+
           setTimeout(() => {
             window.location.reload();
           }, 1500);
@@ -152,17 +154,17 @@ export function WhatsAppConnection({ config: initialConfig }: WhatsAppConnection
     setLoading(true);
     try {
       const result = await createInstanceAction(phoneNumber);
-      
+
       if (result.success && result.data) {
         setQrCode(result.data.qrCode);
         setShowQRModal(true);
         setConnectionToastShown(false); // Reset toast flag
-        
+
         toast({
           title: 'QR Code gerado',
           description: 'Escaneie o QR Code com seu WhatsApp',
         });
-        
+
         // No automatic reload - polling will handle it
       } else {
         toast({
@@ -193,21 +195,21 @@ export function WhatsAppConnection({ config: initialConfig }: WhatsAppConnection
     setCheckingStatus(true);
     try {
       const result = await checkConnectionStatusAction();
-      
+
       if (result.success && result.data) {
         const wasConnected = isConnected;
         const nowConnected = result.data.isConnected;
-        
+
         // Only show toast and reload if state changed
         if (wasConnected !== nowConnected) {
           toast({
             title: nowConnected ? 'Conectado' : 'Desconectado',
-            description: nowConnected 
-              ? 'WhatsApp está conectado' 
+            description: nowConnected
+              ? 'WhatsApp está conectado'
               : 'WhatsApp não está conectado',
             variant: nowConnected ? 'default' : 'destructive',
           });
-          
+
           // Reload to update UI
           setTimeout(() => {
             window.location.reload();
@@ -237,14 +239,19 @@ export function WhatsAppConnection({ config: initialConfig }: WhatsAppConnection
   };
 
   const handleDisconnect = async () => {
-    if (!confirm('Deseja realmente desconectar o WhatsApp? As notificações automáticas serão desativadas.')) {
-      return;
-    }
+    const confirmed = await confirm({
+      title: 'Desconectar WhatsApp',
+      description: 'Deseja realmente desconectar o WhatsApp? As notificações automáticas serão desativadas.',
+      variant: 'destructive',
+      confirmText: 'Desconectar'
+    });
+
+    if (!confirmed) return;
 
     setLoading(true);
     try {
       const result = await deleteInstanceAction();
-      
+
       if (result.success) {
         toast({
           title: 'Desconectado',
@@ -274,17 +281,17 @@ export function WhatsAppConnection({ config: initialConfig }: WhatsAppConnection
     setRefreshingQR(true);
     try {
       const result = await refreshQRCodeAction();
-      
+
       if (result.success && result.data) {
         setQrCode(result.data.qrCode);
         setShowQRModal(true);
         setConnectionToastShown(false); // Reset toast flag
-        
+
         toast({
           title: 'QR Code atualizado',
           description: 'Escaneie o novo QR Code com seu WhatsApp',
         });
-        
+
         // No automatic reload - polling will handle it
       } else {
         toast({
@@ -312,7 +319,7 @@ export function WhatsAppConnection({ config: initialConfig }: WhatsAppConnection
       if (hasConfig) {
         try {
           const result = await checkConnectionStatusAction();
-          
+
           // Silent update - only reload if status changed
           if (result.success && result.data) {
             const nowConnected = result.data.isConnected;
@@ -394,10 +401,10 @@ export function WhatsAppConnection({ config: initialConfig }: WhatsAppConnection
               </div>
             </div>
             <Badge variant={
-              visualState === 'connected' ? 'default' : 
-              visualState === 'pending' ? 'secondary' :
-              visualState === 'expired' ? 'outline' :
-              'destructive'
+              visualState === 'connected' ? 'default' :
+                visualState === 'pending' ? 'secondary' :
+                  visualState === 'expired' ? 'outline' :
+                    'destructive'
             }>
               {visualState === 'connected' && 'Ativo'}
               {visualState === 'pending' && 'Pendente'}
@@ -415,7 +422,7 @@ export function WhatsAppConnection({ config: initialConfig }: WhatsAppConnection
                 <Alert variant="destructive">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
-                    <strong>QR Code expirado!</strong> O código QR gerado anteriormente expirou. 
+                    <strong>QR Code expirado!</strong> O código QR gerado anteriormente expirou.
                     Clique em "Atualizar QR Code" para gerar um novo.
                   </AlertDescription>
                 </Alert>
@@ -425,7 +432,7 @@ export function WhatsAppConnection({ config: initialConfig }: WhatsAppConnection
                 <Alert>
                   <Clock className="h-4 w-4" />
                   <AlertDescription>
-                    <strong>Aguardando conexão...</strong> Um QR Code foi gerado anteriormente. 
+                    <strong>Aguardando conexão...</strong> Um QR Code foi gerado anteriormente.
                     Escaneie-o para conectar ou clique em "Atualizar QR Code" para gerar um novo.
                   </AlertDescription>
                 </Alert>
@@ -435,7 +442,7 @@ export function WhatsAppConnection({ config: initialConfig }: WhatsAppConnection
                 <Alert variant="destructive">
                   <XCircle className="h-4 w-4" />
                   <AlertDescription>
-                    <strong>Erro de configuração!</strong> A instância está em um estado inconsistente. 
+                    <strong>Erro de configuração!</strong> A instância está em um estado inconsistente.
                     Por favor, desconecte e tente criar uma nova conexão.
                   </AlertDescription>
                 </Alert>
@@ -459,8 +466,8 @@ export function WhatsAppConnection({ config: initialConfig }: WhatsAppConnection
               {/* Show appropriate button based on state */}
               {(visualState === 'pending' || visualState === 'expired' || visualState === 'error') ? (
                 <div className="flex gap-2">
-                  <Button 
-                    onClick={handleRefreshQR} 
+                  <Button
+                    onClick={handleRefreshQR}
                     disabled={refreshingQR || loading}
                     className="flex-1"
                     variant="default"
@@ -493,8 +500,8 @@ export function WhatsAppConnection({ config: initialConfig }: WhatsAppConnection
                     </p>
                   </div>
 
-                  <Button 
-                    onClick={handleConnect} 
+                  <Button
+                    onClick={handleConnect}
                     disabled={loading || !phoneNumber}
                     className="w-full"
                   >
