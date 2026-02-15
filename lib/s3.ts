@@ -13,15 +13,15 @@ const { bucketName, folderPrefix } = getBucketConfig()
  * @returns cloud_storage_path - Caminho do arquivo no S3
  */
 export async function uploadFile(buffer: Buffer, fileName: string): Promise<string> {
-  const key = `${folderPrefix}uploads/${Date.now()}-${fileName}`
-  
+  const key = `${folderPrefix}${Date.now()}-${fileName}`
+
   const command = new PutObjectCommand({
     Bucket: bucketName,
     Key: key,
     Body: buffer,
     ContentType: getContentType(fileName)
   })
-  
+
   await s3Client.send(command)
   return key
 }
@@ -36,7 +36,7 @@ export async function downloadFile(key: string): Promise<string> {
     Bucket: bucketName,
     Key: key
   })
-  
+
   // URL válida por 1 hora
   const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 })
   return signedUrl
@@ -51,7 +51,7 @@ export async function deleteFile(key: string): Promise<void> {
     Bucket: bucketName,
     Key: key
   })
-  
+
   await s3Client.send(command)
 }
 
@@ -72,7 +72,7 @@ export async function renameFile(oldKey: string, newKey: string): Promise<string
  */
 function getContentType(fileName: string): string {
   const ext = fileName.split('.').pop()?.toLowerCase()
-  
+
   const contentTypes: Record<string, string> = {
     jpg: 'image/jpeg',
     jpeg: 'image/jpeg',
@@ -82,6 +82,6 @@ function getContentType(fileName: string): string {
     svg: 'image/svg+xml',
     pdf: 'application/pdf'
   }
-  
+
   return contentTypes[ext || ''] || 'application/octet-stream'
 }

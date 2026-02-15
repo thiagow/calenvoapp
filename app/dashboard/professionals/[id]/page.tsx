@@ -9,8 +9,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { ArrowLeft, Save, Users } from 'lucide-react'
+import { ArrowLeft, Save, Users, Lock, Copy } from 'lucide-react'
 import { toast } from 'sonner'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { professionalsApi } from '@/lib/api'
 
 interface Professional {
   id: string
@@ -36,6 +38,10 @@ export default function EditProfessionalPage() {
   const { data: session, status } = useSession()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [resettingPassword, setResettingPassword] = useState(false)
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [showConfirmResetModal, setShowConfirmResetModal] = useState(false)
+  const [tempPassword, setTempPassword] = useState('')
   const [professional, setProfessional] = useState<Professional | null>(null)
   const [formData, setFormData] = useState<ProfessionalForm>({
     name: '',
@@ -61,17 +67,17 @@ export default function EditProfessionalPage() {
   const fetchProfessional = async () => {
     try {
       const response = await fetch(`/api/professionals/${professionalId}`)
-      
+
       if (response.status === 404) {
         toast.error('Profissional não encontrado')
         router.push('/dashboard/professionals')
         return
       }
-      
+
       if (!response.ok) {
         throw new Error('Erro ao carregar profissional')
       }
-      
+
       const data = await response.json()
       setProfessional(data)
       setFormData({
@@ -95,6 +101,31 @@ export default function EditProfessionalPage() {
       ...prev,
       [field]: value
     }))
+  }
+
+  const handleResetPassword = () => {
+    setShowConfirmResetModal(true)
+  }
+
+  const executeResetPassword = async () => {
+    setResettingPassword(true)
+    try {
+      const response = await professionalsApi.resetPassword(professionalId)
+      setTempPassword(response.tempPassword)
+      setShowConfirmResetModal(false)
+      setShowPasswordModal(true)
+      toast.success('Senha reiniciada com sucesso!')
+    } catch (error) {
+      console.error('Error resetting password:', error)
+      toast.error('Erro ao reiniciar senha')
+    } finally {
+      setResettingPassword(false)
+    }
+  }
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(tempPassword)
+    toast.success('Senha copiada para a área de transferência')
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -219,6 +250,37 @@ export default function EditProfessionalPage() {
           </CardContent>
         </Card>
 
+        {/* Segurança */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Segurança</CardTitle>
+            <CardDescription>
+              Gerencie o acesso do profissional
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50 border border-gray-100">
+              <div className="space-y-0.5">
+                <Label className="text-base font-medium flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-gray-500" />
+                  Senha de Acesso
+                </Label>
+                <p className="text-xs text-gray-600">
+                  Caso o profissional tenha esquecido a senha, você pode reiniciá-la para o padrão.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleResetPassword}
+                disabled={resettingPassword}
+              >
+                {resettingPassword ? 'Reiniciando...' : 'Reiniciar Senha'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Status */}
         <Card>
           <CardHeader>
@@ -234,7 +296,7 @@ export default function EditProfessionalPage() {
                   Profissional Ativo
                 </Label>
                 <p className="text-xs text-gray-600">
-                  {formData.isActive 
+                  {formData.isActive
                     ? 'O profissional pode acessar o sistema e ter agendamentos'
                     : 'O profissional não pode acessar o sistema'}
                 </p>
@@ -276,6 +338,66 @@ export default function EditProfessionalPage() {
           </Button>
         </div>
       </form>
+
+      {/* Modal de Confirmação de Reset de Senha */}
+      <Dialog open={showConfirmResetModal} onOpenChange={setShowConfirmResetModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reiniciar Senha</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja reiniciar a senha deste profissional? A senha atual será perdida e substituída por uma senha padrão.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowConfirmResetModal(false)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={executeResetPassword}
+              disabled={resettingPassword}
+            >
+              {resettingPassword ? 'Reiniciando...' : 'Sim, reiniciar senha'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Nova Senha */}
+      <Dialog open={showPasswordModal} onOpenChange={setShowPasswordModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Senha Reiniciada com Sucesso</DialogTitle>
+            <DialogDescription>
+              A senha do profissional foi alterada para o padrão. Copie e envie para ele.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex items-center space-x-2 mt-4">
+            <div className="grid flex-1 gap-2">
+              <Label htmlFor="link" className="sr-only">
+                Nova Senha
+              </Label>
+              <Input
+                id="link"
+                defaultValue={tempPassword}
+                readOnly
+                className="font-mono text-center text-lg bg-slate-50"
+              />
+            </div>
+            <Button size="sm" className="px-3" onClick={copyToClipboard}>
+              <span className="sr-only">Copiar</span>
+              <Copy className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <DialogFooter className="sm:justify-center mt-4">
+            <Button type="button" variant="secondary" onClick={() => setShowPasswordModal(false)}>
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

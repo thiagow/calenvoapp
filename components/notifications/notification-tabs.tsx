@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Bell, MessageCircle } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface NotificationTab {
@@ -12,11 +12,6 @@ interface NotificationTab {
 }
 
 const NOTIFICATION_TABS: NotificationTab[] = [
-  {
-    label: 'Geral',
-    href: '/dashboard/notifications',
-    icon: <Bell className="h-4 w-4" />,
-  },
   {
     label: 'WhatsApp',
     href: '/dashboard/notifications/whatsapp',
@@ -32,7 +27,7 @@ export function NotificationTabs() {
       <nav className="-mb-px flex space-x-8" aria-label="Tabs">
         {NOTIFICATION_TABS.map((tab) => {
           const isActive = pathname === tab.href;
-          
+
           return (
             <Link
               key={tab.href}

@@ -139,6 +139,8 @@ model Client {
   cpf       String?
   birthDate DateTime?
   address   String?
+  city      String?   // Cidade
+  state     String?   // UF (sigla de 2 letras, ex: SP, RJ)
   notes     String? // Observações gerais
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

@@ -14,12 +14,14 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const userId = (session.user as any).id
+    const userRole = (session.user as any).role
+    const masterId = (session.user as any).masterId
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search')
     const status = searchParams.get('status')
@@ -31,8 +33,13 @@ export async function GET(request: NextRequest) {
     const view = searchParams.get('view') // 'day', 'week', 'month', 'list', 'timeline'
     const currentDate = searchParams.get('currentDate')
 
-    let whereConditions: any = {
-      userId: userId
+    // Se for profissional, busca agendamentos do master mas filtrados pelo professionalId
+    let whereConditions: any = {}
+    if (userRole === 'PROFESSIONAL' && masterId) {
+      whereConditions.userId = masterId
+      whereConditions.professionalId = userId
+    } else {
+      whereConditions.userId = userId
     }
 
     // Search filter
@@ -90,14 +97,14 @@ export async function GET(request: NextRequest) {
 
       if (view && currentDate) {
         const date = new Date(currentDate)
-        
+
         switch (view) {
           case 'day':
             const startOfDay = new Date(date)
             startOfDay.setHours(0, 0, 0, 0)
             const endOfDay = new Date(date)
             endOfDay.setHours(23, 59, 59, 999)
-            
+
             dateFilter.gte = startOfDay
             dateFilter.lte = endOfDay
             break
@@ -108,11 +115,11 @@ export async function GET(request: NextRequest) {
             const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1)
             startOfWeek.setDate(diff)
             startOfWeek.setHours(0, 0, 0, 0)
-            
+
             const endOfWeek = new Date(startOfWeek)
             endOfWeek.setDate(startOfWeek.getDate() + 6)
             endOfWeek.setHours(23, 59, 59, 999)
-            
+
             dateFilter.gte = startOfWeek
             dateFilter.lte = endOfWeek
             break
@@ -121,7 +128,7 @@ export async function GET(request: NextRequest) {
             const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1)
             const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0)
             endOfMonth.setHours(23, 59, 59, 999)
-            
+
             dateFilter.gte = startOfMonth
             dateFilter.lte = endOfMonth
             break
@@ -152,6 +159,18 @@ export async function GET(request: NextRequest) {
             email: true,
             phone: true
           }
+        },
+        service: {
+          select: {
+            id: true,
+            name: true
+          }
+        },
+        professionalUser: {
+          select: {
+            id: true,
+            name: true
+          }
         }
       },
       orderBy: {
@@ -168,14 +187,18 @@ export async function GET(request: NextRequest) {
         phone: appointment.client.phone,
         email: appointment.client.email
       },
-      specialty: appointment.specialty || 'Consulta Geral',
+      specialty: appointment.service?.name || appointment.specialty || 'Consulta Geral',
       status: appointment.status,
       modality: appointment.modality,
       duration: appointment.duration,
       insurance: appointment.insurance || 'Particular',
       notes: appointment.notes || '',
-      professional: appointment.professional || 'Não definido',
-      price: appointment.price
+      professional: appointment.professionalUser?.name || appointment.professional || 'Não definido',
+      price: appointment.price,
+      serviceId: appointment.serviceId,
+      professionalId: appointment.professionalId,
+      service: appointment.service,
+      professionalRelation: appointment.professionalUser
     }))
 
     return NextResponse.json(transformedAppointments)
@@ -191,7 +214,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -298,7 +321,7 @@ export async function POST(request: NextRequest) {
       const hasConflict = conflictingAppointments.some(appointment => {
         const existingStart = appointment.date
         const existingEnd = new Date(existingStart.getTime() + appointment.duration * 60000)
-        
+
         return appointmentDate < existingEnd && appointmentEnd > existingStart
       })
 
@@ -388,7 +411,7 @@ export async function POST(request: NextRequest) {
 
       // Enviar notificação via WhatsApp se configurado (usando novo sistema)
       const professionalName = appointment.professionalUser?.name || appointment.professional || undefined
-      
+
       await WhatsAppTriggerService.onAppointmentCreated(
         appointment as any,
         serviceName,

@@ -4,13 +4,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { 
-  Calendar, 
-  Clock, 
-  User, 
-  Phone, 
-  Mail, 
-  Edit2, 
+import {
+  Calendar,
+  Clock,
+  User,
+  Phone,
+  Mail,
+  Eye,
   Trash2,
   MapPin,
   FileText
@@ -42,12 +42,12 @@ interface AgendaListViewProps {
   onDeleteAppointment?: (id: string) => void
 }
 
-export function AgendaListView({ 
-  appointments, 
+export function AgendaListView({
+  appointments,
   onEditAppointment,
-  onDeleteAppointment 
+  onDeleteAppointment
 }: AgendaListViewProps) {
-  
+
   // Agrupar appointments por data
   const appointmentsByDate = appointments.reduce((acc, appointment) => {
     const dateKey = appointment.date.toDateString()
@@ -74,11 +74,11 @@ export function AgendaListView({
     } else if (date.toDateString() === tomorrow.toDateString()) {
       return 'Amanhã'
     } else {
-      return date.toLocaleDateString('pt-BR', { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
+      return date.toLocaleDateString('pt-BR', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
       })
     }
   }
@@ -158,8 +158,8 @@ export function AgendaListView({
             {/* Appointments */}
             <div className="space-y-3">
               {dayAppointments.map((appointment) => (
-                <Card 
-                  key={appointment.id} 
+                <Card
+                  key={appointment.id}
                   className="hover:shadow-md transition-shadow duration-200 border-l-4 border-l-blue-500 cursor-pointer hover:border-l-blue-600"
                   onClick={() => onEditAppointment?.(appointment.id)}
                 >
@@ -216,7 +216,7 @@ export function AgendaListView({
                               </div>
                             </div>
                           </div>
-                          
+
                           {/* Appointment Details */}
                           <div>
                             <div className="space-y-2 text-xs sm:text-sm">
@@ -243,7 +243,7 @@ export function AgendaListView({
 
                       {/* Edit Icon */}
                       <div className="flex items-center justify-center w-full sm:w-auto">
-                        <Edit2 className="h-4 w-4 text-gray-400" />
+                        <Eye className="h-4 w-4 text-gray-400" />
                       </div>
                     </div>
                   </CardContent>

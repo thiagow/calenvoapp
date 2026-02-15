@@ -1,16 +1,16 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { 
-  Filter, 
-  X, 
+import {
+  Filter,
+  X,
   Search,
   Calendar,
   User,
@@ -22,8 +22,7 @@ import { STATUS_LABELS, MODALITY_LABELS } from '@/lib/types'
 export interface AgendaFilters {
   search?: string
   status?: AppointmentStatus[]
-  modality?: ModalityType
-  specialty?: string
+  service?: string
   dateFrom?: string
   dateTo?: string
   professional?: string
@@ -36,13 +35,45 @@ interface AgendaFiltersProps {
   onToggle: () => void
 }
 
-export function AgendaFiltersComponent({ 
-  filters, 
-  onFiltersChange, 
-  isOpen, 
-  onToggle 
+export function AgendaFiltersComponent({
+  filters,
+  onFiltersChange,
+  isOpen,
+  onToggle
 }: AgendaFiltersProps) {
-  
+
+  const [services, setServices] = useState<{ id: string, name: string }[]>([])
+  const [professionals, setProfessionals] = useState<{ id: string, name: string }[]>([])
+
+  useEffect(() => {
+    fetchServices()
+    fetchProfessionals()
+  }, [])
+
+  const fetchServices = async () => {
+    try {
+      const response = await fetch('/api/services')
+      if (response.ok) {
+        const data = await response.json()
+        setServices(data)
+      }
+    } catch (error) {
+      console.error('Error fetching services:', error)
+    }
+  }
+
+  const fetchProfessionals = async () => {
+    try {
+      const response = await fetch('/api/professionals')
+      if (response.ok) {
+        const data = await response.json()
+        setProfessionals(data)
+      }
+    } catch (error) {
+      console.error('Error fetching professionals:', error)
+    }
+  }
+
   const updateFilter = <K extends keyof AgendaFilters>(
     key: K,
     value: AgendaFilters[K]
@@ -62,12 +93,12 @@ export function AgendaFiltersComponent({
     const newStatuses = currentStatuses.includes(status)
       ? currentStatuses.filter(s => s !== status)
       : [...currentStatuses, status]
-    
+
     updateFilter('status', newStatuses.length > 0 ? newStatuses : undefined)
   }
 
-  const hasActiveFilters = Object.values(filters).some(value => 
-    value !== undefined && value !== '' && 
+  const hasActiveFilters = Object.values(filters).some(value =>
+    value !== undefined && value !== '' &&
     !(Array.isArray(value) && value.length === 0)
   )
 
@@ -113,7 +144,7 @@ export function AgendaFiltersComponent({
           </div>
         </div>
       </CardHeader>
-      
+
       {isOpen && (
         <CardContent className="space-y-4">
           {/* Busca */}
@@ -152,34 +183,32 @@ export function AgendaFiltersComponent({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Modalidade */}
+            {/* Serviços */}
             <div>
-              <Label className="text-xs font-medium text-gray-700">Modalidade</Label>
-              <Select 
-                value={filters.modality || 'all'} 
-                onValueChange={(value) => updateFilter('modality', value === 'all' ? undefined : value as ModalityType)}
+              <Label className="text-xs font-medium text-gray-700">Serviços</Label>
+              <Select
+                value={filters.service || 'all'}
+                onValueChange={(value) => updateFilter('service', value === 'all' ? undefined : value)}
               >
                 <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Todas" />
+                  <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  {Object.entries(MODALITY_LABELS).map(([modality, label]) => (
-                    <SelectItem key={modality} value={modality}>
-                      {label}
+                  <SelectItem value="all">Todos</SelectItem>
+                  {services.map((service) => (
+                    <SelectItem key={service.id} value={service.name}>
+                      {service.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Especialidade - Removido pois não é mais específico por segmento */}
-
             {/* Profissional */}
             <div>
               <Label className="text-xs font-medium text-gray-700">Profissional</Label>
-              <Select 
-                value={filters.professional || 'all'} 
+              <Select
+                value={filters.professional || 'all'}
                 onValueChange={(value) => updateFilter('professional', value === 'all' ? undefined : value)}
               >
                 <SelectTrigger className="mt-1">
@@ -187,34 +216,35 @@ export function AgendaFiltersComponent({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="Dr. João Silva">Dr. João Silva</SelectItem>
-                  <SelectItem value="Dra. Maria Santos">Dra. Maria Santos</SelectItem>
-                  <SelectItem value="Dr. Pedro Costa">Dr. Pedro Costa</SelectItem>
-                  <SelectItem value="Dra. Ana Oliveira">Dra. Ana Oliveira</SelectItem>
+                  {professionals.map((pro) => (
+                    <SelectItem key={pro.id} value={pro.id}>
+                      {pro.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
-          </div>
 
-          {/* Período */}
-          <div>
-            <Label className="text-xs font-medium text-gray-700">Período</Label>
-            <div className="grid grid-cols-2 gap-2 mt-1">
-              <div>
-                <Input
-                  type="date"
-                  placeholder="Data inicial"
-                  value={filters.dateFrom || ''}
-                  onChange={(e) => updateFilter('dateFrom', e.target.value || undefined)}
-                />
-              </div>
-              <div>
-                <Input
-                  type="date"
-                  placeholder="Data final"
-                  value={filters.dateTo || ''}
-                  onChange={(e) => updateFilter('dateTo', e.target.value || undefined)}
-                />
+            {/* Período */}
+            <div>
+              <Label className="text-xs font-medium text-gray-700">Período</Label>
+              <div className="grid grid-cols-2 gap-2 mt-1">
+                <div>
+                  <Input
+                    type="date"
+                    placeholder="Data inicial"
+                    value={filters.dateFrom || ''}
+                    onChange={(e) => updateFilter('dateFrom', e.target.value || undefined)}
+                  />
+                </div>
+                <div>
+                  <Input
+                    type="date"
+                    placeholder="Data final"
+                    value={filters.dateTo || ''}
+                    onChange={(e) => updateFilter('dateTo', e.target.value || undefined)}
+                  />
+                </div>
               </div>
             </div>
           </div>

@@ -19,7 +19,7 @@ async function apiRequest<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const url = `${API_BASE}${endpoint}`
-  
+
   const config: RequestInit = {
     headers: {
       'Content-Type': 'application/json',
@@ -30,17 +30,17 @@ async function apiRequest<T>(
 
   try {
     const response = await fetch(url, config)
-    
+
     if (!response.ok) {
       let errorMessage = 'An error occurred'
-      
+
       try {
         const errorData = await response.json()
         errorMessage = errorData.error || errorMessage
       } catch {
         errorMessage = `HTTP ${response.status}: ${response.statusText}`
       }
-      
+
       throw new ApiError(response.status, errorMessage)
     }
 
@@ -166,6 +166,17 @@ export const statsApi = {
       totalClients: number
       appointmentsByStatus: Record<string, number>
     }>('/stats')
+  }
+}
+
+
+// Professionals API
+export const professionalsApi = {
+  // Reset professional password
+  resetPassword: (id: string) => {
+    return apiRequest<{ message: string; tempPassword: string }>(`/professionals/${id}/reset-password`, {
+      method: 'POST',
+    })
   }
 }
 

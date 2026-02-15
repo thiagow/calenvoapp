@@ -10,17 +10,32 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const userId = (session.user as any).id
+    const userRole = (session.user as any).role
+    const masterId = (session.user as any).masterId
 
     // Início do mês
     const monthStart = new Date()
     monthStart.setDate(1)
     monthStart.setHours(0, 0, 0, 0)
+
+    // Condições base para filtro de profissional
+    let clientWhere: any = {}
+    if (userRole === 'PROFESSIONAL' && masterId) {
+      clientWhere.userId = masterId
+      clientWhere.appointments = {
+        some: {
+          professionalId: userId
+        }
+      }
+    } else {
+      clientWhere.userId = userId
+    }
 
     // Buscar estatísticas em paralelo
     const [
@@ -30,15 +45,13 @@ export async function GET(request: NextRequest) {
     ] = await Promise.all([
       // Total de clientes
       prisma.client.count({
-        where: {
-          userId
-        }
+        where: clientWhere
       }),
 
       // Novos clientes este mês
       prisma.client.count({
         where: {
-          userId,
+          ...clientWhere,
           createdAt: {
             gte: monthStart
           }
@@ -47,9 +60,7 @@ export async function GET(request: NextRequest) {
 
       // Buscar todos os clientes com contagem de agendamentos
       prisma.client.findMany({
-        where: {
-          userId
-        },
+        where: clientWhere,
         include: {
           _count: {
             select: {
@@ -80,6 +91,8 @@ export async function GET(request: NextRequest) {
         cpf: client.cpf,
         birthDate: client.birthDate,
         address: client.address,
+        city: (client as any).city,
+        state: (client as any).state,
         notes: client.notes,
         createdAt: client.createdAt,
         appointmentsCount: client._count.appointments

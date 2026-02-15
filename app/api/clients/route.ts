@@ -9,18 +9,30 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const userId = (session.user as any).id
+    const userRole = (session.user as any).role
+    const masterId = (session.user as any).masterId
 
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search')
 
-    let whereConditions: any = {
-      userId: userId
+    let whereConditions: any = {}
+
+    // Se for profissional, mostrar apenas clientes que têm agendamentos com ele
+    if (userRole === 'PROFESSIONAL' && masterId) {
+      whereConditions.userId = masterId
+      whereConditions.appointments = {
+        some: {
+          professionalId: userId
+        }
+      }
+    } else {
+      whereConditions.userId = userId
     }
 
     if (search) {
@@ -66,7 +78,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -81,6 +93,8 @@ export async function POST(request: NextRequest) {
       cpf,
       birthDate,
       address,
+      city,
+      state,
       notes
     } = body
 
@@ -112,6 +126,8 @@ export async function POST(request: NextRequest) {
           cpf,
           birthDate: birthDate ? new Date(birthDate) : null,
           address,
+          city,
+          state,
           notes,
           user: {
             connect: {
@@ -132,6 +148,8 @@ export async function POST(request: NextRequest) {
           cpf: cpf || client.cpf,
           birthDate: birthDate ? new Date(birthDate) : client.birthDate,
           address: address || client.address,
+          city: city || client.city,
+          state: state || client.state,
           notes: notes || client.notes
         }
       })

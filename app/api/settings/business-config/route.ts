@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -38,7 +38,11 @@ export async function GET(request: NextRequest) {
       endTime: config.endTime,
       defaultDuration: config.defaultDuration,
       lunchStart: config.lunchStart,
-      lunchEnd: config.lunchEnd
+      lunchEnd: config.lunchEnd,
+      businessLogo: config.businessLogo,
+      autoConfirm: config.autoConfirm,
+      allowOnlineBooking: config.allowOnlineBooking,
+      publicUrl: config.publicUrl
     })
   } catch (error) {
     console.error('Error fetching business config:', error)
@@ -52,7 +56,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -62,8 +66,8 @@ export async function POST(request: NextRequest) {
 
     // Apenas MASTER pode modificar configurações
     if (userRole === 'PROFESSIONAL') {
-      return NextResponse.json({ 
-        error: 'Acesso negado. Apenas administradores podem modificar configurações.' 
+      return NextResponse.json({
+        error: 'Acesso negado. Apenas administradores podem modificar configurações.'
       }, { status: 403 })
     }
     const body = await request.json()
@@ -132,7 +136,11 @@ export async function POST(request: NextRequest) {
       endTime: config.endTime,
       defaultDuration: config.defaultDuration,
       lunchStart: config.lunchStart,
-      lunchEnd: config.lunchEnd
+      lunchEnd: config.lunchEnd,
+      businessLogo: config.businessLogo,
+      autoConfirm: config.autoConfirm,
+      allowOnlineBooking: config.allowOnlineBooking,
+      publicUrl: config.publicUrl
     })
   } catch (error) {
     console.error('Error saving business config:', error)

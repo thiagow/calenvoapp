@@ -4,12 +4,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { 
-  Clock, 
-  User, 
-  Phone, 
-  Mail, 
-  Edit2, 
+import {
+  Clock,
+  User,
+  Phone,
+  Mail,
+  Eye,
   Trash2,
   Calendar,
   ChevronLeft,
@@ -44,14 +44,14 @@ interface AgendaDayViewProps {
   onDateChange?: (date: Date) => void
 }
 
-export function AgendaDayView({ 
-  date, 
-  appointments, 
+export function AgendaDayView({
+  date,
+  appointments,
   onEditAppointment,
   onDeleteAppointment,
   onDateChange
 }: AgendaDayViewProps) {
-  
+
   const timeSlots = []
   for (let hour = 8; hour < 18; hour++) {
     for (let minute = 0; minute < 60; minute += 30) {
@@ -64,15 +64,15 @@ export function AgendaDayView({
   const getAppointmentForSlot = (slotTime: Date) => {
     return appointments.find(apt => {
       const aptTime = new Date(apt.date)
-      return aptTime.getHours() === slotTime.getHours() && 
-             aptTime.getMinutes() === slotTime.getMinutes()
+      return aptTime.getHours() === slotTime.getHours() &&
+        aptTime.getMinutes() === slotTime.getMinutes()
     })
   }
 
   const formatSlotTime = (time: Date) => {
-    return time.toLocaleTimeString('pt-BR', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    return time.toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit'
     })
   }
 
@@ -109,17 +109,17 @@ export function AgendaDayView({
           {/* Navigation Controls */}
           {onDateChange && (
             <div className="flex items-center space-x-1 mb-3">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={goToPrevious}
                 className="hover:bg-gray-100 h-8 w-8 p-0"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={goToToday}
                 disabled={isToday()}
@@ -130,9 +130,9 @@ export function AgendaDayView({
               >
                 Hoje
               </Button>
-              
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={goToNext}
                 className="hover:bg-gray-100 h-8 w-8 p-0"
@@ -141,15 +141,15 @@ export function AgendaDayView({
               </Button>
             </div>
           )}
-          
+
           {/* Day Title */}
           <CardTitle className="flex items-center text-lg text-foreground">
             <Calendar className="mr-2 h-5 w-5 text-primary" />
-            {date.toLocaleDateString('pt-BR', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
+            {date.toLocaleDateString('pt-BR', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
             })}
           </CardTitle>
           <p className="text-sm text-muted-foreground">
@@ -164,7 +164,7 @@ export function AgendaDayView({
           <div className="max-h-[600px] overflow-y-auto">
             {timeSlots.map((slot, index) => {
               const appointment = getAppointmentForSlot(slot)
-              
+
               return (
                 <div
                   key={index}
@@ -183,7 +183,7 @@ export function AgendaDayView({
                   {/* Appointment Column */}
                   <div className="flex-1 p-3">
                     {appointment ? (
-                      <div 
+                      <div
                         className="flex items-start justify-between cursor-pointer hover:bg-muted/50 -m-3 p-3 rounded transition-colors"
                         onClick={() => onEditAppointment?.(appointment.id)}
                       >
@@ -199,7 +199,7 @@ export function AgendaDayView({
                               {MODALITY_LABELS[appointment.modality]}
                             </Badge>
                           </div>
-                          
+
                           <div className="space-y-1 text-sm text-muted-foreground">
                             <div className="flex items-center space-x-4">
                               <span className="font-medium text-foreground/80">
@@ -214,7 +214,7 @@ export function AgendaDayView({
                                 </>
                               )}
                             </div>
-                            
+
                             <div className="flex items-center space-x-4">
                               {appointment.patient.phone && (
                                 <div className="flex items-center">
@@ -229,11 +229,11 @@ export function AgendaDayView({
                                 </div>
                               )}
                             </div>
-                            
+
                             <div className="text-xs text-muted-foreground/70">
                               🏥 {appointment.insurance}
                             </div>
-                            
+
                             {appointment.notes && (
                               <div className="text-xs text-muted-foreground/70 mt-1">
                                 {appointment.notes}
@@ -243,7 +243,7 @@ export function AgendaDayView({
                         </div>
 
                         <div className="flex items-center ml-4">
-                          <Edit2 className="h-4 w-4 text-muted-foreground/50" />
+                          <Eye className="h-4 w-4 text-muted-foreground/50" />
                         </div>
                       </div>
                     ) : (

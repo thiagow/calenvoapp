@@ -20,7 +20,9 @@ import {
   Edit2,
   Trash2,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  CheckCircle2,
+  XCircle
 } from 'lucide-react'
 import Link from 'next/link'
 import { useState, useMemo } from 'react'
@@ -54,6 +56,7 @@ export function AppointmentsList() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [dateFilter, setDateFilter] = useState('')
+  const [updatingId, setUpdatingId] = useState<string | null>(null)
   const { confirm } = useDialog()
 
   // Get appointments from database
@@ -97,6 +100,22 @@ export function AppointmentsList() {
       toast.success('Agendamento excluído com sucesso!')
     } catch (error) {
       toast.error('Erro ao excluir agendamento')
+    }
+  }
+
+  const handleUpdateStatus = async (id: string, newStatus: string) => {
+    try {
+      setUpdatingId(id)
+      await updateAppointment(id, { status: newStatus })
+      toast.success(
+        newStatus === 'COMPLETED'
+          ? 'Presença confirmada!'
+          : 'Falta registrada!'
+      )
+    } catch (error) {
+      toast.error('Erro ao atualizar status')
+    } finally {
+      setUpdatingId(null)
     }
   }
 
@@ -269,6 +288,32 @@ export function AppointmentsList() {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
+                      {/* Botões de Presença - apenas para agendamentos passados ou do dia que estão SCHEDULED ou CONFIRMED */}
+                      {(appointment.status === 'SCHEDULED' || appointment.status === 'CONFIRMED') &&
+                        appointmentDate <= new Date() && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                              disabled={updatingId === appointment.id}
+                              onClick={() => handleUpdateStatus(appointment.id, 'COMPLETED')}
+                              title="Compareceu"
+                            >
+                              <CheckCircle2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                              disabled={updatingId === appointment.id}
+                              onClick={() => handleUpdateStatus(appointment.id, 'NO_SHOW')}
+                              title="Faltou"
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
                       <Button
                         variant="ghost"
                         size="sm"

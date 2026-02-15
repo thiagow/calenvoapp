@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -16,7 +17,8 @@ import {
   Mail,
   Calendar,
   Users,
-  User
+  User,
+  History
 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
@@ -24,6 +26,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner'
 import { formatDate } from '@/lib/utils'
 import { useSegmentConfig } from '@/contexts/segment-context'
+import { BRAZILIAN_STATES } from '@/lib/brazilian-states'
 
 interface Patient {
   id: string
@@ -33,6 +36,8 @@ interface Patient {
   cpf: string | null
   birthDate: string | null
   address: string | null
+  city: string | null
+  state: string | null
   notes?: string | null
   createdAt: string
   appointmentsCount: number
@@ -46,6 +51,7 @@ interface ClientStats {
 
 export default function PatientsPage() {
   const { data: session } = useSession()
+  const router = useRouter()
   const { config: segmentConfig, isLoading: segmentLoading } = useSegmentConfig()
   const [patients, setPatients] = useState<Patient[]>([])
   const [stats, setStats] = useState<ClientStats>({
@@ -65,8 +71,10 @@ export default function PatientsPage() {
     cpf: '',
     birthDate: '',
     address: '',
-    gender: '', // Adicionado campo que faltava no state inicial
-    notes: ''   // Adicionado campo que faltava no state inicial
+    city: '',
+    state: '',
+    gender: '',
+    notes: ''
   })
 
   const resetForm = () => {
@@ -77,6 +85,8 @@ export default function PatientsPage() {
       cpf: '',
       birthDate: '',
       address: '',
+      city: '',
+      state: '',
       gender: '',
       notes: ''
     })
@@ -92,7 +102,9 @@ export default function PatientsPage() {
       cpf: patient.cpf || '',
       birthDate: patient.birthDate ? new Date(patient.birthDate).toISOString().split('T')[0] : '',
       address: patient.address || '',
-      gender: '', // Assumindo que não vem da API por enquanto
+      city: patient.city || '',
+      state: patient.state || '',
+      gender: '',
       notes: patient.notes || ''
     })
     setSelectedPatient(patient)
@@ -122,6 +134,8 @@ export default function PatientsPage() {
         email: formData.email || null,
         cpf: formData.cpf || null,
         address: formData.address || null,
+        city: formData.city || null,
+        state: formData.state || null,
         notes: formData.notes || null,
         birthDate: formData.birthDate || null
       }
@@ -289,10 +303,37 @@ export default function PatientsPage() {
                 <Label htmlFor="address">Endereço</Label>
                 <Input
                   id="address"
-                  placeholder="Rua, número - Cidade/UF"
+                  placeholder="Rua, número, complemento"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 />
+              </div>
+              <div>
+                <Label htmlFor="city">Cidade</Label>
+                <Input
+                  id="city"
+                  placeholder="Nome da cidade"
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label htmlFor="state">Estado</Label>
+                <Select
+                  value={formData.state}
+                  onValueChange={(value) => setFormData({ ...formData, state: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a UF" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {BRAZILIAN_STATES.map((uf) => (
+                      <SelectItem key={uf.value} value={uf.value}>
+                        {uf.value} - {uf.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-4">
@@ -405,12 +446,22 @@ export default function PatientsPage() {
                     {patient.address && (
                       <div className="text-sm text-gray-600">
                         <strong>Endereço:</strong> {patient.address}
+                        {patient.city && ` - ${patient.city}`}
+                        {patient.state && `/${patient.state}`}
                       </div>
                     )}
                   </div>
                 </div>
 
                 <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    title={`Histórico de ${t.appointments.toLowerCase()}`}
+                    onClick={() => router.push(`/dashboard/patients/${patient.id}/history`)}
+                  >
+                    <History className="h-4 w-4" />
+                  </Button>
                   <Button size="sm" variant="outline" onClick={() => handleEditClient(patient)}>
                     <Edit className="h-4 w-4" />
                   </Button>

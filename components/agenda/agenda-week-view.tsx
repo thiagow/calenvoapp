@@ -4,10 +4,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { 
-  Clock, 
+import {
+  Clock,
   Calendar,
-  Edit2,
+  Eye,
   Trash2,
   ChevronLeft,
   ChevronRight
@@ -38,20 +38,20 @@ interface AgendaWeekViewProps {
   onDateChange?: (date: Date) => void
 }
 
-export function AgendaWeekView({ 
-  date, 
-  appointments, 
+export function AgendaWeekView({
+  date,
+  appointments,
   onEditAppointment,
   onDeleteAppointment,
   onDateChange
 }: AgendaWeekViewProps) {
-  
+
   // Calcular início e fim da semana
   const startOfWeek = new Date(date)
   const day = startOfWeek.getDay()
   const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1) // Segunda-feira
   startOfWeek.setDate(diff)
-  
+
   const weekDays: Date[] = []
   for (let i = 0; i < 7; i++) {
     const day = new Date(startOfWeek)
@@ -68,8 +68,8 @@ export function AgendaWeekView({
   const getAppointmentsForDayAndHour = (day: Date, hour: number) => {
     return appointments.filter(apt => {
       const aptDate = new Date(apt.date)
-      return aptDate.toDateString() === day.toDateString() && 
-             aptDate.getHours() === hour
+      return aptDate.toDateString() === day.toDateString() &&
+        aptDate.getHours() === hour
     })
   }
 
@@ -126,17 +126,17 @@ export function AgendaWeekView({
           {/* Navigation Controls */}
           {onDateChange && (
             <div className="flex items-center space-x-1 mb-3">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={goToPrevious}
                 className="hover:bg-gray-100 h-8 w-8 p-0"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={goToToday}
                 disabled={isToday()}
@@ -147,9 +147,9 @@ export function AgendaWeekView({
               >
                 Hoje
               </Button>
-              
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={goToNext}
                 className="hover:bg-gray-100 h-8 w-8 p-0"
@@ -158,17 +158,17 @@ export function AgendaWeekView({
               </Button>
             </div>
           )}
-          
+
           {/* Week Title */}
           <CardTitle className="flex items-center text-lg text-foreground">
             <Calendar className="mr-2 h-5 w-5 text-primary" />
-            Semana de {startOfWeek.toLocaleDateString('pt-BR', { 
-              day: '2-digit', 
-              month: '2-digit' 
-            })} a {weekDays[6].toLocaleDateString('pt-BR', { 
-              day: '2-digit', 
+            Semana de {startOfWeek.toLocaleDateString('pt-BR', {
+              day: '2-digit',
+              month: '2-digit'
+            })} a {weekDays[6].toLocaleDateString('pt-BR', {
+              day: '2-digit',
               month: '2-digit',
-              year: 'numeric' 
+              year: 'numeric'
             })}
           </CardTitle>
           <p className="text-sm text-muted-foreground">
@@ -188,9 +188,9 @@ export function AgendaWeekView({
                   const aptDate = new Date(apt.date)
                   return aptDate.toDateString() === day.toDateString()
                 })
-                
+
                 const isToday = day.toDateString() === new Date().toDateString()
-                
+
                 return (
                   <div key={dayIndex} className={`p-3 ${isToday ? 'bg-primary/5' : ''}`}>
                     <div className="flex items-center justify-between mb-2">
@@ -206,7 +206,7 @@ export function AgendaWeekView({
                         {dayAppointments.length} consulta{dayAppointments.length !== 1 ? 's' : ''}
                       </div>
                     </div>
-                    
+
                     {dayAppointments.length > 0 ? (
                       <div className="space-y-2">
                         {dayAppointments.map((appointment, aptIndex) => (
@@ -237,7 +237,7 @@ export function AgendaWeekView({
                                   </Badge>
                                 </div>
                               </div>
-                              <Edit2 className="h-4 w-4 text-muted-foreground/50 ml-2 flex-shrink-0" />
+                              <Eye className="h-4 w-4 text-muted-foreground/50 ml-2 flex-shrink-0" />
                             </div>
                           </div>
                         ))}
@@ -280,9 +280,9 @@ export function AgendaWeekView({
                     {/* Day Columns */}
                     {weekDays.map((day, dayIndex) => {
                       const dayAppointments = getAppointmentsForDayAndHour(day, hour)
-                      
+
                       return (
-                        <div 
+                        <div
                           key={dayIndex}
                           className={`
                             p-2 border-l border-border/50 
@@ -325,8 +325,8 @@ export function AgendaWeekView({
                                     </div>
                                   </div>
                                 </div>
-                                
-                                <Edit2 className="h-3 w-3 text-muted-foreground/50 ml-1 flex-shrink-0" />
+
+                                <Eye className="h-3 w-3 text-muted-foreground/50 ml-1 flex-shrink-0" />
                               </div>
                             </div>
                           ))}

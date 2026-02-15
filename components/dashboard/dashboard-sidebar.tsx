@@ -7,11 +7,11 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { 
-  Calendar, 
-  Users, 
-  Settings, 
-  BarChart3, 
+import {
+  Calendar,
+  Users,
+  Settings,
+  BarChart3,
   CreditCard,
   Menu,
   X,
@@ -30,7 +30,7 @@ const navigation = [
   { name: 'Serviços', href: '/dashboard/services', icon: Briefcase, permission: 'canManageServices' },
   { name: 'Profissionais', href: '/dashboard/professionals', icon: UserCog, permission: 'canManageProfessionals' },
   { name: 'Clientes', href: '/dashboard/patients', icon: Users, permission: 'canViewAllClients' },
-  { name: 'Notificações', href: '/dashboard/notifications', icon: Bell, permission: 'canViewNotifications' },
+  { name: 'Notificações', href: '/dashboard/notifications/whatsapp', icon: Bell, permission: 'canViewNotifications' },
   { name: 'Relatórios', href: '/dashboard/reports', icon: BarChart3, permission: 'canViewFullReports' },
   { name: 'Planos', href: '/dashboard/plans', icon: CreditCard, permission: 'canManagePlans' },
   { name: 'Configurações', href: '/dashboard/settings', icon: Settings, permission: 'canViewPublicUrl' },
@@ -53,7 +53,7 @@ export function DashboardSidebar() {
     <>
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -129,8 +129,8 @@ export function DashboardSidebar() {
               <p className="mt-1 text-xs text-muted-foreground">
                 Entre em contato com nosso suporte
               </p>
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 className="mt-2 w-full bg-primary hover:bg-primary/90"
                 onClick={() => {
                   window.open('mailto:suporte@calenvo.com.br?subject=Preciso de Ajuda - Calenvo', '_blank')

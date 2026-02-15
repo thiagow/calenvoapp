@@ -7,8 +7,7 @@ import { appointmentsApi, ApiError } from '@/lib/api'
 export interface UseAppointmentsOptions {
   search?: string
   status?: string | string[]
-  modality?: string
-  specialty?: string
+  service?: string
   professional?: string
   dateFrom?: string
   dateTo?: string
@@ -28,24 +27,24 @@ export function useAppointments(options: UseAppointmentsOptions = {}) {
 
     try {
       const params: any = { ...options }
-      
+
       // Handle status array
       if (Array.isArray(options.status)) {
         params.status = options.status.join(',')
       }
 
       const data = await appointmentsApi.getAll(params)
-      
+
       // Convert date strings to Date objects
       const appointmentsWithDates = data.map((apt: any) => ({
         ...apt,
         date: new Date(apt.date)
       }))
-      
+
       setAppointments(appointmentsWithDates)
     } catch (err) {
-      const errorMessage = err instanceof ApiError 
-        ? err.message 
+      const errorMessage = err instanceof ApiError
+        ? err.message
         : 'Erro ao carregar agendamentos'
       setError(errorMessage)
       console.error('Error fetching appointments:', err)
@@ -60,8 +59,8 @@ export function useAppointments(options: UseAppointmentsOptions = {}) {
       setAppointments(prev => [...prev, newAppointment])
       return newAppointment
     } catch (err) {
-      const errorMessage = err instanceof ApiError 
-        ? err.message 
+      const errorMessage = err instanceof ApiError
+        ? err.message
         : 'Erro ao criar agendamento'
       setError(errorMessage)
       throw err
@@ -71,13 +70,13 @@ export function useAppointments(options: UseAppointmentsOptions = {}) {
   const updateAppointment = async (id: string, updateData: any) => {
     try {
       const updatedAppointment = await appointmentsApi.update(id, updateData)
-      setAppointments(prev => 
+      setAppointments(prev =>
         prev.map(apt => apt.id === id ? updatedAppointment : apt)
       )
       return updatedAppointment
     } catch (err) {
-      const errorMessage = err instanceof ApiError 
-        ? err.message 
+      const errorMessage = err instanceof ApiError
+        ? err.message
         : 'Erro ao atualizar agendamento'
       setError(errorMessage)
       throw err
@@ -89,8 +88,8 @@ export function useAppointments(options: UseAppointmentsOptions = {}) {
       await appointmentsApi.delete(id)
       setAppointments(prev => prev.filter(apt => apt.id !== id))
     } catch (err) {
-      const errorMessage = err instanceof ApiError 
-        ? err.message 
+      const errorMessage = err instanceof ApiError
+        ? err.message
         : 'Erro ao excluir agendamento'
       setError(errorMessage)
       throw err
@@ -105,8 +104,7 @@ export function useAppointments(options: UseAppointmentsOptions = {}) {
   }, [
     options.search,
     options.status,
-    options.modality,
-    options.specialty,
+    options.service,
     options.professional,
     options.dateFrom,
     options.dateTo,

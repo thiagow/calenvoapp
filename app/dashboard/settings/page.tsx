@@ -9,9 +9,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
-import { 
-  Settings, 
-  Calendar, 
+import {
+  Settings,
+  Calendar,
   Globe,
   Upload,
   Copy,
@@ -63,10 +63,8 @@ export default function SettingsPage() {
           businessLogo: data.businessLogo || null,
           publicUrl: data.publicUrl || null
         })
-        
-        if (data.businessLogo) {
-          setLogoPreview(data.businessLogo)
-        }
+
+        // logoPreview is only for local FileReader preview, not for saved images
       }
     } catch (error) {
       console.error('Error fetching config:', error)
@@ -94,14 +92,14 @@ export default function SettingsPage() {
         toast.error('O arquivo deve ter no máximo 5MB')
         return
       }
-      
+
       if (!file.type.startsWith('image/')) {
         toast.error('Por favor, selecione uma imagem válida')
         return
       }
-      
+
       setLogoFile(file)
-      
+
       // Criar preview local
       const reader = new FileReader()
       reader.onloadend = () => {
@@ -212,8 +210,8 @@ export default function SettingsPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Configurações</h1>
           <p className="text-gray-600 mt-1">
-            {isProfessional 
-              ? 'Visualize informações da conta' 
+            {isProfessional
+              ? 'Visualize informações da conta'
               : 'Personalize o funcionamento do seu negócio'}
           </p>
         </div>
@@ -234,7 +232,7 @@ export default function SettingsPage() {
                   Visualização Limitada
                 </h4>
                 <p className="text-xs text-blue-700">
-                  Como profissional, você pode visualizar apenas as informações da URL pública de agendamento. 
+                  Como profissional, você pode visualizar apenas as informações da URL pública de agendamento.
                   Para alterar configurações do negócio, entre em contato com o administrador da conta.
                 </p>
               </div>
@@ -281,7 +279,7 @@ export default function SettingsPage() {
                     Confirmação Automática
                   </Label>
                   <p className="text-sm text-gray-600">
-                    {config.autoConfirm 
+                    {config.autoConfirm
                       ? 'Agendamentos externos são confirmados automaticamente e bloqueiam o horário'
                       : 'Agendamentos externos precisam de aprovação manual antes de bloquear o horário'}
                   </p>
@@ -325,8 +323,8 @@ export default function SettingsPage() {
                 {isProfessional ? 'URL de Agendamento' : 'Personalizar Página de Agendamento do Cliente'}
               </CardTitle>
               <CardDescription>
-                {isProfessional 
-                  ? 'URL pública para compartilhar com clientes' 
+                {isProfessional
+                  ? 'URL pública para compartilhar com clientes'
                   : 'Configure a aparência da sua página pública de agendamentos'}
               </CardDescription>
             </CardHeader>
@@ -339,10 +337,10 @@ export default function SettingsPage() {
                     {/* Preview do logo */}
                     <div className="w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50 overflow-hidden">
                       {logoPreview || config.businessLogo ? (
-                        <img 
-                          src={logoPreview || (config.businessLogo ? `/api/files/logo?key=${config.businessLogo}` : '')} 
-                          alt="Logo preview" 
-                          className="w-full h-full object-contain p-2" 
+                        <img
+                          src={logoPreview || (config.businessLogo ? `/api/files/logo?key=${config.businessLogo}` : '')}
+                          alt="Logo preview"
+                          className="w-full h-full object-contain p-2"
                         />
                       ) : (
                         <div className="text-center p-2">
@@ -351,7 +349,7 @@ export default function SettingsPage() {
                         </div>
                       )}
                     </div>
-                    
+
                     <div className="flex-1 space-y-2">
                       <div className="flex gap-2">
                         <Input
@@ -438,8 +436,8 @@ export default function SettingsPage() {
                   </Button>
                 </div>
                 <p className="text-xs text-gray-500">
-                  {isProfessional 
-                    ? 'Compartilhe esta URL com seus clientes para que possam agendar online' 
+                  {isProfessional
+                    ? 'Compartilhe esta URL com seus clientes para que possam agendar online'
                     : 'A URL é gerada automaticamente a partir do nome do negócio (sem acentos, minúsculas, com hífens)'}
                 </p>
               </div>

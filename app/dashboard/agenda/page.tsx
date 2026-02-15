@@ -61,8 +61,7 @@ export default function AgendaPage() {
   } = useAppointments({
     search: filters.search,
     status: filters.status,
-    modality: filters.modality,
-    specialty: filters.specialty,
+    service: filters.service,
     professional: filters.professional,
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo,

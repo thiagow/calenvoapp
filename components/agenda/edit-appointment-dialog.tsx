@@ -171,10 +171,10 @@ export function EditAppointmentDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center text-xl">
             <Calendar className="mr-2 h-5 w-5 text-blue-600" />
-            Editar Agendamento
+            Detalhes do Agendamento
           </DialogTitle>
           <DialogDescription>
-            Atualize as informações do agendamento do cliente {appointment.patient.name}
+            Visualize as informações do agendamento do cliente {appointment.patient.name}
           </DialogDescription>
         </DialogHeader>
 
@@ -198,28 +198,28 @@ export function EditAppointmentDialog({
             <div className="space-y-2">
               <Label htmlFor="date" className="flex items-center">
                 <Calendar className="mr-1 h-3 w-3" />
-                Data *
+                Data
               </Label>
               <Input
                 id="date"
                 type="date"
                 value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                required
+                readOnly
+                className="bg-gray-100"
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="time" className="flex items-center">
                 <Clock className="mr-1 h-3 w-3" />
-                Hora *
+                Hora
               </Label>
               <Input
                 id="time"
                 type="time"
                 value={formData.time}
-                onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                required
+                readOnly
+                className="bg-gray-100"
               />
             </div>
           </div>
@@ -230,13 +230,9 @@ export function EditAppointmentDialog({
             <Input
               id="duration"
               type="number"
-              min="15"
-              step="15"
               value={formData.duration}
-              onChange={(e) => setFormData({ ...formData, duration: Number(e.target.value) })}
-              disabled={!!formData.serviceId}
-              readOnly={!!formData.serviceId}
-              className={formData.serviceId ? "bg-gray-100 cursor-not-allowed" : ""}
+              readOnly
+              className="bg-gray-100"
             />
           </div>
 
@@ -267,14 +263,10 @@ export function EditAppointmentDialog({
               <Label htmlFor="modality">Modalidade</Label>
               <Input
                 id="modality"
-                value="Presencial"
+                value={formData.modality}
                 readOnly
-                disabled
-                className="bg-gray-50 cursor-not-allowed"
+                className="bg-gray-100"
               />
-              <p className="text-xs text-gray-500">
-                No momento, apenas atendimentos presenciais estão disponíveis
-              </p>
             </div>
           </div>
 
@@ -282,52 +274,26 @@ export function EditAppointmentDialog({
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="service">Serviço</Label>
-              <Select
-                value={formData.serviceId}
-                onValueChange={handleServiceChange}
-                disabled={loadingData}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={formData.serviceId ? (services.find(s => s.id === formData.serviceId)?.name || 'Serviço não encontrado') : 'Selecione'} />
-                </SelectTrigger>
-                <SelectContent>
-                  {services.map((service) => (
-                    <SelectItem key={service.id} value={service.id}>
-                      {service.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Input
+                value={formData.serviceId
+                  ? (services.find(s => s.id === formData.serviceId)?.name || appointment.service?.name || 'Carregando...')
+                  : ''
+                }
+                readOnly
+                className="bg-gray-100"
+              />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="professional">Profissional</Label>
-              {professionals.length > 1 ? (
-                <Select
-                  value={formData.professionalId}
-                  onValueChange={(value) => setFormData({ ...formData, professionalId: value })}
-                  disabled={loadingData}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {professionals.map((prof) => (
-                      <SelectItem key={prof.id} value={prof.id}>
-                        {prof.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Input
-                  id="professionalName"
-                  value={professionals.length === 1 ? professionals[0].name : (professionalName || 'Carregando...')}
-                  readOnly
-                  disabled
-                  title={professionals.length === 1 ? 'Profissional único do plano' : ''}
-                />
-              )}
+              <Input
+                value={formData.professionalId
+                  ? (professionals.find(p => p.id === formData.professionalId)?.name || appointment.professionalRelation?.name || appointment.professional || 'Carregando...')
+                  : ''
+                }
+                readOnly
+                className="bg-gray-100"
+              />
             </div>
           </div>
 
@@ -339,10 +305,8 @@ export function EditAppointmentDialog({
               <Input
                 id="price"
                 type="number"
-                step="0.01"
-                min="0"
                 value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
                 placeholder="0.00"
                 className="pl-9"
               />
@@ -355,9 +319,9 @@ export function EditAppointmentDialog({
             <Textarea
               id="notes"
               value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Informações adicionais sobre a consulta..."
+              readOnly
               rows={3}
+              className="bg-gray-100"
             />
           </div>
 
@@ -366,10 +330,9 @@ export function EditAppointmentDialog({
               type="button"
               variant="outline"
               onClick={onClose}
-              disabled={loading}
               className="flex-1 sm:flex-initial"
             >
-              Voltar
+              Fechar
             </Button>
             <Button
               type="submit"
@@ -382,7 +345,7 @@ export function EditAppointmentDialog({
                   Salvando...
                 </>
               ) : (
-                'Salvar Alterações'
+                'Atualizar Status'
               )}
             </Button>
           </DialogFooter>
