@@ -98,7 +98,29 @@ model User {
   master        User?   @relation("MasterProfessionals", fields: [masterId], references: [id], onDelete: Cascade)
   professionals User[]  @relation("MasterProfessionals")
 
+  errorLogs ErrorLog[]
+
   @@unique([email, role])
+}
+
+model ErrorLog {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Contexto do erro
+  functionality String   // Ex: "whatsapp_send_test", "whatsapp_notification"
+  errorMessage  String   @db.Text
+  stackTrace    String?  @db.Text
+  
+  // Metadata adicional
+  metadata      Json?    // Dados extras: instanceName, destinatário, etc.
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([userId])
+  @@index([functionality])
+  @@index([createdAt])
 }
 
 model VerificationToken {

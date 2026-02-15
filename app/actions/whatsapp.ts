@@ -11,6 +11,8 @@ import { prisma } from '@/lib/db';
 import { z } from 'zod';
 import { WhatsAppConfig } from '@prisma/client';
 import { formatWhatsAppNumber } from '@/lib/utils';
+import { logError } from '@/lib/error-logger';
+import { parseWhatsAppError, USER_FRIENDLY_ERRORS } from '@/lib/error-messages';
 
 /**
  * Extended user interface for NextAuth session
@@ -178,25 +180,25 @@ async function checkInstanceState(userId: string): Promise<InstanceStateCheck> {
   }
 
   if (config.qrCodeExpiresAt && new Date(config.qrCodeExpiresAt) < new Date()) {
-    return { 
-      state: InstanceState.QR_EXPIRED, 
+    return {
+      state: InstanceState.QR_EXPIRED,
       config,
-      message: 'QR Code expirou. Clique em "Atualizar QR Code".' 
+      message: 'QR Code expirou. Clique em "Atualizar QR Code".'
     };
   }
 
   if (config.qrCode && config.qrCode.length > 0) {
-    return { 
-      state: InstanceState.PENDING, 
+    return {
+      state: InstanceState.PENDING,
       config,
-      message: 'Instância criada. Escaneie o QR Code para conectar.' 
+      message: 'Instância criada. Escaneie o QR Code para conectar.'
     };
   }
 
-  return { 
-    state: InstanceState.ERROR, 
+  return {
+    state: InstanceState.ERROR,
     config,
-    message: 'Instância em estado inconsistente. Desconecte e tente novamente.' 
+    message: 'Instância em estado inconsistente. Desconecte e tente novamente.'
   };
 }
 
@@ -216,7 +218,7 @@ async function callN8nEndpoint<T = any>(
   console.log('[callN8nEndpoint] Starting request...');
   console.log('[callN8nEndpoint] URL:', url);
   console.log('[callN8nEndpoint] Payload:', JSON.stringify(payload, null, 2));
-  
+
   if (!url) {
     console.error('[callN8nEndpoint] URL not provided');
     return { success: false, error: 'URL do endpoint não configurada' };
@@ -227,7 +229,7 @@ async function callN8nEndpoint<T = any>(
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
     console.log('[callN8nEndpoint] Sending POST request...');
-    
+
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -242,7 +244,7 @@ async function callN8nEndpoint<T = any>(
     console.log('[callN8nEndpoint] Response received:');
     console.log('- Status:', response.status, response.statusText);
     console.log('- Headers:', Object.fromEntries(response.headers.entries()));
-    
+
     const contentType = response.headers.get('content-type') || '';
     console.log('- Content-Type:', contentType);
 
@@ -258,10 +260,10 @@ async function callN8nEndpoint<T = any>(
       const base64 = Buffer.from(buffer).toString('base64');
       const dataUrl = `data:${contentType};base64,${base64}`;
       console.log('[callN8nEndpoint] Image converted to Base64, length:', base64.length);
-      
-      return { 
-        success: true, 
-        data: { qrCode: dataUrl } as any 
+
+      return {
+        success: true,
+        data: { qrCode: dataUrl } as any
       };
     }
 
@@ -269,34 +271,34 @@ async function callN8nEndpoint<T = any>(
     const text = await response.text();
     console.log('[callN8nEndpoint] Raw response text length:', text.length);
     console.log('[callN8nEndpoint] Raw response text (first 500 chars):', text.substring(0, 500));
-    
+
     // Check if response is empty
     if (!text || text.trim().length === 0) {
       console.error('[callN8nEndpoint] Empty response body');
-      return { 
-        success: false, 
-        error: 'O servidor n8n não retornou dados. Verifique se o workflow está configurado para retornar o QR Code.' 
+      return {
+        success: false,
+        error: 'O servidor n8n não retornou dados. Verifique se o workflow está configurado para retornar o QR Code.'
       };
     }
 
     // Detect PNG binary even with wrong content-type
     // PNG files start with magic number: 0x89 0x50 0x4E 0x47 (‰PNG)
-    const isPNG = text.startsWith('\x89PNG') || text.includes('‰PNG') || 
-                  text.charCodeAt(0) === 0x89 && text.charCodeAt(1) === 0x50;
-    
+    const isPNG = text.startsWith('\x89PNG') || text.includes('‰PNG') ||
+      text.charCodeAt(0) === 0x89 && text.charCodeAt(1) === 0x50;
+
     if (isPNG) {
       console.log('[callN8nEndpoint] Detected PNG binary despite JSON content-type');
       // Convert text to base64 (treating as binary)
       const base64 = Buffer.from(text, 'binary').toString('base64');
       const dataUrl = `data:image/png;base64,${base64}`;
       console.log('[callN8nEndpoint] PNG converted to Base64, length:', base64.length);
-      
-      return { 
-        success: true, 
-        data: { qrCode: dataUrl } as any 
+
+      return {
+        success: true,
+        data: { qrCode: dataUrl } as any
       };
     }
-    
+
     let data;
     try {
       data = JSON.parse(text);
@@ -305,7 +307,7 @@ async function callN8nEndpoint<T = any>(
     } catch (parseError) {
       console.error('[callN8nEndpoint] JSON parse error:', parseError);
       console.error('[callN8nEndpoint] Raw text that failed to parse (first 200 chars):', text.substring(0, 200));
-      
+
       // Last attempt: try reading as ArrayBuffer
       console.log('[callN8nEndpoint] Attempting to re-fetch as arrayBuffer...');
       try {
@@ -314,13 +316,13 @@ async function callN8nEndpoint<T = any>(
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
-        
+
         const buffer = await retryResponse.arrayBuffer();
         const bytes = new Uint8Array(buffer);
-        
+
         // Check PNG magic number in buffer
-        if (bytes.length >= 4 && bytes[0] === 0x89 && bytes[1] === 0x50 && 
-            bytes[2] === 0x4E && bytes[3] === 0x47) {
+        if (bytes.length >= 4 && bytes[0] === 0x89 && bytes[1] === 0x50 &&
+          bytes[2] === 0x4E && bytes[3] === 0x47) {
           console.log('[callN8nEndpoint] Confirmed PNG in re-fetch');
           const base64 = Buffer.from(bytes).toString('base64');
           return {
@@ -331,16 +333,16 @@ async function callN8nEndpoint<T = any>(
       } catch (retryError) {
         console.error('[callN8nEndpoint] Re-fetch failed:', retryError);
       }
-      
+
       return { success: false, error: `Resposta inválida do servidor: ${text.substring(0, 100)}...` };
     }
-    
+
     // Check if response has success field
     if (typeof data.success === 'boolean') {
       console.log('[callN8nEndpoint] Response has success field:', data.success);
       return data;
     }
-    
+
     console.log('[callN8nEndpoint] Response does not have success field, assuming success');
     // If no success field, assume success if we got here
     return { success: true, data };
@@ -366,7 +368,7 @@ async function callN8nEndpoint<T = any>(
  */
 async function ensureUniqueInstanceName(userId: string): Promise<string> {
   const baseInstanceName = `${userId}-calenvo`;
-  
+
   const existingBase = await prisma.whatsAppConfig.findFirst({
     where: { instanceName: baseInstanceName },
   });
@@ -396,7 +398,7 @@ async function ensureUniqueInstanceName(userId: string): Promise<string> {
  */
 async function callN8n(request: N8nRequest): Promise<N8nResponse> {
   const n8nUrl = process.env.N8N_WEBHOOK_URL;
-  
+
   if (!n8nUrl) {
     console.error('[callN8n] N8N_WEBHOOK_URL not configured');
     return { success: false, error: 'N8N_WEBHOOK_URL não configurado' };
@@ -460,9 +462,9 @@ export async function createInstanceAction(
     const existingConfig = await prisma.whatsAppConfig.findUnique({
       where: { userId: session.user.id },
     });
-    
-    const instanceName = existingConfig?.instanceName || 
-                         await ensureUniqueInstanceName(session.user.id);
+
+    const instanceName = existingConfig?.instanceName ||
+      await ensureUniqueInstanceName(session.user.id);
     const webhookUrl = `${process.env.NEXTAUTH_URL}/api/webhooks/evolution`;
 
     const createEndpoint = process.env.N8N_CREATE_INSTANCE_URL;
@@ -496,7 +498,7 @@ export async function createInstanceAction(
     }
 
     const apiUrl = process.env.N8N_WEBHOOK_URL || '';
-    
+
     if (existingConfig) {
       await prisma.whatsAppConfig.update({
         where: { id: existingConfig.id },
@@ -565,7 +567,7 @@ export async function refreshQRCodeAction(): Promise<ActionState<{ qrCode: strin
 
     const stateCheck = await checkInstanceState(session.user.id);
     console.log('[refreshQRCodeAction] Current state:', stateCheck.state);
-    
+
     if (!stateCheck.config) {
       return { success: false, error: 'Nenhuma instância encontrada. Crie uma nova.' };
     }
@@ -680,7 +682,7 @@ export async function checkConnectionStatusAction(): Promise<ActionState<{ isCon
 
     console.log('[checkConnectionStatusAction] Calling specific status endpoint');
     const result = await callN8nEndpoint<N8nStatusResponse>(
-      statusUrl, 
+      statusUrl,
       { instanceName: config.instanceName }
     );
 
@@ -691,7 +693,7 @@ export async function checkConnectionStatusAction(): Promise<ActionState<{ isCon
 
     const statusData = extractFirstFromArray(result.data);
     const isConnected = (statusData.instance.state === 'open' || statusData.instance.state === 'connected');
-    
+
     console.log('[checkConnectionStatusAction] n8n state:', statusData.instance.state, '→ connected:', isConnected);
 
     if (isConnected !== config.isConnected) {
@@ -701,12 +703,12 @@ export async function checkConnectionStatusAction(): Promise<ActionState<{ isCon
       });
     }
 
-    return { 
-      success: true, 
-      data: { 
+    return {
+      success: true,
+      data: {
         isConnected,
         n8nState: statusData.instance.state
-      } 
+      }
     };
   } catch (error) {
     console.error('[checkConnectionStatusAction] Error:', error);
@@ -742,7 +744,7 @@ export async function deleteInstanceAction(): Promise<ActionState<void>> {
 
     console.log('[deleteInstanceAction] Calling specific delete endpoint');
     const result = await callN8nEndpoint<N8nDeleteResponse>(
-      deleteUrl, 
+      deleteUrl,
       { instanceName: config.instanceName }
     );
 
@@ -752,12 +754,12 @@ export async function deleteInstanceAction(): Promise<ActionState<void>> {
     }
 
     const deleteData = extractFirstFromArray(result.data);
-    
+
     if (deleteData.status !== 'SUCCESS' || deleteData.error !== false) {
       console.error('[deleteInstanceAction] Delete failed:', deleteData);
-      return { 
-        success: false, 
-        error: deleteData.response?.message || 'Falha ao excluir instância' 
+      return {
+        success: false,
+        error: deleteData.response?.message || 'Falha ao excluir instância'
       };
     }
 
@@ -838,7 +840,7 @@ export async function sendMessageAction(
     };
 
     console.log('[sendMessageAction] Sending message to:', formattedRecipient);
-    
+
     const response = await fetch(sendUrl, {
       method: 'POST',
       headers: {
@@ -891,7 +893,7 @@ export async function sendMessageWithRetry(
 
     const delay = BASE_DELAY * Math.pow(2, attempt - 1);
     console.warn(`[sendMessageWithRetry] Attempt ${attempt} failed. Retrying in ${delay}ms...`);
-    
+
     await sleep(delay);
     return sendMessageWithRetry(instanceName, recipient, message, attempt + 1);
   }
@@ -905,7 +907,9 @@ export async function sendMessageWithRetry(
  * @returns Success/Error state
  */
 export async function sendTestMessageAction(
-  type: 'create' | 'cancel' | 'confirmation' | 'reminder'
+  type: 'create' | 'cancel' | 'confirmation' | 'reminder',
+  destinationNumber?: string,
+  customMessage?: string
 ): Promise<ActionState<void>> {
   try {
     const session = (await getServerSession(authOptions)) as ExtendedSession | null;
@@ -918,27 +922,34 @@ export async function sendTestMessageAction(
     });
 
     if (!config || !config.isConnected) {
-      return { success: false, error: 'WhatsApp não conectado' };
+      return { success: false, error: USER_FRIENDLY_ERRORS.WHATSAPP_NOT_CONNECTED };
     }
 
-    if (!config.phoneNumber) {
-      return { success: false, error: 'Número não configurado' };
+    // Use destination number if provided, otherwise fallback to config number
+    const recipient = destinationNumber || config.phoneNumber;
+
+    if (!recipient) {
+      return { success: false, error: USER_FRIENDLY_ERRORS.WHATSAPP_INVALID_NUMBER };
     }
 
-    let message = '';
-    switch (type) {
-      case 'create':
-        message = config.createMessage || DEFAULT_TEMPLATES.createMessage;
-        break;
-      case 'cancel':
-        message = config.cancelMessage || DEFAULT_TEMPLATES.cancelMessage;
-        break;
-      case 'confirmation':
-        message = config.confirmationMessage || DEFAULT_TEMPLATES.confirmationMessage;
-        break;
-      case 'reminder':
-        message = config.reminderMessage || DEFAULT_TEMPLATES.reminderMessage;
-        break;
+    // Use custom message if provided (from preview field), otherwise use saved/default
+    let message = customMessage;
+
+    if (!message) {
+      switch (type) {
+        case 'create':
+          message = config.createMessage || DEFAULT_TEMPLATES.createMessage;
+          break;
+        case 'cancel':
+          message = config.cancelMessage || DEFAULT_TEMPLATES.cancelMessage;
+          break;
+        case 'confirmation':
+          message = config.confirmationMessage || DEFAULT_TEMPLATES.confirmationMessage;
+          break;
+        case 'reminder':
+          message = config.reminderMessage || DEFAULT_TEMPLATES.reminderMessage;
+          break;
+      }
     }
 
     message = message
@@ -952,17 +963,37 @@ export async function sendTestMessageAction(
     // Send using new real-time endpoint with retry
     const result = await sendMessageWithRetry(
       config.instanceName,
-      config.phoneNumber,
+      recipient,
       `📱 MENSAGEM DE TESTE:\n\n${message}`
     );
 
     if (!result.success) {
-      return { success: false, error: result.error };
+      await logError({
+        functionality: `whatsapp_test_send_${type}`,
+        error: result.error || 'Unknown n8n error',
+        metadata: {
+          instanceName: config.instanceName,
+          recipient,
+          type
+        },
+        userId: session.user.id
+      });
+      return { success: false, error: parseWhatsAppError(result.error) };
     }
 
     return { success: true };
   } catch (error) {
     console.error('[sendTestMessageAction] Error:', error);
-    return { success: false, error: 'Erro ao enviar mensagem de teste' };
+
+    await logError({
+      functionality: `whatsapp_test_send_${type}`,
+      error,
+      metadata: { type, destinationNumber }
+    });
+
+    return {
+      success: false,
+      error: parseWhatsAppError(error)
+    };
   }
 }

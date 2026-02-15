@@ -7,12 +7,14 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { NotificationCard } from './notification-card';
-import { Bell, CalendarCheck, CalendarX, Clock, AlertCircle } from 'lucide-react';
+import { Bell, CalendarCheck, CalendarX, Clock, AlertCircle, Send, Loader2 } from 'lucide-react';
+import { FeedbackDialog } from './feedback-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { updateWhatsAppSettingsAction } from '@/app/actions/whatsapp';
+import { updateWhatsAppSettingsAction, sendTestMessageAction } from '@/app/actions/whatsapp';
 import { VariableHelper } from './variable-helper';
 import { MessagePreview } from './message-preview';
 import { Textarea } from '@/components/ui/textarea';
+import { TestMessageDialog } from './test-message-dialog';
 
 interface NotificationSettingsProps {
   config: WhatsAppConfig;
@@ -36,6 +38,12 @@ export function NotificationSettings({ config, disabled = false }: NotificationS
   const [notifyConfirmation, setNotifyConfirmation] = useState(config.notifyConfirmation);
   const [confirmationDays, setConfirmationDays] = useState(config.confirmationDays);
   const [confirmationMessage, setConfirmationMessage] = useState(config.confirmationMessage || '');
+
+  // Cancel Test State
+  const [showCancelTestDialog, setShowCancelTestDialog] = useState(false);
+  const [sendingCancelTest, setSendingCancelTest] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackSuccess, setFeedbackSuccess] = useState(false);
 
   // Reminder (hours before)
   const [notifyReminder, setNotifyReminder] = useState(config.notifyReminder);
@@ -119,6 +127,24 @@ export function NotificationSettings({ config, disabled = false }: NotificationS
     }
   };
 
+  const handleSendCancelTest = async (phoneNumber: string) => {
+    setSendingCancelTest(true);
+    try {
+      const result = await sendTestMessageAction('cancel', phoneNumber, cancelMessage);
+
+      setFeedbackSuccess(result.success);
+      setShowCancelTestDialog(false);
+      setShowFeedback(true);
+    } catch (error) {
+      console.error('Test message error:', error);
+      setFeedbackSuccess(false);
+      setShowCancelTestDialog(false);
+      setShowFeedback(true);
+    } finally {
+      setSendingCancelTest(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* 1. Confirmation on Creation */}
@@ -136,6 +162,7 @@ export function NotificationSettings({ config, disabled = false }: NotificationS
         delayUnit="minutos"
         testType="create"
         disabled={disabled}
+        defaultPhone={config.phoneNumber || undefined}
       />
 
       {/* 2. Cancellation Notification (v3.0 - Real-time only) */}
@@ -166,7 +193,7 @@ export function NotificationSettings({ config, disabled = false }: NotificationS
                 Esta notificação é enviada em tempo real, sem atraso configurável.
               </AlertDescription>
             </Alert>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Mensagem personalizada</label>
               <Textarea
@@ -184,6 +211,16 @@ export function NotificationSettings({ config, disabled = false }: NotificationS
 
             <VariableHelper />
             <MessagePreview message={cancelMessage} />
+
+            <Button
+              variant="outline"
+              onClick={() => setShowCancelTestDialog(true)}
+              disabled={disabled || sendingCancelTest || !cancelMessage}
+              className="w-full"
+            >
+              <Send className="h-4 w-4 mr-2" />
+              Enviar Mensagem de Teste
+            </Button>
           </CardContent>
         )}
       </Card>
@@ -203,6 +240,7 @@ export function NotificationSettings({ config, disabled = false }: NotificationS
         delayUnit="dias"
         testType="confirmation"
         disabled={disabled}
+        defaultPhone={config.phoneNumber || undefined}
       />
 
       {/* 4. Reminder (hours before) */}
@@ -220,6 +258,7 @@ export function NotificationSettings({ config, disabled = false }: NotificationS
         delayUnit="horas"
         testType="reminder"
         disabled={disabled}
+        defaultPhone={config.phoneNumber || undefined}
       />
 
       {/* Save Button */}
@@ -235,6 +274,20 @@ export function NotificationSettings({ config, disabled = false }: NotificationS
           </Button>
         </div>
       )}
+      <TestMessageDialog
+        open={showCancelTestDialog}
+        onOpenChange={setShowCancelTestDialog}
+        onSend={handleSendCancelTest}
+        loading={sendingCancelTest}
+        defaultPhone={config.phoneNumber || undefined}
+        typeLabel="Cancelamento"
+      />
+
+      <FeedbackDialog
+        open={showFeedback}
+        onOpenChange={setShowFeedback}
+        success={feedbackSuccess}
+      />
     </div>
   );
 }
