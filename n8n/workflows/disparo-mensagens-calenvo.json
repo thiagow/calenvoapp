@@ -13,7 +13,7 @@
         }
       },
       "id": "2dd8a529-5d61-4560-84c1-65f02bc837d4",
-      "name": "Schedule Trigger",
+      "name": "ScheduleTrigger",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
       "position": [
@@ -24,7 +24,7 @@
     {
       "parameters": {},
       "id": "d59ea5b7-4d03-4c11-8c64-02daad9d0f22",
-      "name": "Manual Trigger",
+      "name": "ManualTrigger",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
@@ -38,7 +38,7 @@
         "query": "SELECT \n  a.id AS appointment_id,\n  a.date AS appointment_date,\n  a.duration AS appointment_duration,\n  a.status AS appointment_status,\n  a.notes AS appointment_notes,\n  c.id AS client_id,\n  c.name AS client_name,\n  c.phone AS client_phone,\n  s.name AS service_name,\n  p.name AS professional_name,\n  u.id AS user_id,\n  u.name AS user_name,\n  u.\"businessName\" AS business_name,\n  wc.\"instanceName\" AS instance_name,\n  wc.\"reminderHours\" AS reminder_hours,\n  wc.\"reminderMessage\" AS reminder_message\nFROM \"Appointment\" a\n  INNER JOIN \"Client\" c ON c.id = a.\"clientId\"\n  INNER JOIN \"User\" u ON u.id = a.\"userId\"\n  INNER JOIN \"WhatsAppConfig\" wc ON wc.\"userId\" = u.id\n  LEFT JOIN \"Service\" s ON s.id = a.\"serviceId\"\n  LEFT JOIN \"User\" p ON p.id = a.\"professionalId\"\nWHERE \n  wc.enabled = true\n  AND wc.\"isConnected\" = true\n  AND wc.\"notifyReminder\" = true\n  AND a.status IN ('SCHEDULED', 'CONFIRMED')\n  AND c.phone IS NOT NULL\n  AND c.phone <> ''\n  AND a.date > NOW()\n  AND a.date <= NOW() + (wc.\"reminderHours\" * INTERVAL '1 hour')\n  AND NOT EXISTS (\n    SELECT 1 \n    FROM \"Notification\" n \n    WHERE n.\"appointmentId\" = a.id \n      AND n.type = 'APPOINTMENT_REMINDER'\n  )\nORDER BY a.date ASC"
       },
       "id": "16ff491d-1b12-4d2a-9744-1f9a8a973bec",
-      "name": "Postgres - Buscar Lembretes",
+      "name": "Postgres_BuscarLembretes",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
@@ -64,7 +64,7 @@
         }
       },
       "id": "5bd98d7f-9f7b-4d7a-8d1c-8b8a8a8a8a8a",
-      "name": "Tem resultados?",
+      "name": "TemResultados",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [
@@ -75,7 +75,7 @@
     {
       "parameters": {},
       "id": "no-op-node",
-      "name": "Sem Lembretes",
+      "name": "SemLembretes",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
@@ -88,7 +88,7 @@
         "options": {}
       },
       "id": "5ea2399f-9bcd-4fe1-8a4b-a255a3012465",
-      "name": "Loop Over Items",
+      "name": "LoopOverItems",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
@@ -102,7 +102,7 @@
         "unit": "seconds"
       },
       "id": "ab6275e0-67b9-4d91-a2b0-511c32ed723b",
-      "name": "Wait 5s",
+      "name": "Wait5s",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
@@ -112,10 +112,10 @@
     },
     {
       "parameters": {
-        "jsCode": "const item = $input.item.json;\n\n// Formatar data\nconst date = new Date(item.appointment_date);\nconst dateFormatted = date.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });\nconst timeFormatted = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });\n\n// Template default\nconst defaultMessage = 'Olá {{nome_cliente}}! Lembrete: seu agendamento é em {{data}} às {{hora}}. Te esperamos!';\nlet message = item.reminder_message || defaultMessage;\n\n// Substituir variáveis Mustache\nmessage = message\n  .replace(/{{nome_cliente}}/g, item.client_name || 'Cliente')\n  .replace(/{{data}}/g, dateFormatted)\n  .replace(/{{hora}}/g, timeFormatted)\n  .replace(/{{servico}}/g, item.service_name || 'Agendamento')\n  .replace(/{{profissional}}/g, item.professional_name || 'Equipe')\n  .replace(/{{empresa}}/g, item.business_name || 'Nossa Empresa');\n\n// Formatar telefone\nlet phone = (item.client_phone || '').replace(/\\D/g, '');\nif (!phone.startsWith('55')) phone = '55' + phone;\n\nreturn {\n  ...item,\n  formatted_message: message,\n  formatted_phone: phone\n};"
+        "jsCode": "const item = $input.item.json;\nconst date = new Date(item.appointment_date);\nconst dateFormatted = date.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });\nconst timeFormatted = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });\nconst defaultMessage = 'Olá {{nome_cliente}}! Lembrete: seu agendamento é em {{data}} às {{hora}}. Te esperamos!';\nlet message = item.reminder_message || defaultMessage;\nmessage = message\n  .replace(/{{nome_cliente}}/g, item.client_name || 'Cliente')\n  .replace(/{{data}}/g, dateFormatted)\n  .replace(/{{hora}}/g, timeFormatted)\n  .replace(/{{servico}}/g, item.service_name || 'Agendamento')\n  .replace(/{{profissional}}/g, item.professional_name || 'Equipe')\n  .replace(/{{empresa}}/g, item.business_name || 'Nossa Empresa');\nlet phone = (item.client_phone || '').replace(/\\D/g, '');\nif (!phone.startsWith('55')) phone = '55' + phone;\nreturn { ...item, formatted_message: message, formatted_phone: phone };"
       },
       "id": "code-node-js",
-      "name": "Montar Mensagem",
+      "name": "MontarMensagem",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -138,7 +138,7 @@
         840
       ],
       "id": "26c6834c-1f74-4a90-bf86-7783efeefea2",
-      "name": "Enviar WhatsApp",
+      "name": "EnviarWhatsApp",
       "credentials": {
         "evolutionApi": {
           "id": "Jm0CeivS5QtT7ipa",
@@ -153,7 +153,7 @@
         "query": "INSERT INTO \"Notification\" (id, title, message, type, \"isRead\", \"appointmentId\", \"userId\", metadata, \"createdAt\", \"updatedAt\")\nVALUES (\n  gen_random_uuid()::text,\n  'Lembrete WhatsApp Enviado',\n  '{{ $json.formatted_message }}',\n  'APPOINTMENT_REMINDER',\n  false,\n  '{{ $json.appointment_id }}',\n  '{{ $json.user_id }}',\n  '{\"channel\": \"whatsapp\", \"status\": \"sent\", \"phone\": \"{{ $json.formatted_phone }}\", \"instance\": \"{{ $json.instance_name }}\", \"sentAt\": \"' || NOW()::text || '\"}'::jsonb,\n  NOW(),\n  NOW()\n);"
       },
       "id": "log-success-postgres",
-      "name": "Log Sucesso",
+      "name": "LogSucesso",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
@@ -173,7 +173,7 @@
         "query": "INSERT INTO \"Notification\" (id, title, message, type, \"isRead\", \"appointmentId\", \"userId\", metadata, \"createdAt\", \"updatedAt\")\nVALUES (\n  gen_random_uuid()::text,\n  'Falha no Lembrete WhatsApp',\n  'Falha ao enviar lembrete para {{ $json.client_name }}',\n  'APPOINTMENT_REMINDER',\n  false,\n  '{{ $json.appointment_id }}',\n  '{{ $json.user_id }}',\n  '{\"channel\": \"whatsapp\", \"status\": \"error\", \"phone\": \"{{ $json.formatted_phone }}\", \"instance\": \"{{ $json.instance_name }}\", \"error\": \"{{ $json.message || $json.error.message || \"Erro desconhecido\" }}\", \"failedAt\": \"' || NOW()::text || '\"}'::jsonb,\n  NOW(),\n  NOW()\n);"
       },
       "id": "log-error-postgres",
-      "name": "Log Erro",
+      "name": "LogErro",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
@@ -193,7 +193,7 @@
         "unit": "seconds"
       },
       "id": "wait-post-log",
-      "name": "Wait 2s",
+      "name": "Wait2s",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
@@ -203,136 +203,136 @@
     }
   ],
   "connections": {
-    "Schedule Trigger": {
+    "ScheduleTrigger": {
       "main": [
         [
           {
-            "node": "Postgres - Buscar Lembretes",
+            "node": "Postgres_BuscarLembretes",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Manual Trigger": {
+    "ManualTrigger": {
       "main": [
         [
           {
-            "node": "Postgres - Buscar Lembretes",
+            "node": "Postgres_BuscarLembretes",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Postgres - Buscar Lembretes": {
+    "Postgres_BuscarLembretes": {
       "main": [
         [
           {
-            "node": "Tem resultados?",
+            "node": "TemResultados",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Tem resultados?": {
+    "TemResultados": {
       "main": [
         [
           {
-            "node": "Loop Over Items",
+            "node": "LoopOverItems",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Sem Lembretes",
+            "node": "SemLembretes",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Loop Over Items": {
+    "LoopOverItems": {
       "main": [
         [],
         [
           {
-            "node": "Wait 5s",
+            "node": "Wait5s",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Wait 5s": {
+    "Wait5s": {
       "main": [
         [
           {
-            "node": "Montar Mensagem",
+            "node": "MontarMensagem",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Montar Mensagem": {
+    "MontarMensagem": {
       "main": [
         [
           {
-            "node": "Enviar WhatsApp",
+            "node": "EnviarWhatsApp",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Enviar WhatsApp": {
+    "EnviarWhatsApp": {
       "main": [
         [
           {
-            "node": "Log Sucesso",
+            "node": "LogSucesso",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Log Erro",
+            "node": "LogErro",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Log Sucesso": {
+    "LogSucesso": {
       "main": [
         [
           {
-            "node": "Wait 2s",
+            "node": "Wait2s",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Log Erro": {
+    "LogErro": {
       "main": [
         [
           {
-            "node": "Wait 2s",
+            "node": "Wait2s",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Wait 2s": {
+    "Wait2s": {
       "main": [
         [
           {
-            "node": "Loop Over Items",
+            "node": "LoopOverItems",
             "type": "main",
             "index": 0
           }
