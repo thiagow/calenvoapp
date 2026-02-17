@@ -2,15 +2,86 @@
   "name": "disparo-mensagens-calenvo",
   "nodes": [
     {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "id": "2dd8a529-5d61-4560-84c1-65f02bc837d4",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        460,
+        840
+      ]
+    },
+    {
       "parameters": {},
       "id": "d59ea5b7-4d03-4c11-8c64-02daad9d0f22",
-      "name": "When clicking ‘Test workflow’",
+      "name": "Manual Trigger",
       "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
       "position": [
-        496,
-        1472
+        460,
+        1040
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  a.id AS appointment_id,\n  a.date AS appointment_date,\n  a.duration AS appointment_duration,\n  a.status AS appointment_status,\n  a.notes AS appointment_notes,\n  c.id AS client_id,\n  c.name AS client_name,\n  c.phone AS client_phone,\n  s.name AS service_name,\n  p.name AS professional_name,\n  u.id AS user_id,\n  u.name AS user_name,\n  u.\"businessName\" AS business_name,\n  wc.\"instanceName\" AS instance_name,\n  wc.\"reminderHours\" AS reminder_hours,\n  wc.\"reminderMessage\" AS reminder_message\nFROM \"Appointment\" a\n  INNER JOIN \"Client\" c ON c.id = a.\"clientId\"\n  INNER JOIN \"User\" u ON u.id = a.\"userId\"\n  INNER JOIN \"WhatsAppConfig\" wc ON wc.\"userId\" = u.id\n  LEFT JOIN \"Service\" s ON s.id = a.\"serviceId\"\n  LEFT JOIN \"User\" p ON p.id = a.\"professionalId\"\nWHERE \n  wc.enabled = true\n  AND wc.\"isConnected\" = true\n  AND wc.\"notifyReminder\" = true\n  AND a.status IN ('SCHEDULED', 'CONFIRMED')\n  AND c.phone IS NOT NULL\n  AND c.phone <> ''\n  AND a.date > NOW()\n  AND a.date <= NOW() + (wc.\"reminderHours\" * INTERVAL '1 hour')\n  AND NOT EXISTS (\n    SELECT 1 \n    FROM \"Notification\" n \n    WHERE n.\"appointmentId\" = a.id \n      AND n.type = 'APPOINTMENT_REMINDER'\n  )\nORDER BY a.date ASC"
+      },
+      "id": "16ff491d-1b12-4d2a-9744-1f9a8a973bec",
+      "name": "Postgres - Buscar Lembretes",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        720,
+        940
       ],
-      "typeVersion": 1
+      "credentials": {
+        "postgres": {
+          "id": "73lD2eXhJarafcJx",
+          "name": "Postgres amz-homologa"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.appointment_id }}",
+              "operation": "notEmpty"
+            }
+          ]
+        }
+      },
+      "id": "5bd98d7f-9f7b-4d7a-8d1c-8b8a8a8a8a8a",
+      "name": "Tem resultados?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        940,
+        940
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "no-op-node",
+      "name": "Sem Lembretes",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1100,
+        1100
+      ]
     },
     {
       "parameters": {
@@ -21,349 +92,53 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        1024,
-        1472
+        1160,
+        840
       ]
     },
     {
       "parameters": {
-        "operation": "update",
-        "documentId": {
-          "__rl": true,
-          "value": "1cnpxyMrj-M6YqkOQu0wA9Gy_67Nd4aAnselS-iVyyF0",
-          "mode": "list",
-          "cachedResultName": "nao compradores mago",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cnpxyMrj-M6YqkOQu0wA9Gy_67Nd4aAnselS-iVyyF0/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1142382672,
-          "mode": "list",
-          "cachedResultName": "Sheet1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cnpxyMrj-M6YqkOQu0wA9Gy_67Nd4aAnselS-iVyyF0/edit#gid=1142382672"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "row_number": "={{ $('Obtem todos os contatos').item.json.row_number }}",
-            "Status": "Enviado"
-          },
-          "matchingColumns": [
-            "row_number"
-          ],
-          "schema": [
-            {
-              "id": "NOME",
-              "displayName": "NOME",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "WHATSAPP",
-              "displayName": "WHATSAPP",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Status",
-              "displayName": "Status",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "Disparar para Todos",
-              "displayName": "Disparar para Todos",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "row_number",
-              "displayName": "row_number",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "readOnly": true,
-              "removed": false
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "20704ead-1d0c-4026-997c-9d93999585cb",
-      "name": "Atualiza Sucesso",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.4,
-      "position": [
-        1808,
-        1344
-      ]
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1cnpxyMrj-M6YqkOQu0wA9Gy_67Nd4aAnselS-iVyyF0",
-          "mode": "list",
-          "cachedResultName": "nao compradores mago",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cnpxyMrj-M6YqkOQu0wA9Gy_67Nd4aAnselS-iVyyF0/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1142382672,
-          "mode": "list",
-          "cachedResultName": "Sheet1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cnpxyMrj-M6YqkOQu0wA9Gy_67Nd4aAnselS-iVyyF0/edit#gid=1142382672"
-        },
-        "options": {}
-      },
-      "id": "e6d15137-b573-437c-b6be-47c8cab44873",
-      "name": "Obtem todos os contatos",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.4,
-      "position": [
-        816,
-        1472
-      ]
-    },
-    {
-      "parameters": {
-        "amount": 10
-      },
-      "id": "3f46b98f-534b-4a19-aa2a-bfcf6adcdb2b",
-      "name": "Wait",
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
-      "position": [
-        2160,
-        1504
-      ],
-      "webhookId": "2987fe5c-e96e-433b-ba83-c95cadc6d0c9"
-    },
-    {
-      "parameters": {
-        "respondWith": "text",
-        "responseBody": "Envio Iniciado com Sucesso. Verifique o progresso na Planilha.",
-        "options": {}
-      },
-      "id": "c65d5502-beb7-462e-bf1b-def4897439f4",
-      "name": "Respond to Webhook",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.1,
-      "position": [
-        720,
-        1152
-      ]
-    },
-    {
-      "parameters": {
-        "amount": 3
+        "amount": 5,
+        "unit": "seconds"
       },
       "id": "ab6275e0-67b9-4d91-a2b0-511c32ed723b",
-      "name": "Wait1",
+      "name": "Wait 5s",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        1280,
-        1488
-      ],
-      "webhookId": "2987fe5c-e96e-433b-ba83-c95cadc6d0c9"
-    },
-    {
-      "parameters": {
-        "operation": "update",
-        "documentId": {
-          "__rl": true,
-          "value": "1cnpxyMrj-M6YqkOQu0wA9Gy_67Nd4aAnselS-iVyyF0",
-          "mode": "list",
-          "cachedResultName": "nao compradores mago",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cnpxyMrj-M6YqkOQu0wA9Gy_67Nd4aAnselS-iVyyF0/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": 1142382672,
-          "mode": "list",
-          "cachedResultName": "Sheet1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cnpxyMrj-M6YqkOQu0wA9Gy_67Nd4aAnselS-iVyyF0/edit#gid=1142382672"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "row_number": "={{ $('Obtem todos os contatos').item.json.row_number }}",
-            "Status": "Não enviado"
-          },
-          "matchingColumns": [
-            "row_number"
-          ],
-          "schema": [
-            {
-              "id": "NOME",
-              "displayName": "NOME",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "WHATSAPP",
-              "displayName": "WHATSAPP",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Status",
-              "displayName": "Status",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "Disparar para Todos",
-              "displayName": "Disparar para Todos",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "row_number",
-              "displayName": "row_number",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "readOnly": true,
-              "removed": false
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "11d8d903-126c-441b-95c2-9be1f2f747cb",
-      "name": "Não Enviado",
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.4,
-      "position": [
-        1776,
-        1584
+        1380,
+        840
       ]
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "(SUA URL EVO)/message/sendText/(INSTANCIA)",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "apikey",
-              "value": "(APIKEY)"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n    \"number\": \"{{ $json.key.remoteJid }}\",\n    \"text\": \"(SEU TEXTO)\"\n}",
-        "options": {}
+        "jsCode": "const item = $input.item.json;\n\n// Formatar data\nconst date = new Date(item.appointment_date);\nconst dateFormatted = date.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });\nconst timeFormatted = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });\n\n// Template default\nconst defaultMessage = 'Olá {{nome_cliente}}! Lembrete: seu agendamento é em {{data}} às {{hora}}. Te esperamos!';\nlet message = item.reminder_message || defaultMessage;\n\n// Substituir variáveis Mustache\nmessage = message\n  .replace(/{{nome_cliente}}/g, item.client_name || 'Cliente')\n  .replace(/{{data}}/g, dateFormatted)\n  .replace(/{{hora}}/g, timeFormatted)\n  .replace(/{{servico}}/g, item.service_name || 'Agendamento')\n  .replace(/{{profissional}}/g, item.professional_name || 'Equipe')\n  .replace(/{{empresa}}/g, item.business_name || 'Nossa Empresa');\n\n// Formatar telefone\nlet phone = (item.client_phone || '').replace(/\\D/g, '');\nif (!phone.startsWith('55')) phone = '55' + phone;\n\nreturn {\n  ...item,\n  formatted_message: message,\n  formatted_phone: phone\n};"
       },
-      "id": "ddede578-02ab-4672-9220-2852515ec531",
-      "name": "Evolution 2.1.0 - Texto",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1488,
-        1680
-      ],
-      "alwaysOutputData": false,
-      "disabled": true,
-      "onError": "continueErrorOutput"
-    },
-    {
-      "parameters": {
-        "path": "b6d9ff8f-c9a0-4a24-9ec7-e171cdcc43bd",
-        "responseMode": "responseNode",
-        "options": {}
-      },
-      "id": "ca08fd88-1d43-4caa-aa57-dd450caf6158",
-      "name": "Webhook",
-      "type": "n8n-nodes-base.webhook",
+      "id": "code-node-js",
+      "name": "Montar Mensagem",
+      "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        528,
-        1152
-      ],
-      "webhookId": "b6d9ff8f-c9a0-4a24-9ec7-e171cdcc43bd",
-      "disabled": true
-    },
-    {
-      "parameters": {
-        "content": "## Webhook ( Botão direito > Ativar )\n**Código abaixo do Disparar para todos** \n=HYPERLINK(\"SUA URL N8N\";\"Disparar para Todos\")",
-        "height": 298.64097741911587,
-        "width": 466.31226259430105
-      },
-      "id": "681e0a9b-1a9e-4f6d-b5f1-027cb03732fb",
-      "name": "Sticky Note1",
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [
-        480,
-        1024
-      ]
-    },
-    {
-      "parameters": {
-        "content": "## Manual",
-        "height": 213.41086834998737,
-        "width": 211.58996364362372
-      },
-      "id": "3a3f983a-b523-4cbb-a7b2-7bf926bc32b8",
-      "name": "Sticky Note",
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "position": [
-        432,
-        1424
+        1600,
+        840
       ]
     },
     {
       "parameters": {
         "resource": "messages-api",
-        "instanceName": "={{ $('Webhook').item.json.instancia }}",
-        "remoteJid": "={{ $('Webhook').item.json.destinatario }}",
-        "messageText": "={{ $('Webhook').item.json.destinatario }}",
+        "instanceName": "={{ $json.instance_name }}",
+        "remoteJid": "={{ $json.formatted_phone }}",
+        "messageText": "={{ $json.formatted_message }}",
         "options_message": {}
       },
       "type": "n8n-nodes-evolution-api.evolutionApi",
       "typeVersion": 1,
       "position": [
-        1504,
-        1488
+        1820,
+        840
       ],
       "id": "26c6834c-1f74-4a90-bf86-7783efeefea2",
-      "name": "Enviar texto",
+      "name": "Enviar WhatsApp",
       "credentials": {
         "evolutionApi": {
           "id": "Jm0CeivS5QtT7ipa",
@@ -375,126 +150,189 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "options": {}
+        "query": "INSERT INTO \"Notification\" (id, title, message, type, \"isRead\", \"appointmentId\", \"userId\", metadata, \"createdAt\", \"updatedAt\")\nVALUES (\n  gen_random_uuid()::text,\n  'Lembrete WhatsApp Enviado',\n  '{{ $json.formatted_message }}',\n  'APPOINTMENT_REMINDER',\n  false,\n  '{{ $json.appointment_id }}',\n  '{{ $json.user_id }}',\n  '{\"channel\": \"whatsapp\", \"status\": \"sent\", \"phone\": \"{{ $json.formatted_phone }}\", \"instance\": \"{{ $json.instance_name }}\", \"sentAt\": \"' || NOW()::text || '\"}'::jsonb,\n  NOW(),\n  NOW()\n);"
       },
+      "id": "log-success-postgres",
+      "name": "Log Sucesso",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
       "position": [
-        704,
-        1472
+        2060,
+        740
       ],
-      "id": "16ff491d-1b12-4d2a-9744-1f9a8a973bec",
-      "name": "Execute a SQL query",
       "credentials": {
         "postgres": {
           "id": "73lD2eXhJarafcJx",
           "name": "Postgres amz-homologa"
         }
       }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO \"Notification\" (id, title, message, type, \"isRead\", \"appointmentId\", \"userId\", metadata, \"createdAt\", \"updatedAt\")\nVALUES (\n  gen_random_uuid()::text,\n  'Falha no Lembrete WhatsApp',\n  'Falha ao enviar lembrete para {{ $json.client_name }}',\n  'APPOINTMENT_REMINDER',\n  false,\n  '{{ $json.appointment_id }}',\n  '{{ $json.user_id }}',\n  '{\"channel\": \"whatsapp\", \"status\": \"error\", \"phone\": \"{{ $json.formatted_phone }}\", \"instance\": \"{{ $json.instance_name }}\", \"error\": \"{{ $json.message || $json.error.message || \"Erro desconhecido\" }}\", \"failedAt\": \"' || NOW()::text || '\"}'::jsonb,\n  NOW(),\n  NOW()\n);"
+      },
+      "id": "log-error-postgres",
+      "name": "Log Erro",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2060,
+        940
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "73lD2eXhJarafcJx",
+          "name": "Postgres amz-homologa"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 2,
+        "unit": "seconds"
+      },
+      "id": "wait-post-log",
+      "name": "Wait 2s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2280,
+        840
+      ]
     }
   ],
-  "pinData": {},
   "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Postgres - Buscar Lembretes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Postgres - Buscar Lembretes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres - Buscar Lembretes": {
+      "main": [
+        [
+          {
+            "node": "Tem resultados?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem resultados?": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sem Lembretes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Loop Over Items": {
       "main": [
         [],
         [
           {
-            "node": "Wait1",
+            "node": "Wait 5s",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Atualiza Sucesso": {
+    "Wait 5s": {
       "main": [
         [
           {
-            "node": "Wait",
+            "node": "Montar Mensagem",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Obtem todos os contatos": {
+    "Montar Mensagem": {
+      "main": [
+        [
+          {
+            "node": "Enviar WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Log Sucesso",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Sucesso": {
+      "main": [
+        [
+          {
+            "node": "Wait 2s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Erro": {
+      "main": [
+        [
+          {
+            "node": "Wait 2s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 2s": {
       "main": [
         [
           {
             "node": "Loop Over Items",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Wait": {
-      "main": [
-        [
-          {
-            "node": "Loop Over Items",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Wait1": {
-      "main": [
-        [
-          {
-            "node": "Enviar texto",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Não Enviado": {
-      "main": [
-        [
-          {
-            "node": "Wait",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Evolution 2.1.0 - Texto": {
-      "main": [
-        [],
-        []
-      ]
-    },
-    "Webhook": {
-      "main": [
-        [
-          {
-            "node": "Respond to Webhook",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "When clicking ‘Test workflow’": {
-      "main": [
-        [
-          {
-            "node": "Execute a SQL query",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Execute a SQL query": {
-      "main": [
-        [
-          {
-            "node": "Obtem todos os contatos",
             "type": "main",
             "index": 0
           }
@@ -502,17 +340,7 @@
       ]
     }
   },
-  "active": false,
   "settings": {
-    "executionOrder": "v1",
-    "binaryMode": "separate",
-    "availableInMCP": false
-  },
-  "versionId": "31c8f2a3-39cf-4179-8497-0262e55031d5",
-  "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "68d7dfbb8678996bd8c8f55e145d1fc2c8e6ccd7e7e6d513a8d499bf72eeb45e"
-  },
-  "id": "iysemvanQjWbhzV2C4gzi",
-  "tags": []
+    "executionOrder": "v1"
+  }
 }
