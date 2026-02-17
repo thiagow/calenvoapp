@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -21,12 +21,12 @@ export async function GET(request: NextRequest) {
     // Get filter parameters
     const { searchParams } = new URL(request.url)
     const monthParam = searchParams.get('month') // Format: "YYYY-MM"
-    
+
     // Calculate date range
     let startDate: Date
     let endDate: Date
     let periodLabel: string
-    
+
     if (monthParam) {
       // Use selected month
       const [year, month] = monthParam.split('-').map(Number)
@@ -148,14 +148,14 @@ export async function GET(request: NextRequest) {
       monthlyStats.set(monthKey, (monthlyStats.get(monthKey) || 0) + item._count.id)
     })
 
-    // Gerar últimos 6 meses com dados
+    // Gerar últimos 6 meses com dados (ordem decrescente - mais recente primeiro)
     const evolutionData = []
-    for (let i = 5; i >= 0; i--) {
+    for (let i = 0; i <= 5; i++) {
       const date = new Date(startDate)
       date.setMonth(date.getMonth() - i)
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
       const count = monthlyStats.get(monthKey) || 0
-      
+
       evolutionData.push({
         month: date.toLocaleDateString('pt-BR', { month: 'long' }),
         appointments: count

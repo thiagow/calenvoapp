@@ -2,6 +2,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -13,7 +15,10 @@ import {
   XCircle,
   UserX,
   BarChart3,
-  X
+  X,
+  Trophy,
+  UserMinus,
+  DollarSign
 } from 'lucide-react'
 import { useSegmentConfig } from '@/contexts/segment-context'
 
@@ -121,6 +126,54 @@ export default function ReportsPage() {
           Relatórios
         </Badge>
       </div>
+
+      {/* Navegação por Abas */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-wrap gap-2">
+            <Link href="/dashboard/reports">
+              <Button
+                variant={usePathname() === '/dashboard/reports' ? 'default' : 'outline'}
+                size="sm"
+                className="gap-2"
+              >
+                <BarChart3 className="h-4 w-4" />
+                Visão Geral
+              </Button>
+            </Link>
+            <Link href="/dashboard/reports/top-clients">
+              <Button
+                variant={usePathname() === '/dashboard/reports/top-clients' ? 'default' : 'outline'}
+                size="sm"
+                className="gap-2"
+              >
+                <Trophy className="h-4 w-4" />
+                Top Clientes
+              </Button>
+            </Link>
+            <Link href="/dashboard/reports/inactive-clients">
+              <Button
+                variant={usePathname() === '/dashboard/reports/inactive-clients' ? 'default' : 'outline'}
+                size="sm"
+                className="gap-2"
+              >
+                <UserMinus className="h-4 w-4" />
+                Clientes Inativos
+              </Button>
+            </Link>
+            <Link href="/dashboard/reports/ltv">
+              <Button
+                variant={usePathname() === '/dashboard/reports/ltv' ? 'default' : 'outline'}
+                size="sm"
+                className="gap-2"
+              >
+                <DollarSign className="h-4 w-4" />
+                LTV
+              </Button>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Filter Section */}
       <Card>
@@ -268,7 +321,10 @@ export default function ReportsPage() {
                 ) : (
                   <div className="space-y-4">
                     {evolutionData.map((item, index) => {
-                      const previousCount = index > 0 ? evolutionData[index - 1].appointments : item.appointments
+                      // Na ordem decrescente, o mês cronologicamente anterior está no próximo índice
+                      const hasPreviousMonthInList = index < evolutionData.length - 1
+                      const previousMonthData = hasPreviousMonthInList ? evolutionData[index + 1] : null
+                      const previousCount = previousMonthData ? previousMonthData.appointments : item.appointments
                       const growth = previousCount > 0 ? Math.round(((item.appointments - previousCount) / previousCount) * 100) : 0
 
                       return (
@@ -278,7 +334,7 @@ export default function ReportsPage() {
                             <p className="text-sm text-gray-600">{item.appointments} {item.appointments === 1 ? t.appointment.toLowerCase() : t.appointments.toLowerCase()}</p>
                           </div>
                           <div className="text-right">
-                            {index > 0 && (
+                            {hasPreviousMonthInList && (
                               <p className={`text-xs ${growth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                 {growth >= 0 ? '+' : ''}{growth}%
                               </p>
