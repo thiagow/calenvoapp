@@ -1,6 +1,10 @@
+-- ============================================================
 -- SQL para o nó "Execute a SQL query" do n8n
--- Objetivo: Buscar agendamentos que necessitam de lembrete de WhatsApp
--- Frequência recomendada: RODAR A CADA 1 HORA (ou 30 min)
+-- Workflow: disparo-mensagens-calenvo
+-- Objetivo: Buscar agendamentos que necessitam de lembrete WhatsApp
+-- Frequência: 1x por dia (sugestão: 08:00 horário de Brasília)
+-- Multi-tenant: Busca de TODOS os donos de negócio (SaaS)
+-- ============================================================
 
 SELECT 
   -- Dados do agendamento
@@ -21,12 +25,12 @@ SELECT
   -- Dados do profissional responsável
   p.name                  AS professional_name,
 
-  -- Dados do dono da conta (empresa)
+  -- Dados do dono da conta (empresa / tenant)
   u.id                    AS user_id,
   u.name                  AS user_name,
   u."businessName"        AS business_name,
 
-  -- Configuração WhatsApp (para envio da mensagem)
+  -- Configuração WhatsApp (para envio)
   wc."instanceName"       AS instance_name,
   wc."reminderHours"      AS reminder_hours,
   wc."reminderMessage"    AS reminder_message
@@ -43,7 +47,7 @@ WHERE
   wc.enabled = true
   AND wc."isConnected" = true
 
-  -- 2. Lembrete (Reminder) ativado
+  -- 2. Lembrete (Reminder) ativado pelo dono do negócio
   AND wc."notifyReminder" = true
 
   -- 3. Apenas agendamentos válidos (não cancelados/concluídos)
@@ -53,15 +57,13 @@ WHERE
   AND c.phone IS NOT NULL
   AND c.phone <> ''
 
-  -- 5. Janela de lembrete: agendamentos que ocorrem nas próximas X horas
-  --    Usa reminderHours de cada usuário para calcular a janela
-  --    Janela de 30min antes/depois para tolerância do CRON
-  AND a.date BETWEEN 
-    (NOW() + (wc."reminderHours" * INTERVAL '1 hour') - INTERVAL '30 minutes')
-    AND
-    (NOW() + (wc."reminderHours" * INTERVAL '1 hour') + INTERVAL '30 minutes')
+  -- 5. Janela de lembrete para execução DIÁRIA:
+  --    Busca agendamentos entre AGORA e as próximas X horas (reminderHours)
+  --    Ex: Se roda às 08:00 com reminderHours=24, busca até 08:00 do dia seguinte
+  AND a.date > NOW()
+  AND a.date <= NOW() + (wc."reminderHours" * INTERVAL '1 hour')
 
-  -- 6. Anti-duplicata: não envia se já existe notificação de lembrete registrada no banco
+  -- 6. Anti-duplicata: não envia se já existe notificação de lembrete
   AND NOT EXISTS (
     SELECT 1 
     FROM "Notification" n 
