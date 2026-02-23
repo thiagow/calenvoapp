@@ -1,6 +1,6 @@
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
@@ -441,6 +441,10 @@ model WhatsAppConfig {
   // Configuração geral
   /// Whether automated notifications are globally enabled for this user
   enabled Boolean @default(false)
+
+  // Agente de IA
+  /// Whether AI agent is enabled to receive and respond to messages
+  aiAgentEnabled Boolean @default(false)
 
   // Confirmação de Agendamento (logo após criação)
   notifyOnCreate     Boolean @default(true)
