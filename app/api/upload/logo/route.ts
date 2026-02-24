@@ -1,3 +1,4 @@
+export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
@@ -8,14 +9,14 @@ import { prisma } from '@/lib/db'
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
     }
 
     // Buscar usuário (MASTER user who owns the logo)
     const user = await prisma.user.findFirst({
-      where: { 
+      where: {
         email: session.user.email,
         role: 'MASTER'
       }
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
     // Extrair arquivo do FormData
     const formData = await request.formData()
     const file = formData.get('file') as File
-    
+
     if (!file) {
       return NextResponse.json({ error: 'Nenhum arquivo enviado' }, { status: 400 })
     }
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     // Converter para Buffer
     const buffer = Buffer.from(await file.arrayBuffer())
-    
+
     // Upload para S3
     const cloud_storage_path = await uploadFile(buffer, file.name)
 
@@ -62,15 +63,23 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       cloud_storage_path,
-      message: 'Logo enviado com sucesso!' 
+      message: 'Logo enviado com sucesso!'
     })
-  } catch (error) {
-    console.error('Erro no upload:', error)
+  } catch (error: any) {
+    console.error('Erro no upload logo completa:', Object.getOwnPropertyNames(error).reduce((obj: Record<string, any>, key) => {
+      obj[key] = error[key];
+      return obj;
+    }, {}));
+
     return NextResponse.json(
-      { error: 'Erro ao fazer upload do logo' },
+      {
+        error: 'Erro ao fazer upload do logo',
+        details: error?.message || 'Erro desconhecido',
+        cause: error?.cause?.message
+      },
       { status: 500 }
     )
   }
