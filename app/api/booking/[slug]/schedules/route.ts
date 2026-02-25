@@ -1,7 +1,7 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
 export async function GET(
   request: NextRequest,
   { params }: { params: { slug: string } }
@@ -23,7 +23,7 @@ export async function GET(
           publicUrl: slug
         }
       })
-      
+
       if (businessConfig) {
         user = await prisma.user.findUnique({
           where: { id: businessConfig.userId }

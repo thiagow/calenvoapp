@@ -1,0 +1,21 @@
+{
+  "id": "cmkkmmkr10000krok4fgakfbt",
+  "name": "Admin",
+  "email": "thiagow.net@gmail.com",
+  "password": "$2a$10$59sxsvb9RKVAjYrCp/cn9O82fCrpy7rG0spirhj/OVbqD92UnJfbq",
+  "role": "MASTER",
+  "whatsapp": null,
+  "isActive": true,
+  "businessName": "Clinica Estic Beauty",
+  "phone": null,
+  "segmentType": "BEAUTY_SALON",
+  "planType": "STANDARD",
+  "stripeCustomerId": null,
+  "subscriptionId": null,
+  "subscriptionStatus": null,
+  "emailVerified": null,
+  "image": null,
+  "createdAt": "2026-01-19T03:49:45.224Z",
+  "updatedAt": "2026-02-24T02:47:10.879Z",
+  "masterId": null
+}

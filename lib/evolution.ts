@@ -44,7 +44,7 @@ export class EvolutionApiService {
   private apiKey: string;
 
   constructor() {
-    this.baseUrl = process.env.EVOLUTION_API_URL || '';
+    this.baseUrl = (process.env.EVOLUTION_API_URL || '').replace(/\/+$/, '');
     this.apiKey = process.env.EVOLUTION_API_KEY || '';
 
     if (!this.baseUrl || !this.apiKey) {
@@ -146,19 +146,47 @@ export class EvolutionApiService {
 
   /**
    * Set webhook URL for instance
+   * @param instanceName - Name of the Evolution instance
+   * @param webhookUrl - URL to receive webhook events
+   * @param enabled - Whether to enable or disable the webhook (default: true)
    */
-  async setWebhook(instanceName: string, webhookUrl: string): Promise<boolean> {
-    try {
-      await this.client.post(`/webhook/set/${instanceName}`, {
-        url: webhookUrl,
-        webhook_by_events: true,
-        events: ['connection.update', 'messages.upsert'],
-      });
-      return true;
-    } catch (error) {
-      this.handleError(error, 'setWebhook');
-      return false;
+  async setWebhook(instanceName: string, webhookUrl: string, enabled: boolean = true): Promise<boolean> {
+    const payload = {
+      enabled,
+      url: enabled ? webhookUrl : '',
+      webhook_by_events: false,
+      events: [
+        'CONNECTION_UPDATE',
+        'MESSAGES_UPSERT',
+        'MESSAGES_UPDATE',
+      ],
+    };
+
+    console.log(`[EvolutionAPI:setWebhook] Instance: ${instanceName}, Enabled: ${enabled}, URL: ${webhookUrl}`);
+    console.log(`[EvolutionAPI:setWebhook] Base URL: ${this.baseUrl}`);
+
+    // Try Evolution API v2 endpoint first
+    const endpoints = [
+      `/webhook/set/${instanceName}`,
+      `/webhook/instance/${instanceName}`,
+    ];
+
+    for (const endpoint of endpoints) {
+      try {
+        console.log(`[EvolutionAPI:setWebhook] Trying endpoint: ${endpoint}`);
+        const response = await this.client.post(endpoint, payload);
+        console.log(`[EvolutionAPI:setWebhook] Success on ${endpoint}:`, response.data);
+        return true;
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          console.warn(`[EvolutionAPI:setWebhook] Failed on ${endpoint}: ${error.response?.status} - ${JSON.stringify(error.response?.data)}`);
+        }
+        // Continue to next endpoint
+      }
     }
+
+    console.error(`[EvolutionAPI:setWebhook] All endpoints failed for instance: ${instanceName}`);
+    return false;
   }
 
   /**

@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { MessageCircle } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface NotificationTab {
@@ -13,9 +13,9 @@ interface NotificationTab {
 
 const NOTIFICATION_TABS: NotificationTab[] = [
   {
-    label: 'WhatsApp',
-    href: '/dashboard/notifications/whatsapp',
-    icon: <MessageCircle className="h-4 w-4" />,
+    label: 'E-mail', // Changed label to E-mail
+    href: '/dashboard/notifications/email', // Changed href to email
+    icon: <Mail className="h-4 w-4" />, // Changed icon to Mail
   },
 ];
 

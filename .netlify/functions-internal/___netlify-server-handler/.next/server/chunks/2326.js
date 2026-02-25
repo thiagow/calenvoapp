@@ -1,0 +1,48 @@
+"use strict";exports.id=2326,exports.ids=[2326,9487,191],exports.modules={10191:(e,a,t)=>{t.d(a,{authOptions:()=>c});var s=t(53797),r=t(13539),n=t(42023),o=t.n(n),i=t(9487);let c={adapter:(0,r.N)(i.prisma),cookies:{sessionToken:{name:"next-auth.session-token",options:{httpOnly:!0,sameSite:"lax",path:"/",secure:!1}}},providers:[(0,s.Z)({name:"credentials",credentials:{email:{label:"Email",type:"email"},password:{label:"Password",type:"password"}},async authorize(e){if(console.log("\uD83D\uDD10 Auth: authorize called"),console.log("\uD83D\uDCE7 Credentials email:",e?.email),!e?.email||!e?.password)return console.log("❌ Auth: Missing credentials"),null;console.log("\uD83D\uDD0D Auth: Looking for user in database...");let a=await i.prisma.user.findFirst({where:{email:e.email,OR:[{role:"SAAS_ADMIN"},{AND:[{role:{in:["MASTER","PROFESSIONAL"]}},{isActive:!0}]}]}});return a?(console.log("✅ Auth: User found:",a.email,"| Role:",a.role),console.log("\uD83D\uDD12 Auth: Comparing passwords..."),await o().compare(e.password,a.password))?(console.log("✅ Auth: Password valid, returning user"),{id:a.id,email:a.email,name:a.name,role:a.role,businessName:a.businessName,segmentType:a.segmentType,planType:a.planType,masterId:a.masterId}):(console.log("❌ Auth: Invalid password"),null):(console.log("❌ Auth: User not found"),null)}})],session:{strategy:"jwt",maxAge:2592e3},jwt:{async encode(e){let{encode:a}=await t.e(330).then(t.t.bind(t,20330,23));return a(e)},async decode(e){try{let{decode:a}=await t.e(330).then(t.t.bind(t,20330,23));return await a(e)}catch(e){return console.error("\uD83D\uDEA8 JWT decode error - clearing corrupted token:",e),null}}},callbacks:{async jwt({token:e,user:a,trigger:t}){try{return a&&(console.log("\uD83D\uDCBE JWT callback: Storing user data in token"),e.id=a.id,e.role=a.role,e.planType=a.planType,e.businessName=a.businessName,e.segmentType=a.segmentType,e.masterId=a.masterId),e}catch(a){return console.error("❌ JWT callback error:",a),{sub:e.sub}}},async session({session:e,token:a}){try{return a&&e?.user&&(console.log("\uD83D\uDD04 Session callback: Creating session from token"),e.user.id=a.id||a.sub,e.user.role=a.role,e.user.planType=a.planType,e.user.businessName=a.businessName,e.user.segmentType=a.segmentType,e.user.masterId=a.masterId),e}catch(a){return console.error("❌ Session callback error:",a),e}}},pages:{signIn:"/login",error:"/clear-session"},events:{async signOut(){console.log("\uD83D\uDC4B User signed out")},async session({session:e}){console.log("\uD83D\uDCCA Session accessed:",e?.user?.email)}}}},9487:(e,a,t)=>{t.d(a,{prisma:()=>r});var s=t(53524);let r=globalThis.prisma??new s.PrismaClient},87448:(e,a,t)=>{t.d(a,{L:()=>o});var s=t(9487),r=t(89997),n=t(47742);class o{static async createInstance(e,a,t){try{let r=`${a}_${Date.now()}`,n=await fetch(`${t}/instance/create`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({instanceName:r,qrcode:!0,integration:"WHATSAPP-BAILEYS"})});if(!n.ok)throw Error(`Erro ao criar inst\xe2ncia: ${n.statusText}`);let o=await n.json(),i=await s.prisma.whatsAppConfig.upsert({where:{userId:e},create:{userId:e,instanceName:r,apiUrl:t,apiKey:o.apikey||"",isConnected:!1},update:{instanceName:r,apiUrl:t,apiKey:o.apikey||"",isConnected:!1}});return{success:!0,instanceName:r,apiKey:o.apikey,config:i}}catch(e){throw console.error("Erro ao criar inst\xe2ncia:",e),e}}static async getQRCode(e){try{let a=await s.prisma.whatsAppConfig.findUnique({where:{userId:e}});if(!a)throw Error("Configura\xe7\xe3o n\xe3o encontrada");let t=await fetch(`${a.apiUrl}/instance/connect/${a.instanceName}`,{method:"GET",headers:{"Content-Type":"application/json",apikey:a.apiKey||""}});if(!t.ok)throw Error(`Erro ao obter QR Code: ${t.statusText}`);let r=await t.json();return await s.prisma.whatsAppConfig.update({where:{userId:e},data:{qrCode:r.base64||r.code||r.qrcode?.base64}}),{success:!0,qrCode:r.base64||r.code||r.qrcode?.base64}}catch(e){throw console.error("Erro ao obter QR Code:",e),e}}static async checkConnectionStatus(e){try{let a=await s.prisma.whatsAppConfig.findUnique({where:{userId:e}});if(!a)throw Error("Configura\xe7\xe3o n\xe3o encontrada");let t=await fetch(`${a.apiUrl}/instance/connectionState/${a.instanceName}`,{method:"GET",headers:{"Content-Type":"application/json",apikey:a.apiKey||""}});if(!t.ok)throw Error(`Erro ao verificar status: ${t.statusText}`);let r=await t.json(),n="open"===r.state||r.instance?.state==="open";return await s.prisma.whatsAppConfig.update({where:{userId:e},data:{isConnected:n,phoneNumber:r.instance?.profilePictureUrl||a.phoneNumber}}),{success:!0,isConnected:n,state:r.state||r.instance?.state}}catch(e){throw console.error("Erro ao verificar status:",e),e}}static async sendMessage(e,a){try{let t=await s.prisma.whatsAppConfig.findUnique({where:{userId:e}});if(!t||!t.isConnected||!t.enabled)return console.log("WhatsApp n\xe3o configurado ou desabilitado para usu\xe1rio:",e),{success:!1,message:"WhatsApp n\xe3o configurado"};let r=a.number.replace(/\D/g,""),n=r.startsWith("55")?r:`55${r}`,o=await fetch(`${t.apiUrl}/message/sendText/${t.instanceName}`,{method:"POST",headers:{"Content-Type":"application/json",apikey:t.apiKey||""},body:JSON.stringify({number:`${n}@s.whatsapp.net`,text:a.message})});if(!o.ok)throw Error(`Erro ao enviar mensagem: ${o.statusText}`);let i=await o.json();return{success:!0,messageId:i.key?.id,data:i}}catch(e){return console.error("Erro ao enviar mensagem:",e),{success:!1,error:e instanceof Error?e.message:"Erro desconhecido"}}}static async sendAppointmentCreatedMessage(e,a,t,s,o,i){let c=(0,r.WU)(o,"dd/MM/yyyy '\xe0s' HH:mm",{locale:n.F}),l=`
+Ol\xe1 ${a}! 👋
+
+Seu agendamento foi criado com sucesso! ✅
+
+📋 *Detalhes do Agendamento:*
+• Servi\xe7o: ${s}
+• Data e Hora: ${c}
+• Local: ${i||"nossa empresa"}
+
+Aguardamos voc\xea! 😊
+
+_Para cancelar ou reagendar, entre em contato conosco._
+`.trim();return await this.sendMessage(e,{number:t,message:l})}static async sendAppointmentConfirmedMessage(e,a,t,s,o,i){let c=(0,r.WU)(o,"dd/MM/yyyy '\xe0s' HH:mm",{locale:n.F}),l=`
+Ol\xe1 ${a}! 👋
+
+Seu agendamento foi *confirmado*! ✅
+
+📋 *Detalhes do Agendamento:*
+• Servi\xe7o: ${s}
+• Data e Hora: ${c}
+• Local: ${i||"nossa empresa"}
+
+Aguardamos voc\xea! 😊
+`.trim();return await this.sendMessage(e,{number:t,message:l})}static async sendAppointmentCancelledMessage(e,a,t,s,o){let i=(0,r.WU)(o,"dd/MM/yyyy '\xe0s' HH:mm",{locale:n.F}),c=`
+Ol\xe1 ${a}! 👋
+
+Seu agendamento foi *cancelado*. ❌
+
+📋 *Agendamento cancelado:*
+• Servi\xe7o: ${s}
+• Data e Hora: ${i}
+
+Se desejar reagendar, entre em contato conosco! 😊
+`.trim();return await this.sendMessage(e,{number:t,message:c})}static async sendAppointmentReminderMessage(e,a,t,s,o,i){let c=(0,r.WU)(o,"dd/MM/yyyy '\xe0s' HH:mm",{locale:n.F}),l=`
+Ol\xe1 ${a}! 👋
+
+🔔 *Lembrete de Agendamento*
+
+📋 *Detalhes:*
+• Servi\xe7o: ${s}
+• Data e Hora: ${c}
+• Local: ${i||"nossa empresa"}
+
+N\xe3o esque\xe7a! Aguardamos voc\xea! 😊
+
+_Para cancelar ou reagendar, entre em contato conosco._
+`.trim();return await this.sendMessage(e,{number:t,message:l})}static async disconnectInstance(e){try{let a=await s.prisma.whatsAppConfig.findUnique({where:{userId:e}});if(!a)throw Error("Configura\xe7\xe3o n\xe3o encontrada");let t=await fetch(`${a.apiUrl}/instance/logout/${a.instanceName}`,{method:"DELETE",headers:{"Content-Type":"application/json",apikey:a.apiKey||""}});if(!t.ok)throw Error(`Erro ao desconectar: ${t.statusText}`);return await s.prisma.whatsAppConfig.update({where:{userId:e},data:{isConnected:!1,qrCode:null}}),{success:!0}}catch(e){throw console.error("Erro ao desconectar inst\xe2ncia:",e),e}}static async deleteInstance(e){try{let a=await s.prisma.whatsAppConfig.findUnique({where:{userId:e}});if(!a)throw Error("Configura\xe7\xe3o n\xe3o encontrada");let t=await fetch(`${a.apiUrl}/instance/delete/${a.instanceName}`,{method:"DELETE",headers:{"Content-Type":"application/json",apikey:a.apiKey||""}});if(!t.ok)throw Error(`Erro ao deletar inst\xe2ncia: ${t.statusText}`);return await s.prisma.whatsAppConfig.delete({where:{userId:e}}),{success:!0}}catch(e){throw console.error("Erro ao deletar inst\xe2ncia:",e),e}}}},13539:(e,a)=>{a.N=void 0,a.N=function(e){return{createUser:a=>e.user.create({data:a}),getUser:a=>e.user.findUnique({where:{id:a}}),getUserByEmail:a=>e.user.findUnique({where:{email:a}}),async getUserByAccount(a){var t;let s=await e.account.findUnique({where:{provider_providerAccountId:a},select:{user:!0}});return null!==(t=null==s?void 0:s.user)&&void 0!==t?t:null},updateUser:({id:a,...t})=>e.user.update({where:{id:a},data:t}),deleteUser:a=>e.user.delete({where:{id:a}}),linkAccount:a=>e.account.create({data:a}),unlinkAccount:a=>e.account.delete({where:{provider_providerAccountId:a}}),async getSessionAndUser(a){let t=await e.session.findUnique({where:{sessionToken:a},include:{user:!0}});if(!t)return null;let{user:s,...r}=t;return{user:s,session:r}},createSession:a=>e.session.create({data:a}),updateSession:a=>e.session.update({where:{sessionToken:a.sessionToken},data:a}),deleteSession:a=>e.session.delete({where:{sessionToken:a}}),async createVerificationToken(a){let t=await e.verificationToken.create({data:a});return t.id&&delete t.id,t},async useVerificationToken(a){try{let t=await e.verificationToken.delete({where:{identifier_token:a}});return t.id&&delete t.id,t}catch(e){if("P2025"===e.code)return null;throw e}}}}},53797:(e,a)=>{a.Z=function(e){return{id:"credentials",name:"Credentials",type:"credentials",credentials:{},authorize:()=>null,options:e}}}};

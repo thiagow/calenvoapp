@@ -1,0 +1,130 @@
+﻿ ┬╗   Warning: --build is now the default and can safely be omitted.
+ÔÇï
+Netlify Build                                                 
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+ÔÇï
+ÔØ» Version
+  @netlify/build 33.4.3
+ÔÇï
+ÔØ» Flags
+  accountId: 67782f97b97b3822a53a39e1
+ÔÇï
+ÔØ» Current directory
+  C:\Projetos\Calenvo\app
+ÔÇï
+ÔØ» Config file
+  C:\Projetos\Calenvo\app\netlify.toml
+ÔÇï
+ÔØ» Context
+  production
+ÔÇï
+ÔØ» Using Next.js Runtime - v5.15.8
+ÔÇï
+build.command from netlify.toml                               
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+ÔÇï
+$ npm ci && npx prisma generate && npm run build
+node.exe : npm error 
+code EPERM
+No C:\Program Files\nod
+ejs\npx.ps1:29 
+caractere:3
++   & $NODE_EXE 
+$NPX_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (npm error cod   
+ e EPERM:String) []    
+, RemoteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+npm error syscall 
+unlink
+npm error path C:\Proje
+tos\Calenvo\app\node_mo
+dules\@next\swc-win32-x
+64-msvc\next-swc.win32-
+x64-msvc.node
+npm error errno -4048
+npm error [Error: 
+EPERM: operation not 
+permitted, unlink 'C:\P
+rojetos\Calenvo\app\nod
+e_modules\@next\swc-win
+32-x64-msvc\next-swc.wi
+n32-x64-msvc.node'] {
+npm error   errno: 
+-4048,
+npm error   code: 
+'EPERM',
+npm error   syscall: 
+'unlink',
+npm error   path: 'C:\\
+Projetos\\Calenvo\\app\
+\node_modules\\@next\\s
+wc-win32-x64-msvc\\next
+-swc.win32-x64-msvc.nod
+e'
+npm error }
+npm error
+npm error The 
+operation was rejected 
+by your operating 
+system.
+npm error It's 
+possible that the file 
+was already in use (by 
+a text editor or 
+antivirus),
+npm error or that you 
+lack permissions to 
+access it.
+npm error
+npm error If you 
+believe this might be 
+a permissions issue, 
+please double-check the
+npm error permissions 
+of the file and its 
+containing 
+directories, or try 
+running
+npm error the command 
+again as 
+root/Administrator.
+npm error A complete 
+log of this run can be 
+found in: C:\Users\thia
+g\AppData\Local\npm-cac
+he\_logs\2026-02-24T04_
+15_41_566Z-debug-0.log
+ÔÇï
+"build.command" failed                                        
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+ÔÇï
+  Error message
+  Command failed with exit code 4294963248: npm ci && npx prisma generate && npm run build
+ÔÇï
+  Error location
+  In build.command from netlify.toml:
+  npm ci && npx prisma generate && npm run build
+ÔÇï
+  Resolved config
+  build:
+    command: npm ci && npx prisma generate && npm run build
+    commandOrigin: config
+    environment:
+      - NODE_VERSION
+      - NPM_FLAGS
+      - NEXT_TELEMETRY_DISABLED
+      - PRISMA_SKIP_DOWNLOAD
+    publish: C:\Projetos\Calenvo\app\.next
+    publishOrigin: config
+  plugins:
+    - inputs: {}
+      origin: default
+      package: '@netlify/plugin-nextjs'

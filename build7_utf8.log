@@ -1,0 +1,925 @@
+﻿
+> build
+> next build
+
+  Ôû▓ Next.js 14.2.28
+  - Environments: .env
+
+   Creating an optimized production build ...
+ Ô£ô Compiled successfully
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+node.exe : Error: @prisma/client did 
+not initialize yet. Please run "prisma 
+generate" and try to import it again.
+No C:\Program Files\nodejs\npm.ps1:29 
+caractere:3
++   & $NODE_EXE $NPM_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpeci 
+   fied: (Error: @prisma/...mport it   
+  again.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCo 
+   mmandError
+ 
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 8892 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\4642.js:1:9389)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 92581 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\notifications
+\page.js:1:1213)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at r (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\notifications\pag
+e.js:1:3900)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 84394 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\appointments\
+page.js:1:10121)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 46797 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\appointments\
+page.js:1:1204)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at a (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\appointments\page
+.js:1:10798)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 8892 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\4642.js:1:9389)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 87973 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\agenda\page.j
+s:1:1213)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\agenda\page.js:42
+:17185)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 8892 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\4642.js:1:9389)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 45069 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\appointments\
+new\page.js:1:1211)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at s (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\appointments\new\
+page.js:1:24130)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 8892 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\4642.js:1:9389)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 46216 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\plans\page.js
+:1:1213)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at a (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\plans\page.js:1:1
+4312)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 8892 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\4642.js:1:9389)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 61736 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\patients\[id]
+\history\page.js:1:1213)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at s (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\patients\[id]\his
+tory\page.js:1:16518)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 8892 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\4642.js:1:9389)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 69061 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\professionals
+\[id]\page.js:1:1213)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at s (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\professionals\[id
+]\page.js:1:20067)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 8892 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\4642.js:1:9389)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 81224 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\professionals
+\new\page.js:1:1213)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at r (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\professionals\new
+\page.js:1:11113)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 8892 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\4642.js:1:9389)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 41537 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\professionals
+\page.js:1:1211)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at r (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\professionals\pag
+e.js:1:13503)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 8892 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\4642.js:1:9389)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 55226 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\profile\page.
+js:1:1213)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at a (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\profile\page.js:1
+:11086)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 8892 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\4642.js:1:9389)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 96392 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\reports\inact
+ive-clients\page.js:1:1211)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\reports\inactive-
+clients\page.js:1:14629)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 8892 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\4642.js:1:9389)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 59599 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\reports\ltv\p
+age.js:1:1213)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at s (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\reports\ltv\page.
+js:1:12230)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 8892 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\4642.js:1:9389)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 32678 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\reports\page.
+js:1:1213)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\reports\page.js:1
+:17520)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 8892 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\4642.js:1:9389)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 98118 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\schedules\[id
+]\page.js:1:1213)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at a (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\schedules\[id]\pa
+ge.js:1:12111)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 8892 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\4642.js:1:9389)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 89338 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\reports\top-c
+lients\page.js:1:1213)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\reports\top-clien
+ts\page.js:1:12904)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 8892 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\4642.js:1:9389)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 90305 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\schedules\new
+\page.js:1:1212)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at a (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\schedules\new\pag
+e.js:1:14458)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 8892 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\4642.js:1:9389)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 87099 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\services\[id]
+\page.js:1:1212)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\services\[id]\pag
+e.js:1:17271)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 8892 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\4642.js:1:9389)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 13772 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\services\new\
+page.js:1:1213)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\services\new\page
+.js:1:14830)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 8892 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\4642.js:1:9389)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 98947 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\schedules\pag
+e.js:1:1213)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at a (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\schedules\page.js
+:1:10362)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 8892 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\4642.js:1:9389)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 69699 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\segment-setti
+ngs\page.js:1:1213)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at a (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\segment-settings\
+page.js:1:17324)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 8892 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\4642.js:1:9389)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 548 (C:\Projetos\Calenvo\app\.ne
+xt\server\app\dashboard\patients\page.j
+s:1:1211)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at s (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\patients\page.js:
+1:24632)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 50195 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\page.js:1:127
+82)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 28145 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\page.js:1:120
+4)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\page.js:1:13222)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 47260 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\notifications
+\whatsapp\page.js:3:3620)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 93857 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\notifications
+\whatsapp\page.js:1:1204)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at r (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\notifications\wha
+tsapp\page.js:38:89686)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 8892 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\4642.js:1:9389)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 79595 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\services\page
+.js:1:1213)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at r (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\services\page.js:
+1:10553)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 8892 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\4642.js:1:9389)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 18877 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\specialties\p
+age.js:1:1213)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at s (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\specialties\page.
+js:1:16001)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 8892 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\4642.js:1:9389)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 98423 (C:\Projetos\Calenvo\app\.
+next\server\app\dashboard\settings\page
+.js:1:1212)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at s (C:\Projetos\Calenvo\app\.next
+\server\app\dashboard\settings\page.js:
+1:20319)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 60381 (C:\Projetos\Calenvo\app\.
+next\server\app\saas-admin\logs\page.js
+:1:8290)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 54650 (C:\Projetos\Calenvo\app\.
+next\server\app\saas-admin\logs\page.js
+:1:1213)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at a (C:\Projetos\Calenvo\app\.next
+\server\app\saas-admin\logs\page.js:1:9
+329)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 60381 (C:\Projetos\Calenvo\app\.
+next\server\app\saas-admin\page.js:1:12
+023)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 38821 (C:\Projetos\Calenvo\app\.
+next\server\app\saas-admin\page.js:1:12
+13)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\app\saas-admin\page.js:1:13054)
+TypeError: Cannot read properties of 
+undefined (reading 'BEAUTY_SALON')
+    at 95621 (C:\Projetos\Calenvo\app\.
+next\server\app\page.js:1:20041)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 27924 (C:\Projetos\Calenvo\app\.
+next\server\app\page.js:1:4375)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 92216 (C:\Projetos\Calenvo\app\.
+next\server\app\page.js:1:689)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at s (C:\Projetos\Calenvo\app\.next
+\server\app\page.js:1:23322)
+    at C:\Projetos\Calenvo\app\.next\se
+rver\app\page.js:1:23378
+    at t.X (C:\Projetos\Calenvo\app\.ne
+xt\server\webpack-runtime.js:1:1285)
+    at C:\Projetos\Calenvo\app\.next\se
+rver\app\page.js:1:23335
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 60381 (C:\Projetos\Calenvo\app\.
+next\server\app\saas-admin\payments\pag
+e.js:1:9036)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 72250 (C:\Projetos\Calenvo\app\.
+next\server\app\saas-admin\payments\pag
+e.js:1:1211)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at s (C:\Projetos\Calenvo\app\.next
+\server\app\saas-admin\payments\page.js
+:1:10077)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 60381 (C:\Projetos\Calenvo\app\.
+next\server\app\saas-admin\tenants\page
+.js:1:11825)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 13788 (C:\Projetos\Calenvo\app\.
+next\server\app\saas-admin\tenants\page
+.js:1:1213)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at a (C:\Projetos\Calenvo\app\.next
+\server\app\saas-admin\tenants\page.js:
+1:12867)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\chunks\3706.js:1:20934)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\chunks\3706.js:1:18456)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 60381 (C:\Projetos\Calenvo\app\.
+next\server\app\saas-admin\tenants\[id]
+\page.js:1:15983)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 84695 (C:\Projetos\Calenvo\app\.
+next\server\app\saas-admin\tenants\[id]
+\page.js:1:1213)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at a (C:\Projetos\Calenvo\app\.next
+\server\app\saas-admin\tenants\[id]\pag
+e.js:1:17033)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\app\api\appointments\validat
+e\route.js:1:5344)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\app\api\appointments\valida
+te\route.js:1:2866)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 52212 (C:\Projetos\Calenvo\app\.
+next\server\app\api\appointments\valida
+te\route.js:1:1243)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at s (C:\Projetos\Calenvo\app\.next
+\server\app\api\appointments\validate\r
+oute.js:1:5429)
+    at C:\Projetos\Calenvo\app\.next\se
+rver\app\api\appointments\validate\rout
+e.js:1:5477
+    at t.X (C:\Projetos\Calenvo\app\.ne
+xt\server\webpack-runtime.js:1:1285)
+Error: @prisma/client did not 
+initialize yet. Please run "prisma 
+generate" and try to import it again.
+    at new PrismaClient (C:\Projetos\Ca
+lenvo\app\node_modules\.prisma\client\d
+efault.js:43:11)
+    at 9487 (C:\Projetos\Calenvo\app\.n
+ext\server\app\api\auth\[...nextauth]\r
+oute.js:1:4359)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 10191 (C:\Projetos\Calenvo\app\.
+next\server\app\api\auth\[...nextauth]\
+route.js:1:1881)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at 24645 (C:\Projetos\Calenvo\app\.
+next\server\app\api\auth\[...nextauth]\
+route.js:1:1251)
+    at t (C:\Projetos\Calenvo\app\.next
+\server\webpack-runtime.js:1:143)
+    at s (C:\Projetos\Calenvo\app\.next
+\server\app\api\auth\[...nextauth]\rout
+e.js:1:4480)
+    at C:\Projetos\Calenvo\app\.next\se
+rver\app\api\auth\[...nextauth]\route.j
+s:1:4523
+    at t.X (C:\Projetos\Calenvo\app\.ne
+xt\server\webpack-runtime.js:1:1285)
+
+> Build error occurred
+Error: Failed to collect page data for 
+/dashboard/notifications
+    at C:\Projetos\Calenvo\app\node_mod
+ules\next\dist\build\utils.js:1269:15
+    at 
+process.processTicksAndRejections (node
+:internal/process/task_queues:105:5) {
+  type: 'Error'
+}

@@ -1,7 +1,7 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
 export async function GET(
   request: NextRequest,
   { params }: { params: { slug: string } }
@@ -69,21 +69,21 @@ export async function GET(
 
     // Determinar horários de trabalho
     let workingHours: { startTime: string; endTime: string }[]
-    
+
     if (schedule.useCustomDayConfig) {
       const dayConfig = schedule.dayConfigs.find(
         config => config.dayOfWeek === dayOfWeek && config.isActive
       )
-      
+
       if (!dayConfig) {
         return NextResponse.json({ slots: [] })
       }
-      
+
       workingHours = (dayConfig.timeSlots as any[]) || []
     } else {
-      workingHours = [{ 
-        startTime: schedule.startTime, 
-        endTime: schedule.endTime 
+      workingHours = [{
+        startTime: schedule.startTime,
+        endTime: schedule.endTime
       }]
     }
 
@@ -114,7 +114,7 @@ export async function GET(
           const hours = Math.floor(currentMinutes / 60)
           const minutes = currentMinutes % 60
           const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
-          
+
           slots.push({
             time: timeStr,
             available: true // TODO: Verificar agendamentos existentes

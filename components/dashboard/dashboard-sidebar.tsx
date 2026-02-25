@@ -11,7 +11,7 @@ import {
   Calendar,
   Users,
   Settings,
-  BarChart3,
+  BarChart3, // This icon is no longer used in the navigation array, but keeping it as the instruction didn't explicitly remove it from the import list.
   CreditCard,
   Menu,
   X,
@@ -19,7 +19,8 @@ import {
   Briefcase,
   CalendarCheck,
   UserCog,
-  Bell
+  Bell,
+  MessageSquare // Added MessageSquare icon
 } from 'lucide-react'
 import { useUserPermissions } from '@/hooks/use-user-permissions'
 
@@ -30,7 +31,8 @@ const navigation = [
   { name: 'Serviços', href: '/dashboard/services', icon: Briefcase, permission: 'canManageServices' },
   { name: 'Profissionais', href: '/dashboard/professionals', icon: UserCog, permission: 'canManageProfessionals' },
   { name: 'Clientes', href: '/dashboard/patients', icon: Users, permission: 'canViewAllClients' },
-  { name: 'Notificações', href: '/dashboard/notifications/whatsapp', icon: Bell, permission: 'canViewNotifications' },
+  { name: 'Canais de Atendimento', href: '/dashboard/canais-atendimento', icon: MessageSquare, permission: 'canViewNotifications' }, // Replaced old 'Notificações' (whatsapp)
+  { name: 'Notificações', href: '/dashboard/notifications/email', icon: Bell, permission: 'canViewNotifications' }, // Added new 'Notificações' (email)
   { name: 'Relatórios', href: '/dashboard/reports', icon: BarChart3, permission: 'canViewFullReports' },
   { name: 'Planos', href: '/dashboard/plans', icon: CreditCard, permission: 'canManagePlans' },
   { name: 'Configurações', href: '/dashboard/settings', icon: Settings, permission: 'canViewPublicUrl' },

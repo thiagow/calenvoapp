@@ -1,0 +1,1 @@
+"use strict";exports.id=9487,exports.ids=[9487],exports.modules={9487:(s,e,i)=>{i.d(e,{prisma:()=>t});var r=i(53524);let t=globalThis.prisma??new r.PrismaClient}};

@@ -353,6 +353,10 @@ model BusinessConfig {
   businessLogo String? // URL do logo
   publicUrl    String? @unique // URL pública para agendamento (slug único)
 
+  // Informações adicionais do negócio para o Agente IA e exibição
+  address     String?  @db.Text // Endereço físico completo
+  description String?  @db.Text // Regras, diferenciais ou descrição sobre a empresa
+
   // Campos específicos para salões
   multipleServices  Boolean @default(false) // Permitir múltiplos serviços por agendamento
   requiresDeposit   Boolean @default(false) // Exigir sinal/depósito

@@ -1,5 +1,7 @@
+```javascript
 import { redirect } from 'next/navigation'
 
 export default function NotificationsPage() {
-  redirect('/dashboard/notifications/whatsapp')
+  redirect('/dashboard/notifications/email')
 }
+```

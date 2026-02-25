@@ -42,7 +42,9 @@ export async function GET(request: NextRequest) {
       businessLogo: config.businessLogo,
       autoConfirm: config.autoConfirm,
       allowOnlineBooking: config.allowOnlineBooking,
-      publicUrl: config.publicUrl
+      publicUrl: config.publicUrl,
+      address: config.address,
+      description: config.description
     })
   } catch (error) {
     console.error('Error fetching business config:', error)
@@ -77,7 +79,9 @@ export async function POST(request: NextRequest) {
       endTime,
       defaultDuration,
       lunchStart,
-      lunchEnd
+      lunchEnd,
+      address,
+      description
     } = body
 
     // Validate working days
@@ -112,7 +116,9 @@ export async function POST(request: NextRequest) {
           endTime,
           defaultDuration: Number(defaultDuration),
           lunchStart,
-          lunchEnd
+          lunchEnd,
+          address,
+          description
         }
       })
     } else {
@@ -125,7 +131,9 @@ export async function POST(request: NextRequest) {
           endTime,
           defaultDuration: Number(defaultDuration),
           lunchStart,
-          lunchEnd
+          lunchEnd,
+          address,
+          description
         }
       })
     }
@@ -140,7 +148,9 @@ export async function POST(request: NextRequest) {
       businessLogo: config.businessLogo,
       autoConfirm: config.autoConfirm,
       allowOnlineBooking: config.allowOnlineBooking,
-      publicUrl: config.publicUrl
+      publicUrl: config.publicUrl,
+      address: config.address,
+      description: config.description
     })
   } catch (error) {
     console.error('Error saving business config:', error)

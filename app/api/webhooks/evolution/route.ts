@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
@@ -13,10 +14,15 @@ import { revalidatePath } from 'next/cache';
 export async function POST(request: NextRequest) {
   try {
     // Validate webhook secret
-    const webhookSecret = request.headers.get('x-webhook-secret');
+    // Validate webhook secret (support both header and query param)
+    const webhookSecretHeader = request.headers.get('x-webhook-secret');
+    const { searchParams } = new URL(request.url);
+    const webhookSecretQuery = searchParams.get('secret');
+
+    const receivedSecret = webhookSecretHeader || webhookSecretQuery;
     const expectedSecret = process.env.EVOLUTION_WEBHOOK_SECRET;
 
-    if (expectedSecret && webhookSecret !== expectedSecret) {
+    if (expectedSecret && receivedSecret !== expectedSecret) {
       console.warn('[Webhook:Evolution] Invalid webhook secret');
       return NextResponse.json(
         { error: 'Unauthorized' },
