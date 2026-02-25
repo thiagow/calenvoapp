@@ -1,7 +1,5 @@
-```javascript
 import { redirect } from 'next/navigation'
 
 export default function NotificationsPage() {
   redirect('/dashboard/notifications/email')
 }
-```
