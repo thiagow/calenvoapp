@@ -97,7 +97,9 @@ raw_slots AS (
 ),
 -- 5. Agendamentos Existentes (Bloqueios)
 occupied AS (
-    SELECT date as start_time, date + (duration * interval '1 minute') as end_time
+    SELECT 
+        (date AT TIME ZONE COALESCE((SELECT timezone FROM "BusinessConfig" WHERE "userId" = (select user_id from params)), 'America/Sao_Paulo')) as start_time,
+        (date AT TIME ZONE COALESCE((SELECT timezone FROM "BusinessConfig" WHERE "userId" = (select user_id from params)), 'America/Sao_Paulo')) + (duration * interval '1 minute') as end_time
     FROM "Appointment"
     WHERE "scheduleId" = (select schedule_id from params)
       AND status IN ('SCHEDULED', 'CONFIRMED')
@@ -210,7 +212,7 @@ new_appointment AS (
         (SELECT id FROM client_data), -- clientId recuperado
         $4, -- scheduleId
         $5, -- serviceId
-        $6::timestamp, -- date
+        ($6::timestamp AT TIME ZONE COALESCE((SELECT timezone FROM "BusinessConfig" WHERE "userId" = $1), 'America/Sao_Paulo')), -- date
         (SELECT duration FROM service_info),
         'SCHEDULED',
         'PRESENCIAL',

@@ -275,9 +275,11 @@ export function EditAppointmentDialog({
             <div className="space-y-2">
               <Label htmlFor="service">Serviço</Label>
               <Input
-                value={formData.serviceId
-                  ? (services.find(s => s.id === formData.serviceId)?.name || appointment.service?.name || 'Carregando...')
-                  : ''
+                value={
+                  (formData.serviceId && services.find(s => s.id === formData.serviceId)?.name) ||
+                  appointment.service?.name ||
+                  appointment.specialty ||
+                  (formData.serviceId ? 'Carregando...' : '')
                 }
                 readOnly
                 className="bg-gray-100"
@@ -287,9 +289,11 @@ export function EditAppointmentDialog({
             <div className="space-y-2">
               <Label htmlFor="professional">Profissional</Label>
               <Input
-                value={formData.professionalId
-                  ? (professionals.find(p => p.id === formData.professionalId)?.name || appointment.professionalRelation?.name || appointment.professional || 'Carregando...')
-                  : ''
+                value={
+                  (formData.professionalId && professionals.find(p => p.id === formData.professionalId)?.name) ||
+                  appointment.professionalRelation?.name ||
+                  appointment.professional ||
+                  (formData.professionalId ? 'Carregando...' : '')
                 }
                 readOnly
                 className="bg-gray-100"

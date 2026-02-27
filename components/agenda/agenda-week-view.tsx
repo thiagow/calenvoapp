@@ -59,9 +59,9 @@ export function AgendaWeekView({
     weekDays.push(day)
   }
 
-  // Horários (8h às 18h com intervalos de 1 hora)
+  // Horários (6h às 22h com intervalos de 1 hora)
   const timeSlots = []
-  for (let hour = 8; hour < 18; hour++) {
+  for (let hour = 6; hour < 22; hour++) {
     timeSlots.push(hour)
   }
 

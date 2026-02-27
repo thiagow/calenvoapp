@@ -53,7 +53,7 @@ export function AgendaDayView({
 }: AgendaDayViewProps) {
 
   const timeSlots = []
-  for (let hour = 8; hour < 18; hour++) {
+  for (let hour = 6; hour < 22; hour++) {
     for (let minute = 0; minute < 60; minute += 30) {
       timeSlots.push(
         new Date(date.getFullYear(), date.getMonth(), date.getDate(), hour, minute)

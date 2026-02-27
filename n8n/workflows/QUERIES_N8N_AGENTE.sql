@@ -80,7 +80,9 @@ raw_slots AS (
         EXTRACT(DOW FROM d.dt) = ANY(c."workingDays")
 ),
 occupied AS (
-    SELECT date as start_time, date + (duration * interval '1 minute') as end_time
+    SELECT 
+        (date AT TIME ZONE COALESCE((SELECT timezone FROM "BusinessConfig" WHERE "userId" = (select p_user_id from params)), 'America/Sao_Paulo')) as start_time,
+        (date AT TIME ZONE COALESCE((SELECT timezone FROM "BusinessConfig" WHERE "userId" = (select p_user_id from params)), 'America/Sao_Paulo')) + (duration * interval '1 minute') as end_time
     FROM "Appointment"
     WHERE "scheduleId" = (select p_schedule_id from params)
       AND status IN ('SCHEDULED', 'CONFIRMED')
@@ -180,7 +182,7 @@ new_appointment AS (
         (SELECT id FROM upsert_client),
         '{{ $fromAI("scheduleId") }}',
         '{{ $fromAI("serviceId") }}',
-        '{{ $fromAI("date") }}'::timestamp,
+        ('{{ $fromAI("date") }}'::timestamp AT TIME ZONE COALESCE((SELECT timezone FROM "BusinessConfig" WHERE "userId" = '{{ $json.userId }}'), 'America/Sao_Paulo')),
         (SELECT duration FROM service_info),
         'SCHEDULED',
         'PRESENCIAL',
