@@ -97,19 +97,6 @@ export default function InactiveClientsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Clientes Inativos</h1>
-                    <p className="text-gray-600 mt-1">
-                        Identifique clientes que não agendam há um tempo
-                    </p>
-                </div>
-                <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
-                    <AlertTriangle className="mr-1 h-3 w-3" />
-                    Recuperação
-                </Badge>
-            </div>
-
             {/* Filtros */}
             <Card>
                 <CardHeader>
@@ -319,10 +306,10 @@ export default function InactiveClientsPage() {
                                             <Badge
                                                 variant="outline"
                                                 className={`mt-1 ${client.daysSinceLastVisit >= 90
-                                                        ? 'bg-red-50 text-red-700 border-red-200'
-                                                        : client.daysSinceLastVisit >= 60
-                                                            ? 'bg-orange-50 text-orange-700 border-orange-200'
-                                                            : 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                                    ? 'bg-red-50 text-red-700 border-red-200'
+                                                    : client.daysSinceLastVisit >= 60
+                                                        ? 'bg-orange-50 text-orange-700 border-orange-200'
+                                                        : 'bg-yellow-50 text-yellow-700 border-yellow-200'
                                                     }`}
                                             >
                                                 {client.daysSinceLastVisit} dias

@@ -156,42 +156,49 @@ WHERE u.id = $1;
 
 ## 🛠️ Tool 4: Criar Agendamento
 
-**Nome:** `criar_agendamento`
-**Descrição:** Finaliza o agendamento. Cria o cliente se for novo e insere o horário na agenda.
-
-**Parâmetros (Input):**
-- `userId` (string): ID do tenant.
-- `clientName` (string): Nome do cliente.
-- `clientPhone` (string): Telefone do cliente (apenas números).
-- `scheduleId` (string): ID da agenda/profissional.
-- `serviceId` (string): ID do serviço.
-- `date` (string): Data e hora completa do início (ISO 8601 ex: 2024-02-20T14:00:00).
-
-**Query SQL:**
-> Esta query usa TÉCNICA CTE para fazer "Upsert" do cliente e Insert do agendamento em uma única execução.
-
+**Tool 4: criar_agendamento**
+- **Description:** Agenda um horário para o cliente em uma data/hora específica, registrando automaticamente o profissional vinculado à agenda.
+- **Parameters:**
+  - `clientName` (string): Nome do cliente
+  - `clientPhone` (string): Telefone do cliente (apenas números, com DDD)
+  - `scheduleId` (string): ID da agenda onde o serviço será realizado
+  - `serviceId` (string): ID do serviço a ser realizado
+  - `date` (string): Data e hora do agendamento (formato ISO 8601, ex: 2024-03-20T14:30:00Z)
+- **SQL Query:**
 ```sql
-WITH 
--- 1. Garante que o cliente existe
-client_data AS (
-    INSERT INTO "Client" (id, name, phone, "userId", "updatedAt", "createdAt")
+WITH upsert_client AS (
+    INSERT INTO "Client" (
+        id, 
+        name, 
+        phone, 
+        "userId", 
+        "updatedAt", 
+        "createdAt"
+    )
     VALUES (
         gen_random_uuid()::text, 
-        $2, -- clientName
-        $3, -- clientPhone
-        $1, -- userId
+        '{{ $fromAI("clientName") }}',
+        '{{ $fromAI("clientPhone") }}',
+        '{{ $json.userId }}',
         NOW(),
         NOW()
     )
     ON CONFLICT (phone, "userId") 
-    DO UPDATE SET name = EXCLUDED.name, "updatedAt" = NOW()
+    DO UPDATE SET 
+        name = EXCLUDED.name, 
+        "updatedAt" = NOW()
     RETURNING id, name
 ),
--- 2. Busca duração do serviço
 service_info AS (
-    SELECT duration FROM "Service" WHERE id = $5
+    SELECT duration FROM "Service" WHERE id = '{{ $fromAI("serviceId") }}'
 ),
--- 3. Insere o agendamento
+prof_info AS (
+    SELECT u.id, u.name 
+    FROM "ScheduleProfessional" sp
+    JOIN "User" u ON sp."userId" = u.id
+    WHERE sp."scheduleId" = '{{ $fromAI("scheduleId") }}'
+    LIMIT 1
+),
 new_appointment AS (
     INSERT INTO "Appointment" (
         id, 
@@ -199,6 +206,8 @@ new_appointment AS (
         "clientId", 
         "scheduleId", 
         "serviceId", 
+        "professionalId",
+        professional,
         date, 
         duration, 
         status, 
@@ -208,25 +217,27 @@ new_appointment AS (
     )
     SELECT 
         gen_random_uuid()::text,
-        $1, -- userId
-        (SELECT id FROM client_data), -- clientId recuperado
-        $4, -- scheduleId
-        $5, -- serviceId
-        ($6::timestamp AT TIME ZONE COALESCE((SELECT timezone FROM "BusinessConfig" WHERE "userId" = $1), 'America/Sao_Paulo')), -- date
+        '{{ $json.userId }}',
+        (SELECT id FROM upsert_client),
+        '{{ $fromAI("scheduleId") }}',
+        '{{ $fromAI("serviceId") }}',
+        (SELECT id FROM prof_info),
+        (SELECT name FROM prof_info),
+        ('{{ $fromAI("date") }}'::timestamp AT TIME ZONE COALESCE((SELECT timezone FROM "BusinessConfig" WHERE "userId" = '{{ $json.userId }}'), 'America/Sao_Paulo')),
         (SELECT duration FROM service_info),
         'SCHEDULED',
         'PRESENCIAL',
         NOW(),
         NOW()
-    RETURNING id, date, status
+    RETURNING id, date, status, "professionalId", professional
 )
--- 4. Retorno final
 SELECT 
     a.id as agendamento_id,
-    to_char(a.date, 'DD/MM/YYYY HH:MI') as data_formatada,
+    to_char(a.date, 'DD/MM/YYYY HH24:MI') as data_formatada,
     a.status,
-    c.name as cliente_nome
-FROM new_appointment a, client_data c;
+    c.name as cliente_nome,
+    a.professional as profissional_nome
+FROM new_appointment a, upsert_client c;
 ```
 
 *Mapeamento de parâmetros no n8n:* 

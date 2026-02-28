@@ -80,19 +80,6 @@ export default function TopClientsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Top Clientes</h1>
-                    <p className="text-gray-600 mt-1">
-                        Ranking de clientes com mais agendamentos
-                    </p>
-                </div>
-                <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                    <Trophy className="mr-1 h-3 w-3" />
-                    Ranking
-                </Badge>
-            </div>
-
             {/* Filtros */}
             <Card>
                 <CardHeader>
@@ -258,10 +245,10 @@ export default function TopClientsPage() {
                                             <div className="flex-1 bg-gray-200 rounded-full h-2">
                                                 <div
                                                     className={`h-2 rounded-full transition-all duration-300 ${client.completionRate >= 80
-                                                            ? 'bg-green-600'
-                                                            : client.completionRate >= 50
-                                                                ? 'bg-yellow-600'
-                                                                : 'bg-red-600'
+                                                        ? 'bg-green-600'
+                                                        : client.completionRate >= 50
+                                                            ? 'bg-yellow-600'
+                                                            : 'bg-red-600'
                                                         }`}
                                                     style={{ width: `${client.completionRate}%` }}
                                                 />

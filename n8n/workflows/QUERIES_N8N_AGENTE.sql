@@ -162,6 +162,13 @@ WITH upsert_client AS (
 service_info AS (
     SELECT duration FROM "Service" WHERE id = '{{ $fromAI("serviceId") }}'
 ),
+prof_info AS (
+    SELECT u.id, u.name 
+    FROM "ScheduleProfessional" sp
+    JOIN "User" u ON sp."userId" = u.id
+    WHERE sp."scheduleId" = '{{ $fromAI("scheduleId") }}'
+    LIMIT 1
+),
 new_appointment AS (
     INSERT INTO "Appointment" (
         id, 
@@ -169,6 +176,8 @@ new_appointment AS (
         "clientId", 
         "scheduleId", 
         "serviceId", 
+        "professionalId",
+        professional,
         date, 
         duration, 
         status, 
@@ -182,17 +191,20 @@ new_appointment AS (
         (SELECT id FROM upsert_client),
         '{{ $fromAI("scheduleId") }}',
         '{{ $fromAI("serviceId") }}',
+        (SELECT id FROM prof_info),
+        (SELECT name FROM prof_info),
         ('{{ $fromAI("date") }}'::timestamp AT TIME ZONE COALESCE((SELECT timezone FROM "BusinessConfig" WHERE "userId" = '{{ $json.userId }}'), 'America/Sao_Paulo')),
         (SELECT duration FROM service_info),
         'SCHEDULED',
         'PRESENCIAL',
         NOW(),
         NOW()
-    RETURNING id, date, status
+    RETURNING id, date, status, "professionalId", professional
 )
 SELECT 
     a.id as agendamento_id,
     to_char(a.date, 'DD/MM/YYYY HH24:MI') as data_formatada,
     a.status,
-    c.name as cliente_nome
+    c.name as cliente_nome,
+    a.professional as profissional_nome
 FROM new_appointment a, upsert_client c;

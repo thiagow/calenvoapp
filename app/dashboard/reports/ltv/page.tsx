@@ -84,19 +84,6 @@ export default function LTVPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">LTV — Valor do Cliente</h1>
-                    <p className="text-gray-600 mt-1">
-                        Lifetime Value e métricas de valor dos seus clientes
-                    </p>
-                </div>
-                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                    <DollarSign className="mr-1 h-3 w-3" />
-                    Receita
-                </Badge>
-            </div>
-
             {loading ? (
                 <div className="flex items-center justify-center py-12">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
@@ -206,12 +193,12 @@ export default function LTVPage() {
                                                 <Badge
                                                     variant="outline"
                                                     className={`text-lg font-bold ${index === 0
-                                                            ? 'bg-yellow-50 text-yellow-700 border-yellow-300'
-                                                            : index === 1
-                                                                ? 'bg-gray-100 text-gray-700 border-gray-300'
-                                                                : index === 2
-                                                                    ? 'bg-orange-50 text-orange-700 border-orange-300'
-                                                                    : 'bg-blue-50 text-blue-700 border-blue-200'
+                                                        ? 'bg-yellow-50 text-yellow-700 border-yellow-300'
+                                                        : index === 1
+                                                            ? 'bg-gray-100 text-gray-700 border-gray-300'
+                                                            : index === 2
+                                                                ? 'bg-orange-50 text-orange-700 border-orange-300'
+                                                                : 'bg-blue-50 text-blue-700 border-blue-200'
                                                         }`}
                                                 >
                                                     {index + 1}º

@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
             }
         })
 
-        // Agrupar por cliente e contar por status
+        // Agrupar por cliente e contar por status (agrupando pelo nome para evitar duplicação de cadastros do mesmo cliente)
         const clientStats = new Map<string, {
             clientId: string
             clientName: string
@@ -80,9 +80,11 @@ export async function GET(request: NextRequest) {
         }>()
 
         appointments.forEach(apt => {
-            const existing = clientStats.get(apt.clientId) || {
-                clientId: apt.clientId,
-                clientName: apt.client.name,
+            const clientKey = apt.client.name.toLowerCase().trim()
+
+            const existing = clientStats.get(clientKey) || {
+                clientId: apt.clientId, // Mantém o ID do primeiro registro encontrado do cliente
+                clientName: apt.client.name, // Nome original do primeiro registro
                 clientPhone: apt.client.phone,
                 clientEmail: apt.client.email,
                 total: 0,
@@ -101,7 +103,7 @@ export async function GET(request: NextRequest) {
                 existing.noShow++
             }
 
-            clientStats.set(apt.clientId, existing)
+            clientStats.set(clientKey, existing)
         })
 
         // Converter para array e calcular taxa de presença
