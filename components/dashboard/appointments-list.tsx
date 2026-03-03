@@ -32,6 +32,7 @@ import toast from 'react-hot-toast'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { useDialog } from '@/components/providers/dialog-provider'
+import { PackageDeductionModal } from './package-deduction-modal'
 
 // Status mappings for backwards compatibility with the old interface
 const statusColors = {
@@ -57,6 +58,12 @@ export function AppointmentsList() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [dateFilter, setDateFilter] = useState('')
   const [updatingId, setUpdatingId] = useState<string | null>(null)
+
+  // Package Deduction states
+  const [modalOpen, setModalOpen] = useState(false)
+  const [selectedAptId, setSelectedAptId] = useState<string | null>(null)
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
+
   const { confirm } = useDialog()
 
   // Get appointments from database
@@ -103,13 +110,21 @@ export function AppointmentsList() {
     }
   }
 
-  const handleUpdateStatus = async (id: string, newStatus: string) => {
+  const handleUpdateStatus = async (id: string, newStatus: string, clientPackageItemId?: string | null) => {
     try {
       setUpdatingId(id)
-      await updateAppointment(id, { status: newStatus })
+      const payload: any = { status: newStatus }
+      if (clientPackageItemId) {
+        payload.clientPackageItemId = clientPackageItemId
+      } else if (clientPackageItemId === null && newStatus === 'COMPLETED') {
+        // Send explicit null to not deduct
+        payload.clientPackageItemId = null
+      }
+
+      await updateAppointment(id, payload)
       toast.success(
         newStatus === 'COMPLETED'
-          ? 'Presença confirmada!'
+          ? 'Presença confirmada' + (clientPackageItemId ? ' e sessão debitada!' : '!')
           : 'Falta registrada!'
       )
     } catch (error) {
@@ -119,8 +134,27 @@ export function AppointmentsList() {
     }
   }
 
+  const handleInitiateCompletion = (appointment: any) => {
+    setSelectedAptId(appointment.id)
+    setSelectedClientId(appointment.patient?.id || appointment.clientId)
+    setModalOpen(true)
+  }
+
   return (
     <div className="space-y-6">
+      <PackageDeductionModal
+        isOpen={modalOpen}
+        onOpenChange={setModalOpen}
+        clientId={selectedClientId || ''}
+        appointmentId={selectedAptId || ''}
+        onConfirm={async () => {
+          if (selectedAptId) {
+            await handleUpdateStatus(selectedAptId, 'COMPLETED')
+            setSelectedAptId(null)
+            setSelectedClientId(null)
+          }
+        }}
+      />
       {/* Error Alert */}
       {error && (
         <Alert variant="destructive">
@@ -297,7 +331,7 @@ export function AppointmentsList() {
                               size="sm"
                               className="text-green-600 hover:text-green-700 hover:bg-green-50"
                               disabled={updatingId === appointment.id}
-                              onClick={() => handleUpdateStatus(appointment.id, 'COMPLETED')}
+                              onClick={() => handleInitiateCompletion(appointment)}
                               title="Compareceu"
                             >
                               <CheckCircle2 className="h-4 w-4" />

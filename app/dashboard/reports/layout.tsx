@@ -9,7 +9,8 @@ import {
     BarChart3,
     Trophy,
     UserMinus,
-    DollarSign
+    DollarSign,
+    Package
 } from 'lucide-react'
 
 export default function ReportsLayout({
@@ -76,6 +77,16 @@ export default function ReportsLayout({
                             >
                                 <DollarSign className="h-4 w-4" />
                                 LTV
+                            </Button>
+                        </Link>
+                        <Link href="/dashboard/reports/packages">
+                            <Button
+                                variant={pathname === '/dashboard/reports/packages' ? 'default' : 'outline'}
+                                size="sm"
+                                className="gap-2"
+                            >
+                                <Package className="h-4 w-4" />
+                                Pacotes
                             </Button>
                         </Link>
                     </div>

@@ -9,19 +9,19 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Calendar } from '@/components/ui/calendar'
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue 
+  SelectValue
 } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { 
-  Calendar as CalendarIcon, 
-  Clock, 
-  User, 
-  Mail, 
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  User,
+  Mail,
   Phone,
   CheckCircle2,
   Loader2,
@@ -30,6 +30,7 @@ import {
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { applyPhoneMask } from '@/lib/utils'
 
 interface BusinessInfo {
   businessName: string
@@ -122,7 +123,7 @@ export default function PublicBookingPage() {
       const response = await fetch(
         `/api/booking/${slug}/available-slots?scheduleId=${selectedSchedule}&serviceId=${selectedService}&date=${dateStr}`
       )
-      
+
       if (response.ok) {
         const data = await response.json()
         setAvailableSlots(data.slots || [])
@@ -188,7 +189,7 @@ export default function PublicBookingPage() {
   const getSelectedServiceDetails = () => {
     const schedule = schedules.find(s => s.id === selectedSchedule)
     if (!schedule) return null
-    
+
     const serviceItem = schedule.services.find(s => s.service.id === selectedService)
     return serviceItem?.service || null
   }
@@ -307,7 +308,7 @@ export default function PublicBookingPage() {
                         ))}
                     </SelectContent>
                   </Select>
-                  
+
                   {selectedService && getSelectedServiceDetails() && (
                     <div className="mt-2 p-3 bg-blue-50 rounded-lg">
                       <div className="flex items-center gap-2 text-sm">
@@ -416,13 +417,13 @@ export default function PublicBookingPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="clientPhone">Telefone/WhatsApp *</Label>
+                  <Label htmlFor="clientPhone">WhatsApp *</Label>
                   <Input
                     id="clientPhone"
                     type="tel"
                     placeholder="(00) 00000-0000"
                     value={clientPhone}
-                    onChange={(e) => setClientPhone(e.target.value)}
+                    onChange={(e) => setClientPhone(applyPhoneMask(e.target.value))}
                     required
                   />
                 </div>

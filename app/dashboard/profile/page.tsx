@@ -117,7 +117,7 @@ export default function ProfilePage() {
                   {planConfig?.price === 0 ? 'Grátis' : `R$ ${planConfig?.price?.toFixed(2)}/mês`}
                 </Badge>
               </div>
-              
+
               <ul className="space-y-2 text-sm text-gray-700">
                 {planConfig?.features.map((feature, index) => (
                   <li key={index} className="flex items-center">
@@ -128,19 +128,15 @@ export default function ProfilePage() {
               </ul>
             </div>
 
-            {userPlan === 'FREEMIUM' && (
-              <div className="text-center pt-4 border-t">
-                <p className="text-sm text-gray-600 mb-3">
-                  Precisa de mais recursos para sua clínica?
-                </p>
-                <Button 
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
-                  onClick={handleUpgrade}
-                >
-                  Fazer Upgrade do Plano
-                </Button>
-              </div>
-            )}
+            <div className="text-center pt-4 border-t">
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handleUpgrade}
+              >
+                Mudar de Plano
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -160,7 +156,7 @@ export default function ProfilePage() {
               Edição de perfil em breve
             </h3>
             <p className="text-gray-600 max-w-md mx-auto">
-              Em breve você poderá editar suas informações pessoais, 
+              Em breve você poderá editar suas informações pessoais,
               alterar senha e configurar preferências da conta.
             </p>
           </div>

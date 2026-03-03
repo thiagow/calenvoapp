@@ -19,8 +19,9 @@ import {
   Briefcase,
   CalendarCheck,
   UserCog,
-  Bell,
-  MessageSquare // Added MessageSquare icon
+  Package,
+  MessageSquare,
+  Gift
 } from 'lucide-react'
 import { useUserPermissions } from '@/hooks/use-user-permissions'
 
@@ -31,10 +32,10 @@ const navigation = [
   { name: 'Serviços', href: '/dashboard/services', icon: Briefcase, permission: 'canManageServices' },
   { name: 'Profissionais', href: '/dashboard/professionals', icon: UserCog, permission: 'canManageProfessionals' },
   { name: 'Clientes', href: '/dashboard/patients', icon: Users, permission: 'canViewAllClients' },
-  { name: 'Canais de Atendimento', href: '/dashboard/canais-atendimento', icon: MessageSquare, permission: 'canViewNotifications' }, // Replaced old 'Notificações' (whatsapp)
-  { name: 'Notificações', href: '/dashboard/notifications/email', icon: Bell, permission: 'canViewNotifications' }, // Added new 'Notificações' (email)
+  { name: 'Canais de Atendimento', href: '/dashboard/canais-atendimento', icon: MessageSquare, permission: 'canViewNotifications' },
   { name: 'Relatórios', href: '/dashboard/reports', icon: BarChart3, permission: 'canViewFullReports' },
-  { name: 'Planos', href: '/dashboard/plans', icon: CreditCard, permission: 'canManagePlans' },
+  { name: 'Pacotes', href: '/dashboard/packages', icon: Package, permission: 'canManageServices' },
+  { name: 'Fidelidade', href: '/dashboard/loyalty', icon: Gift, permission: 'canManageServices' },
   { name: 'Configurações', href: '/dashboard/settings', icon: Settings, permission: 'canViewPublicUrl' },
 ]
 

@@ -20,6 +20,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { useSegmentConfig } from '@/contexts/segment-context'
+import { PackageDeductionModal } from '@/components/dashboard/package-deduction-modal'
 
 interface AppointmentHistory {
     id: string
@@ -63,6 +64,10 @@ export default function ClientHistoryPage() {
     const [statusFilter, setStatusFilter] = useState('all')
     const [updatingId, setUpdatingId] = useState<string | null>(null)
 
+    // Modal states
+    const [modalOpen, setModalOpen] = useState(false)
+    const [selectedAptId, setSelectedAptId] = useState<string | null>(null)
+
     const fetchHistory = async (status?: string) => {
         try {
             setLoading(true)
@@ -91,13 +96,21 @@ export default function ClientHistoryPage() {
         }
     }, [clientId, statusFilter])
 
-    const handleUpdateStatus = async (appointmentId: string, newStatus: string) => {
+    const handleUpdateStatus = async (appointmentId: string, newStatus: string, clientPackageItemId?: string | null) => {
         try {
             setUpdatingId(appointmentId)
+
+            const payload: any = { status: newStatus }
+            if (clientPackageItemId) {
+                payload.clientPackageItemId = clientPackageItemId
+            } else if (clientPackageItemId === null && newStatus === 'COMPLETED') {
+                payload.clientPackageItemId = null
+            }
+
             const response = await fetch(`/api/appointments/${appointmentId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: newStatus })
+                body: JSON.stringify(payload)
             })
 
             if (!response.ok) {
@@ -106,7 +119,7 @@ export default function ClientHistoryPage() {
 
             toast.success(
                 newStatus === 'COMPLETED'
-                    ? 'Presença confirmada!'
+                    ? 'Presença confirmada' + (clientPackageItemId ? ' e sessão debitada!' : '!')
                     : 'Falta registrada!'
             )
 
@@ -159,6 +172,18 @@ export default function ClientHistoryPage() {
 
     return (
         <div className="p-6 space-y-6">
+            <PackageDeductionModal
+                isOpen={modalOpen}
+                onOpenChange={setModalOpen}
+                clientId={clientId}
+                appointmentId={selectedAptId || ''}
+                onConfirm={async (packageItemId) => {
+                    if (selectedAptId) {
+                        await handleUpdateStatus(selectedAptId, 'COMPLETED', packageItemId)
+                        setSelectedAptId(null)
+                    }
+                }}
+            />
             {/* Header */}
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
                 <div className="flex items-center gap-4">
@@ -307,7 +332,10 @@ export default function ClientHistoryPage() {
                                                 variant="outline"
                                                 className="text-green-600 border-green-300 hover:bg-green-50"
                                                 disabled={updatingId === apt.id}
-                                                onClick={() => handleUpdateStatus(apt.id, 'COMPLETED')}
+                                                onClick={() => {
+                                                    setSelectedAptId(apt.id)
+                                                    setModalOpen(true)
+                                                }}
                                             >
                                                 <CheckCircle2 className="h-4 w-4 mr-1" />
                                                 Compareceu

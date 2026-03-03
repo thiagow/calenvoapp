@@ -18,7 +18,8 @@ import {
   Calendar,
   Users,
   User,
-  History
+  History,
+  Package
 } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
@@ -41,6 +42,7 @@ interface Patient {
   notes?: string | null
   createdAt: string
   appointmentsCount: number
+  loyaltyPoints?: number | null
 }
 
 interface ClientStats {
@@ -60,6 +62,7 @@ export default function PatientsPage() {
     totalAppointments: 0
   })
   const [loading, setLoading] = useState(true)
+  const [loyaltyActive, setLoyaltyActive] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -182,6 +185,7 @@ export default function PatientsPage() {
           const data = await response.json()
           setPatients(data.clients || [])
           setStats(data.stats)
+          setLoyaltyActive(data.loyaltyActive || false)
         }
       } catch (error) {
         console.error('Error fetching clients data:', error)
@@ -416,6 +420,11 @@ export default function PatientsPage() {
                       <Badge variant="outline">
                         {patient.appointmentsCount} {patient.appointmentsCount === 1 ? t.appointment.toLowerCase() : t.appointments.toLowerCase()}
                       </Badge>
+                      {loyaltyActive && patient.loyaltyPoints != null && patient.loyaltyPoints > 0 && (
+                        <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                          ⭐ {patient.loyaltyPoints} pts
+                        </Badge>
+                      )}
                     </div>
                   </div>
 
@@ -454,6 +463,14 @@ export default function PatientsPage() {
                 </div>
 
                 <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    title="Acessar Pacotes do Cliente"
+                    onClick={() => router.push(`/dashboard/patients/${patient.id}/packages`)}
+                  >
+                    <Package className="h-4 w-4" />
+                  </Button>
                   <Button
                     size="sm"
                     variant="outline"

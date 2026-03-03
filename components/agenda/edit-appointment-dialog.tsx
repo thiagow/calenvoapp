@@ -101,7 +101,9 @@ export function EditAppointmentDialog({
         serviceId: appointment.serviceId || (appointment.service?.id) || '',
         professionalId: appointment.professionalId || (appointment.professionalRelation?.id) || '',
         notes: appointment.notes || '',
-        price: appointment.price ? appointment.price.toString() : ''
+        price: appointment.price
+          ? appointment.price.toString()
+          : (appointment.service?.price ? appointment.service.price.toString() : '')
       })
 
       // Se não tiver professionalId mas tiver nome legado, tentar encontrar

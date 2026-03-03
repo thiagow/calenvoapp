@@ -7,6 +7,8 @@ import { AppointmentStatus, ModalityType } from '@prisma/client'
 import { NotificationService } from '@/lib/notification-service'
 import { WhatsAppService } from '@/lib/whatsapp-service'
 import { WhatsAppTriggerService } from '@/lib/whatsapp-trigger'
+import { processPackageDeduction } from '@/app/actions/packages'
+import { processLoyaltyEarn } from '@/app/actions/loyalty'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,7 +18,7 @@ export async function GET(
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -78,7 +80,7 @@ export async function PUT(
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -94,7 +96,8 @@ export async function PUT(
       insurance,
       professional,
       notes,
-      price
+      price,
+      clientPackageItemId
     } = body
 
     // Verify appointment exists and belongs to user
@@ -121,7 +124,8 @@ export async function PUT(
         ...(insurance !== undefined && { insurance }),
         ...(professional !== undefined && { professional }),
         ...(notes !== undefined && { notes }),
-        ...(price !== undefined && { price: price ? parseFloat(price) : null })
+        ...(price !== undefined && { price: price ? parseFloat(price) : null }),
+        ...(clientPackageItemId !== undefined && { clientPackageItemId })
       },
       include: {
         client: {
@@ -157,9 +161,89 @@ export async function PUT(
       const serviceName = updatedAppointment.service?.name || updatedAppointment.specialty || 'Serviço'
       const oldDate = existingAppointment.date
       const newDate = updatedAppointment.date
-      
+
       // Se o status mudou
       if (status && status !== existingAppointment.status) {
+
+        // --- INICIO: Lógica de Dedução de Pacotes ---
+        if (status === 'COMPLETED') {
+          let packageIdToDeduct = clientPackageItemId !== undefined ? clientPackageItemId : existingAppointment.clientPackageItemId;
+
+          // Se não houver pacote selecionado explicitamente, busca o primeiro ativo vinculável
+          if (!packageIdToDeduct && updatedAppointment.serviceId && existingAppointment.clientId) {
+            const availableItems = await prisma.clientPackageItem.findMany({
+              where: {
+                serviceId: updatedAppointment.serviceId,
+                clientPackage: {
+                  clientId: existingAppointment.clientId,
+                  status: 'ACTIVE'
+                }
+              },
+              include: { clientPackage: true },
+              orderBy: { clientPackage: { createdAt: 'asc' } }
+            });
+
+            // Pega o primeiro que ainda não esgotou
+            const validItem = availableItems.find(item => item.usedSessions < item.totalSessions);
+
+            if (validItem) {
+              packageIdToDeduct = validItem.id;
+
+              // Atualiza o agendamento para registrar qual item do pacote foi consumido
+              await prisma.appointment.update({
+                where: { id: params.id },
+                data: { clientPackageItemId: packageIdToDeduct }
+              });
+            }
+          }
+
+          if (packageIdToDeduct) {
+            const deductionResult = await processPackageDeduction(params.id, packageIdToDeduct, userId);
+
+            // Se foi sucesso e o pacote todo esgotou, disparamos a notificação no painel
+            if (deductionResult.success && deductionResult.isExhausted && deductionResult.packageData) {
+              await prisma.notification.create({
+                data: {
+                  userId: userId,
+                  title: 'Pacote Finalizado 📦',
+                  message: `A agenda recém-concluída consumiu a última sessão do pacote "${deductionResult.packageData.name}" do cliente ${deductionResult.packageData.client.name}. Ofereça a renovação!`,
+                  type: 'SYSTEM'
+                }
+              })
+            } else if (deductionResult.success && deductionResult.isAlmostExhausted && deductionResult.packageData) {
+              await prisma.notification.create({
+                data: {
+                  userId: userId,
+                  title: 'Pacote Quase no Fim ⏳',
+                  message: `Falta apenas 1 sessão para terminar o pacote "${deductionResult.packageData.name}" do cliente ${deductionResult.packageData.client.name}. Prepare o cliente para renovar.`,
+                  type: 'SYSTEM'
+                }
+              })
+            }
+          }
+        }
+        // --- FIM: Lógica de Dedução de Pacotes ---
+
+        // --- INICIO: Lógica de Fidelização ---
+        if (status === 'COMPLETED') {
+          try {
+            const loyaltyResult = await processLoyaltyEarn(params.id, userId)
+            if (loyaltyResult.success && !loyaltyResult.skipped && loyaltyResult.pointsEarned) {
+              await prisma.notification.create({
+                data: {
+                  userId,
+                  title: '⭐ Pontos de Fidelidade',
+                  message: `${loyaltyResult.clientName} ganhou +${loyaltyResult.pointsEarned} ponto(s)! Saldo atual: ${loyaltyResult.newBalance} pontos.`,
+                  type: 'SYSTEM'
+                }
+              })
+            }
+          } catch (loyaltyError) {
+            console.error('Erro na fidelização (não bloqueante):', loyaltyError)
+          }
+        }
+        // --- FIM: Lógica de Fidelização ---
+
         switch (status) {
           case 'CONFIRMED':
             await NotificationService.notifyAppointmentConfirmed(
@@ -176,7 +260,7 @@ export async function PUT(
               updatedAppointment.professional || undefined
             )
             break
-            
+
           case 'CANCELLED':
             await NotificationService.notifyAppointmentCancelled(
               userId,
@@ -192,7 +276,7 @@ export async function PUT(
               updatedAppointment.professional || undefined
             )
             break
-            
+
           case 'COMPLETED':
             await NotificationService.notifyAppointmentCompleted(
               userId,
@@ -204,7 +288,7 @@ export async function PUT(
             break
         }
       }
-      
+
       // Se a data mudou (reagendamento)
       if (date && oldDate.getTime() !== newDate.getTime()) {
         await NotificationService.notifyAppointmentRescheduled(
@@ -256,7 +340,7 @@ export async function DELETE(
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

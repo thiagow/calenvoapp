@@ -41,7 +41,8 @@ export async function GET(request: NextRequest) {
     const [
       totalClients,
       newClientsThisMonth,
-      clients
+      clients,
+      loyaltyConfig
     ] = await Promise.all([
       // Total de clientes
       prisma.client.count({
@@ -66,11 +67,21 @@ export async function GET(request: NextRequest) {
             select: {
               appointments: true
             }
+          },
+          loyaltyBalance: {
+            where: { userId: userRole === 'PROFESSIONAL' && masterId ? masterId : userId },
+            take: 1
           }
         },
         orderBy: {
           createdAt: 'desc'
         }
+      }),
+
+      // Verificar se o programa de fidelidade está ativo
+      prisma.loyaltyConfig.findUnique({
+        where: { userId: userRole === 'PROFESSIONAL' && masterId ? masterId : userId },
+        select: { isActive: true }
       })
     ])
 
@@ -83,6 +94,7 @@ export async function GET(request: NextRequest) {
         newClientsThisMonth,
         totalAppointments
       },
+      loyaltyActive: loyaltyConfig?.isActive || false,
       clients: clients.map(client => ({
         id: client.id,
         name: client.name,
@@ -95,7 +107,8 @@ export async function GET(request: NextRequest) {
         state: (client as any).state,
         notes: client.notes,
         createdAt: client.createdAt,
-        appointmentsCount: client._count.appointments
+        appointmentsCount: client._count.appointments,
+        loyaltyPoints: (client.loyaltyBalance && client.loyaltyBalance.length > 0) ? client.loyaltyBalance[0].currentBalance : null
       }))
     })
   } catch (error) {

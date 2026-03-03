@@ -11,11 +11,13 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import { Calendar, Clock, User, Phone, Mail, ArrowLeft, Save } from 'lucide-react'
+import { Calendar, Clock, User, Phone, Mail, ArrowLeft, Save, Search, X, UserPlus } from 'lucide-react'
 import { toast } from 'sonner'
 import { useSegmentConfig } from '@/contexts/segment-context'
+import { applyPhoneMask } from '@/lib/utils'
 
 interface NewAppointmentForm {
+  clientId: string
   scheduleId: string
   serviceId: string
   professionalId: string
@@ -49,7 +51,15 @@ export default function NewAppointmentPage() {
   const [loadingSlots, setLoadingSlots] = useState(false)
   const [userPlan, setUserPlan] = useState<string>('FREEMIUM')
   const [allowsMultipleProfessionals, setAllowsMultipleProfessionals] = useState(false)
+
+  // Novos estados para busca de clientes
+  const [clientSearchText, setClientSearchText] = useState('')
+  const [clientSearchResults, setClientSearchResults] = useState<any[]>([])
+  const [isSearchingClients, setIsSearchingClients] = useState(false)
+  const [showClientSuggestions, setShowClientSuggestions] = useState(false)
+
   const [formData, setFormData] = useState<NewAppointmentForm>({
+    clientId: '',
     scheduleId: '',
     serviceId: '',
     professionalId: '',
@@ -79,7 +89,7 @@ export default function NewAppointmentPage() {
     }
 
     console.log('✅ Usuário autenticado:', session?.user?.email)
-    
+
     // Buscar dados iniciais
     fetchUserPlan()
     fetchSchedulesAndServices()
@@ -92,7 +102,7 @@ export default function NewAppointmentPage() {
       if (response.ok) {
         const data = await response.json()
         setUserPlan(data.planType)
-        
+
         // Verificar se o plano permite múltiplos profissionais
         const allowsMultiple = data.planType === 'STANDARD' || data.planType === 'PREMIUM'
         setAllowsMultipleProfessionals(allowsMultiple)
@@ -139,13 +149,13 @@ export default function NewAppointmentPage() {
     if (formData.scheduleId) {
       const schedule = schedules.find(s => s.id === formData.scheduleId)
       setSelectedSchedule(schedule)
-      
+
       if (schedule && schedule.services) {
         // Filtrar apenas serviços vinculados a esta agenda
         const scheduleServiceIds = schedule.services.map((ss: any) => ss.serviceId)
         const filtered = services.filter(s => scheduleServiceIds.includes(s.id))
         setAvailableServices(filtered)
-        
+
         // Auto-selecionar duração do serviço se houver apenas um
         if (filtered.length === 1) {
           setFormData(prev => ({
@@ -165,13 +175,13 @@ export default function NewAppointmentPage() {
         setAvailableServices([])
         setFormData(prev => ({ ...prev, serviceId: '', duration: '30' }))
       }
-      
+
       // Filtrar profissionais vinculados a esta agenda
       if (allowsMultipleProfessionals && schedule && schedule.professionals) {
         const scheduleProfessionalIds = schedule.professionals.map((sp: any) => sp.professionalId)
         const filtered = professionals.filter(p => scheduleProfessionalIds.includes(p.id))
         setAvailableProfessionals(filtered)
-        
+
         // Limpar seleção de profissional se mudar de agenda
         setFormData(prev => ({
           ...prev,
@@ -180,7 +190,7 @@ export default function NewAppointmentPage() {
       } else {
         setAvailableProfessionals([])
       }
-      
+
       // Limpar horários disponíveis
       setAvailableTimeSlots([])
       setFormData(prev => ({ ...prev, time: '' }))
@@ -191,7 +201,7 @@ export default function NewAppointmentPage() {
       setSelectedSchedule(null)
     }
   }, [formData.scheduleId, schedules, services, professionals, allowsMultipleProfessionals])
-  
+
   // Buscar horários disponíveis quando data, agenda, serviço ou profissional mudarem
   useEffect(() => {
     if (formData.scheduleId && formData.date && formData.serviceId) {
@@ -200,7 +210,7 @@ export default function NewAppointmentPage() {
       setAvailableTimeSlots([])
     }
   }, [formData.scheduleId, formData.date, formData.serviceId, formData.professionalId])
-  
+
   const fetchAvailableSlots = async () => {
     setLoadingSlots(true)
     try {
@@ -209,11 +219,11 @@ export default function NewAppointmentPage() {
         date: formData.date,
         serviceId: formData.serviceId // NOVO: Passar o serviço selecionado
       })
-      
+
       if (formData.professionalId) {
         params.append('professionalId', formData.professionalId)
       }
-      
+
       const response = await fetch(`/api/appointments/available-slots?${params}`)
       if (response.ok) {
         const data = await response.json()
@@ -253,10 +263,56 @@ export default function NewAppointmentPage() {
     }))
   }
 
+  // Efeito de busca de clientes
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (clientSearchText.trim().length >= 3) {
+        setIsSearchingClients(true)
+        fetch(`/api/clients?search=${encodeURIComponent(clientSearchText)}`)
+          .then(res => res.json())
+          .then(data => {
+            setClientSearchResults(Array.isArray(data) ? data : [])
+            setShowClientSuggestions(true)
+          })
+          .catch(err => console.error(err))
+          .finally(() => setIsSearchingClients(false))
+      } else {
+        setClientSearchResults([])
+        setShowClientSuggestions(false)
+      }
+    }, 500)
+
+    return () => clearTimeout(delayDebounceFn)
+  }, [clientSearchText])
+
+  const handleSelectClient = (client: any) => {
+    setFormData(prev => ({
+      ...prev,
+      clientId: client.id,
+      patientName: client.name,
+      patientEmail: client.email || '',
+      patientPhone: client.phone || '',
+      patientCpf: client.cpf || '',
+    }))
+    setClientSearchText('')
+    setShowClientSuggestions(false)
+    toast.success('Cliente selecionado da base')
+  }
+
+  const handleClearClient = () => {
+    setFormData(prev => ({
+      ...prev,
+      clientId: '',
+      patientName: '',
+      patientEmail: '',
+      patientPhone: '',
+      patientCpf: '',
+    }))
+  }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    
+
     console.log('🚀 Iniciando criação de agendamento...')
     console.log('📝 Dados do formulário:', formData)
 
@@ -280,34 +336,41 @@ export default function NewAppointmentPage() {
         setLoading(false)
         return
       }
-      
+
       console.log('✅ Validação inicial passou')
 
       // Primeiro, criar o cliente se não existir
-      console.log('👤 Criando cliente...')
-      const clientResponse = await fetch('/api/clients', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: formData.patientName,
-          email: formData.patientEmail || null,
-          phone: formData.patientPhone, // Required field
-          cpf: formData.patientCpf || null,
-        }),
-      })
+      let finalClientId = formData.clientId
 
-      console.log('📞 Resposta da API de clientes:', clientResponse.status, clientResponse.statusText)
+      if (!finalClientId) {
+        console.log('👤 Criando cliente...')
+        const clientResponse = await fetch('/api/clients', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: formData.patientName,
+            email: formData.patientEmail || null,
+            phone: formData.patientPhone, // Required field
+            cpf: formData.patientCpf || null,
+          }),
+        })
 
-      if (!clientResponse.ok) {
-        const errorData = await clientResponse.json()
-        console.log('❌ Erro na criação do cliente:', errorData)
-        throw new Error(errorData.error || 'Erro ao criar cliente')
+        console.log('📞 Resposta da API de clientes:', clientResponse.status, clientResponse.statusText)
+
+        if (!clientResponse.ok) {
+          const errorData = await clientResponse.json()
+          console.log('❌ Erro na criação do cliente:', errorData)
+          throw new Error(errorData.error || 'Erro ao criar cliente')
+        }
+
+        const client = await clientResponse.json()
+        console.log('✅ Cliente criado/encontrado:', client)
+        finalClientId = client.id
+      } else {
+        console.log('👤 Utilizando cliente selecionado:', finalClientId)
       }
-
-      const client = await clientResponse.json()
-      console.log('✅ Cliente criado/encontrado:', client)
 
       // Combinar data e hora
       const appointmentDateTime = new Date(`${formData.date}T${formData.time}:00`)
@@ -315,7 +378,7 @@ export default function NewAppointmentPage() {
 
       // Criar o agendamento
       const appointmentData = {
-        clientId: client.id,
+        clientId: finalClientId,
         scheduleId: formData.scheduleId,
         serviceId: formData.serviceId,
         professionalId: formData.professionalId || null,
@@ -328,9 +391,9 @@ export default function NewAppointmentPage() {
         insurance: formData.insuranceType === 'convenio' ? formData.insuranceName : 'Particular',
         notes: formData.notes || null,
       }
-      
+
       console.log('📋 Dados do agendamento a ser criado:', appointmentData)
-      
+
       const appointmentResponse = await fetch('/api/appointments', {
         method: 'POST',
         headers: {
@@ -349,7 +412,7 @@ export default function NewAppointmentPage() {
 
       const newAppointment = await appointmentResponse.json()
       console.log('✅ Agendamento criado com sucesso:', newAppointment)
-      
+
       toast.success('Agendamento criado com sucesso!')
       console.log('🔄 Redirecionando para agenda...')
       router.push('/dashboard/agenda')
@@ -421,8 +484,8 @@ export default function NewAppointmentPage() {
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <Label htmlFor="scheduleId">{t.schedule} *</Label>
-              <Select 
-                value={formData.scheduleId} 
+              <Select
+                value={formData.scheduleId}
                 onValueChange={(value) => handleInputChange('scheduleId', value)}
               >
                 <SelectTrigger>
@@ -456,18 +519,18 @@ export default function NewAppointmentPage() {
             </div>
             <div>
               <Label htmlFor="serviceId">{t.service} *</Label>
-              <Select 
-                value={formData.serviceId} 
+              <Select
+                value={formData.serviceId}
                 onValueChange={(value) => handleInputChange('serviceId', value)}
                 disabled={!formData.scheduleId || availableServices.length === 0}
               >
                 <SelectTrigger>
                   <SelectValue placeholder={
-                    !formData.scheduleId 
+                    !formData.scheduleId
                       ? `Selecione ${t.schedule.toLowerCase()} primeiro`
                       : availableServices.length === 0
-                      ? `Nenhum ${t.service.toLowerCase()} vinculado`
-                      : `Selecione o ${t.service.toLowerCase()}`
+                        ? `Nenhum ${t.service.toLowerCase()} vinculado`
+                        : `Selecione o ${t.service.toLowerCase()}`
                   } />
                 </SelectTrigger>
                 <SelectContent>
@@ -499,7 +562,81 @@ export default function NewAppointmentPage() {
               Informações pessoais e de contato {t.client === 'Paciente' ? 'do paciente' : `do ${t.client.toLowerCase()}`}
             </CardDescription>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 relative">
+            {/* COMPONENT DE BUSCA */}
+            <div className="md:col-span-2 relative mb-2">
+              <Label htmlFor="clientSearch" className="text-blue-600 font-medium tracking-tight">Buscar Cliente Cadastrado</Label>
+              <div className="relative mt-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  id="clientSearch"
+                  value={clientSearchText}
+                  onChange={(e) => setClientSearchText(e.target.value)}
+                  placeholder="Digite as primeiras 3 letras do nome para buscar..."
+                  className="pl-9 bg-blue-50/30 border-blue-200 focus-visible:ring-blue-500"
+                  disabled={!!formData.clientId}
+                  autoComplete="off"
+                />
+                {formData.clientId && (
+                  <button
+                    type="button"
+                    onClick={handleClearClient}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500 focus:outline-none bg-gray-100 rounded-full p-1 transition-colors"
+                    title="Limpar seleção"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
+
+              {/* Dropdown de Resultados */}
+              {showClientSuggestions && clientSearchResults.length > 0 && (
+                <div className="absolute z-30 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto left-0">
+                  {clientSearchResults.map(client => (
+                    <div
+                      key={client.id}
+                      onClick={() => handleSelectClient(client)}
+                      className="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b last:border-0 transition-colors flex items-center justify-between"
+                    >
+                      <div className="font-semibold text-sm text-gray-800 truncate pr-2">{client.name}</div>
+                      {client.phone && (
+                        <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-md flex items-center gap-1 whitespace-nowrap">
+                          <Phone className="h-3 w-3" /> {client.phone}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {isSearchingClients && (
+                <div className="absolute z-30 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg p-3 text-center text-sm text-gray-500 left-0">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mx-auto mb-1"></div>
+                  Buscando...
+                </div>
+              )}
+              {showClientSuggestions && !isSearchingClients && clientSearchText.trim().length >= 3 && clientSearchResults.length === 0 && (
+                <div className="absolute z-30 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg p-4 left-0 flex flex-col items-center justify-center space-y-3">
+                  <p className="text-sm text-gray-500 text-center">Nenhum cliente encontrado.</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-blue-600 border-blue-200 hover:bg-blue-50"
+                    onClick={() => {
+                      setShowClientSuggestions(false)
+                      setFormData(prev => ({
+                        ...prev,
+                        patientName: clientSearchText
+                      }))
+                    }}
+                  >
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Cadastrar como Novo
+                  </Button>
+                </div>
+              )}
+            </div>
+
             <div>
               <Label htmlFor="patientName">Nome Completo *</Label>
               <Input
@@ -507,6 +644,8 @@ export default function NewAppointmentPage() {
                 value={formData.patientName}
                 onChange={(e) => handleInputChange('patientName', e.target.value)}
                 placeholder={placeholders.clientName}
+                disabled={!!formData.clientId}
+                className={formData.clientId ? "bg-gray-100 italic" : ""}
                 required
               />
             </div>
@@ -518,15 +657,19 @@ export default function NewAppointmentPage() {
                 value={formData.patientEmail}
                 onChange={(e) => handleInputChange('patientEmail', e.target.value)}
                 placeholder="email@exemplo.com"
+                disabled={!!formData.clientId}
+                className={formData.clientId ? "bg-gray-100 italic" : ""}
               />
             </div>
             <div>
-              <Label htmlFor="patientPhone">Telefone *</Label>
+              <Label htmlFor="patientPhone">WhatsApp *</Label>
               <Input
                 id="patientPhone"
                 value={formData.patientPhone}
-                onChange={(e) => handleInputChange('patientPhone', e.target.value)}
+                onChange={(e) => handleInputChange('patientPhone', applyPhoneMask(e.target.value))}
                 placeholder={placeholders.clientPhone}
+                disabled={!!formData.clientId}
+                className={formData.clientId ? "bg-gray-100 italic" : ""}
                 required
               />
             </div>
@@ -537,6 +680,8 @@ export default function NewAppointmentPage() {
                 value={formData.patientCpf}
                 onChange={(e) => handleInputChange('patientCpf', e.target.value)}
                 placeholder="000.000.000-00"
+                disabled={!!formData.clientId}
+                className={formData.clientId ? "bg-gray-100 italic" : ""}
               />
             </div>
           </CardContent>
@@ -568,18 +713,18 @@ export default function NewAppointmentPage() {
             {allowsMultipleProfessionals && availableProfessionals.length > 0 && (
               <div>
                 <Label htmlFor="professionalId">{t.professional} {availableProfessionals.length > 0 ? '*' : ''}</Label>
-                <Select 
-                  value={formData.professionalId} 
+                <Select
+                  value={formData.professionalId}
                   onValueChange={(value) => handleInputChange('professionalId', value)}
                   disabled={!formData.scheduleId || availableProfessionals.length === 0}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder={
-                      !formData.scheduleId 
+                      !formData.scheduleId
                         ? `Selecione ${t.schedule.toLowerCase()} primeiro`
                         : availableProfessionals.length === 0
-                        ? `Nenhum ${t.professional.toLowerCase()} vinculado`
-                        : `Selecione o ${t.professional.toLowerCase()}`
+                          ? `Nenhum ${t.professional.toLowerCase()} vinculado`
+                          : `Selecione o ${t.professional.toLowerCase()}`
                     } />
                   </SelectTrigger>
                   <SelectContent>
@@ -607,20 +752,20 @@ export default function NewAppointmentPage() {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <Select 
-                    value={formData.time} 
+                  <Select
+                    value={formData.time}
                     onValueChange={(value) => handleInputChange('time', value)}
                     disabled={!formData.date || !formData.serviceId}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={
-                        !formData.date 
+                        !formData.date
                           ? "Selecione uma data primeiro"
                           : !formData.serviceId
-                          ? "Selecione um serviço primeiro"
-                          : availableTimeSlots.length === 0
-                          ? "Nenhum horário disponível"
-                          : "Selecione o horário"
+                            ? "Selecione um serviço primeiro"
+                            : availableTimeSlots.length === 0
+                              ? "Nenhum horário disponível"
+                              : "Selecione o horário"
                       } />
                     </SelectTrigger>
                     <SelectContent>
@@ -633,19 +778,19 @@ export default function NewAppointmentPage() {
                         ))}
                     </SelectContent>
                   </Select>
-                  
+
                   {!formData.date && (
                     <p className="text-xs text-gray-500">
                       Selecione uma data para ver os horários disponíveis
                     </p>
                   )}
-                  
+
                   {formData.date && !formData.serviceId && (
                     <p className="text-xs text-amber-600">
                       Selecione um serviço para ver os horários disponíveis
                     </p>
                   )}
-                  
+
                   {formData.date && formData.serviceId && availableTimeSlots.length > 0 && availableTimeSlots.filter((s: any) => s.available).length === 0 && (
                     <p className="text-xs text-amber-600">
                       Não há horários disponíveis nesta data
@@ -657,8 +802,8 @@ export default function NewAppointmentPage() {
             {fields.showModality && (
               <div>
                 <Label htmlFor="appointmentType">Modalidade</Label>
-                <Select 
-                  value={formData.appointmentType} 
+                <Select
+                  value={formData.appointmentType}
                   onValueChange={(value) => handleInputChange('appointmentType', value as 'presencial' | 'teleconsulta')}
                 >
                   <SelectTrigger>
@@ -711,8 +856,8 @@ export default function NewAppointmentPage() {
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="insuranceType">Tipo de Atendimento</Label>
-                <Select 
-                  value={formData.insuranceType} 
+                <Select
+                  value={formData.insuranceType}
                   onValueChange={(value) => handleInputChange('insuranceType', value as 'convenio' | 'particular')}
                 >
                   <SelectTrigger>

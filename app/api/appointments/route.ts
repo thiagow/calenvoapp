@@ -163,7 +163,8 @@ export async function GET(request: NextRequest) {
         service: {
           select: {
             id: true,
-            name: true
+            name: true,
+            price: true
           }
         },
         professionalUser: {
@@ -183,6 +184,7 @@ export async function GET(request: NextRequest) {
       id: appointment.id,
       date: appointment.date,
       patient: {
+        id: appointment.client.id,
         name: appointment.client.name,
         phone: appointment.client.phone,
         email: appointment.client.email
@@ -427,6 +429,7 @@ export async function POST(request: NextRequest) {
       id: appointment.id,
       date: appointment.date,
       patient: {
+        id: appointment.client.id,
         name: appointment.client.name,
         phone: appointment.client.phone,
         email: appointment.client.email

@@ -59,6 +59,16 @@ enum SegmentType {
   OTHER // Outros
 }
 
+enum LoyaltyMode {
+  FREQUENCY // 1 agendamento concluído = 1 ponto
+  VALUE     // Valor pago convertido em pontos
+}
+
+enum LoyaltyTransactionType {
+  EARN   // Acúmulo de pontos
+  REDEEM // Resgate de pontos
+}
+
 model User {
   id                 String      @id @default(cuid())
   name               String?
@@ -92,11 +102,18 @@ model User {
   scheduleProfessionals    ScheduleProfessional[] // Agendas vinculadas como profissional
   notifications            Notification[] // Notificações do usuário
   whatsappConfig           WhatsAppConfig? // Configuração WhatsApp
+  clientPackages           ClientPackage[] // Pacotes vendidos
 
   // Relacionamento hierárquico
   masterId      String? // ID do usuário master (para profissionais)
   master        User?   @relation("MasterProfessionals", fields: [masterId], references: [id], onDelete: Cascade)
   professionals User[]  @relation("MasterProfessionals")
+
+  packageTemplates PackageTemplate[] // Templates de pacotes criados
+
+  loyaltyConfig LoyaltyConfig? // Programa de fidelidade do Tenant
+  loyaltyBalances LoyaltyBalance[] @relation("UserLoyaltyBalances")
+  loyaltyTransactions LoyaltyTransaction[] @relation("UserLoyaltyTransactions")
 
   errorLogs ErrorLog[]
 
@@ -148,6 +165,9 @@ model Client {
   userId       String
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   appointments Appointment[]
+  packages     ClientPackage[] // Pacotes adquiridos pelo cliente
+  loyaltyBalance      LoyaltyBalance[]      @relation("ClientLoyaltyBalance")
+  loyaltyTransactions LoyaltyTransaction[]  @relation("ClientLoyaltyTransactions")
 
   @@unique([cpf, userId])
 }
@@ -277,6 +297,8 @@ model Service {
   // Relações
   schedules    ScheduleService[]
   appointments Appointment[]
+  packageItems ClientPackageItem[] // Itens de pacote vinculados a este serviço
+  templateItems PackageTemplateItem[] // Itens de template de pacotes
 }
 
 // Tabela de junção: Agenda <-> Serviços
@@ -313,6 +335,10 @@ model Appointment {
   professionalId   String?
   professionalUser User?   @relation("ProfessionalAppointments", fields: [professionalId], references: [id], onDelete: SetNull)
 
+  // Vinculação com o Consumo de Pacotes (novo sistema)
+  clientPackageItemId String?
+  clientPackageItem   ClientPackageItem? @relation(fields: [clientPackageItemId], references: [id], onDelete: SetNull)
+
   // Campos legados (mantidos para compatibilidade)
   specialty    String?
   insurance    String? // Convênio
@@ -334,7 +360,79 @@ model Appointment {
   // Notificações relacionadas
   notifications Notification[]
 
+  // Transações de fidelidade geradas por este agendamento
+  loyaltyTransactions LoyaltyTransaction[]
+
   @@index([userId, date])
+}
+
+enum PackageStatus {
+  ACTIVE
+  EXHAUSTED
+  CANCELLED
+}
+
+// Pacote/Contrato comprado pelo cliente
+model ClientPackage {
+  id          String              @id @default(cuid())
+  clientId    String
+  client      Client              @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  price       Float?
+  status      PackageStatus       @default(ACTIVE)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  
+  items       ClientPackageItem[]
+
+  @@index([clientId])
+  @@index([userId])
+}
+
+// Serviços contidos dentro do pacote
+model ClientPackageItem {
+  id              String         @id @default(cuid())
+  clientPackageId String
+  clientPackage   ClientPackage  @relation(fields: [clientPackageId], references: [id], onDelete: Cascade)
+  serviceId       String
+  service         Service        @relation(fields: [serviceId], references: [id])
+  totalSessions   Int
+  usedSessions    Int            @default(0)
+  
+  appointments    Appointment[]
+
+  @@index([clientPackageId])
+  @@index([serviceId])
+}
+
+// Novo modelo: Template de Pacote de Serviço
+model PackageTemplate {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  price     Float?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items     PackageTemplateItem[]
+
+  @@index([userId])
+}
+
+model PackageTemplateItem {
+  id                String          @id @default(cuid())
+  packageTemplateId String
+  packageTemplate   PackageTemplate @relation(fields: [packageTemplateId], references: [id], onDelete: Cascade)
+  serviceId         String
+  service           Service         @relation(fields: [serviceId], references: [id])
+  totalSessions     Int
+
+  @@index([packageTemplateId])
+  @@index([serviceId])
 }
 
 model BusinessConfig {
@@ -489,5 +587,61 @@ model AdminAuditLog {
 
   @@index([adminId])
   @@index([action])
+  @@index([createdAt])
+}
+
+// ====== MÓDULO DE FIDELIZAÇÃO ======
+
+/// Programa de Fidelidade configurado pelo Tenant (1 por Tenant)
+model LoyaltyConfig {
+  id               String      @id @default(cuid())
+  name             String      // Nome do programa (ex: "Programa Fidelidade")
+  mode             LoyaltyMode @default(FREQUENCY)
+  pointsPerCurrency Float      @default(1.0)  // Pontos por R$ 1,00 (usado no modo VALUE)
+  pointsToReward   Int         @default(10)   // Quantidade de pontos para resgate
+  rewardValue      Float       @default(0)    // Valor R$ do desconto ao resgatar
+  isActive         Boolean     @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// Saldo de fidelidade por Cliente dentro de um Tenant
+model LoyaltyBalance {
+  id             String   @id @default(cuid())
+  totalEarned    Int      @default(0)
+  totalRedeemed  Int      @default(0)
+  currentBalance Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  clientId       String
+  client         Client   @relation("ClientLoyaltyBalance", fields: [clientId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User     @relation("UserLoyaltyBalances", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, userId])
+  @@index([clientId])
+  @@index([userId])
+}
+
+/// Historico auditavel de movimentacoes de pontos
+model LoyaltyTransaction {
+  id            String                 @id @default(cuid())
+  type          LoyaltyTransactionType
+  points        Int
+  description   String?
+  createdAt     DateTime               @default(now())
+  clientId      String
+  client        Client                 @relation("ClientLoyaltyTransactions", fields: [clientId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User                   @relation("UserLoyaltyTransactions", fields: [userId], references: [id], onDelete: Cascade)
+  appointmentId String?
+  appointment   Appointment?           @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  @@index([clientId])
+  @@index([userId])
   @@index([createdAt])
 }

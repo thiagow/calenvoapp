@@ -10,21 +10,21 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatDateTime(date: Date | string, includeTime = true): string {
   const dateObj = typeof date === 'string' ? parseISO(date) : date
-  
+
   if (isToday(dateObj)) {
     return includeTime ? `Hoje às ${format(dateObj, 'HH:mm')}` : 'Hoje'
   }
-  
+
   if (isTomorrow(dateObj)) {
     return includeTime ? `Amanhã às ${format(dateObj, 'HH:mm')}` : 'Amanhã'
   }
-  
+
   if (isThisWeek(dateObj)) {
-    return includeTime 
+    return includeTime
       ? format(dateObj, 'EEEE às HH:mm', { locale: ptBR })
       : format(dateObj, 'EEEE', { locale: ptBR })
   }
-  
+
   return includeTime
     ? format(dateObj, 'dd/MM/yyyy às HH:mm', { locale: ptBR })
     : format(dateObj, 'dd/MM/yyyy', { locale: ptBR })
@@ -52,6 +52,34 @@ export function formatPhone(phone: string): string {
 }
 
 /**
+ * Função reativa para onChange de inputs de Telefone Celular/WhatsApp (BR)
+ * Máscara dinâmica: (99) 99999-9999
+ */
+export function applyPhoneMask(value: string): string {
+  if (!value) return ''
+  // 1. Remove qualquer caractere que não seja número
+  let v = value.replace(/\D/g, '')
+
+  // 2. Limita a 11 dígitos nativos do Brasil
+  if (v.length > 11) v = v.slice(0, 11)
+
+  // 3. Aplica máscara gradualmente
+  if (v.length <= 2) {
+    return v.replace(/^(\d{0,2})/, '($1')
+  }
+  if (v.length <= 6) {
+    return v.replace(/^(\d{2})(\d{0,4})/, '($1) $2')
+  }
+  if (v.length <= 10) {
+    // Para número de 8 dígitos sem o nono digito
+    return v.replace(/^(\d{2})(\d{0,4})(\d{0,4})/, '($1) $2-$3')
+  }
+
+  // Exatamente 11 para celulares modernos
+  return v.replace(/^(\d{2})(\d{0,5})(\d{0,4})/, '($1) $2-$3')
+}
+
+/**
  * Formats a phone number for WhatsApp sending.
  * Ensures the '55' DDI is present for Brazilian numbers.
  * @param phone - Raw phone number string
@@ -59,7 +87,7 @@ export function formatPhone(phone: string): string {
 export function formatWhatsAppNumber(phone: string): string {
   // Remove all non-numeric characters
   const cleaned = phone.replace(/\D/g, '');
-  
+
   // If it's empty, return as is
   if (!cleaned) return '';
 
@@ -67,7 +95,7 @@ export function formatWhatsAppNumber(phone: string): string {
   if (!cleaned.startsWith('55') && (cleaned.length === 10 || cleaned.length === 11)) {
     return `55${cleaned}`;
   }
-  
+
   return cleaned;
 }
 
@@ -88,10 +116,10 @@ export function validateEmail(email: string): boolean {
 export function validateCPF(cpf: string): boolean {
   const cleaned = cpf.replace(/\D/g, '')
   if (cleaned.length !== 11) return false
-  
+
   // Check if all digits are the same
   if (/^(\d)\1{10}$/.test(cleaned)) return false
-  
+
   // Validate check digits
   let sum = 0
   for (let i = 0; i < 9; i++) {
@@ -100,7 +128,7 @@ export function validateCPF(cpf: string): boolean {
   let checkDigit = 11 - (sum % 11)
   if (checkDigit === 10 || checkDigit === 11) checkDigit = 0
   if (parseInt(cleaned.charAt(9)) !== checkDigit) return false
-  
+
   sum = 0
   for (let i = 0; i < 10; i++) {
     sum += parseInt(cleaned.charAt(i)) * (11 - i)
@@ -108,7 +136,7 @@ export function validateCPF(cpf: string): boolean {
   checkDigit = 11 - (sum % 11)
   if (checkDigit === 10 || checkDigit === 11) checkDigit = 0
   if (parseInt(cleaned.charAt(10)) !== checkDigit) return false
-  
+
   return true
 }
 
@@ -118,22 +146,22 @@ export function generateTimeSlots(startTime: string, endTime: string, duration: 
   const end = new Date(`1970-01-01T${endTime}:00`)
   const lunchStartTime = lunchStart ? new Date(`1970-01-01T${lunchStart}:00`) : null
   const lunchEndTime = lunchEnd ? new Date(`1970-01-01T${lunchEnd}:00`) : null
-  
+
   let current = new Date(start)
-  
+
   while (current < end) {
     const timeString = current.toTimeString().slice(0, 5)
-    
+
     // Skip lunch break
     if (lunchStartTime && lunchEndTime && current >= lunchStartTime && current < lunchEndTime) {
       current = new Date(lunchEndTime)
       continue
     }
-    
+
     slots.push(timeString)
     current.setMinutes(current.getMinutes() + duration)
   }
-  
+
   return slots
 }
 
@@ -161,7 +189,7 @@ export function generateSlug(businessName: string): string {
   if (!businessName || typeof businessName !== 'string') {
     return ''
   }
-  
+
   return businessName
     .toLowerCase()
     .normalize('NFD')                      // Decompose accents
