@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calenvo · Plano de Implementação Asaas</title>
+  <style>
+    /* ─── Reset & base ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --success: #16a34a;
+      --success-light: #f0fdf4;
+      --warning: #d97706;
+      --warning-light: #fffbeb;
+      --danger: #dc2626;
+      --danger-light: #fef2f2;
+      --muted: #64748b;
+      --text: #0f172a;
+      --code-bg: #1e293b;
+      --code-text: #e2e8f0;
+      --accent: #7c3aed;
+      --accent-light: #f5f3ff;
+      --radius: 10px;
+      --shadow: 0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.04);
+      --shadow-md: 0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.05);
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* ─── Layout ─── */
+    .wrapper { max-width: 1080px; margin: 0 auto; padding: 32px 20px 80px; }
+
+    /* ─── Header ─── */
+    .header {
+      background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%);
+      border-radius: var(--radius);
+      padding: 40px 48px;
+      color: white;
+      margin-bottom: 32px;
+      box-shadow: var(--shadow-md);
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -50%; right: -10%;
+      width: 400px; height: 400px;
+      background: rgba(255,255,255,.06);
+      border-radius: 50%;
+    }
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,.18);
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 100px;
+      padding: 4px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      margin-bottom: 16px;
+    }
+    .header h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+    .header p { font-size: 15px; opacity: .85; max-width: 560px; }
+    .header-meta {
+      display: flex;
+      gap: 24px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      opacity: .9;
+    }
+    .meta-icon { width: 18px; height: 18px; opacity: .75; }
+
+    /* ─── Summary cards ─── */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+    .summary-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    .summary-card .num { font-size: 28px; font-weight: 800; color: var(--primary); }
+    .summary-card .label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .summary-card.warn .num { color: var(--warning); }
+    .summary-card.ok .num { color: var(--success); }
+    .summary-card.purple .num { color: var(--accent); }
+
+    /* ─── Analysis section ─── */
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* ─── Analysis grid ─── */
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    @media (max-width: 680px) { .analysis-grid { grid-template-columns: 1fr; } }
+    .analysis-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+    .analysis-card h3 {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .analysis-card ul { list-style: none; }
+    .analysis-card li {
+      font-size: 13px;
+      padding: 5px 0;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.4;
+    }
+    .analysis-card li:last-child { border-bottom: none; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .pill.ok { background: var(--success-light); color: var(--success); }
+    .pill.warn { background: var(--warning-light); color: var(--warning); }
+    .pill.new { background: var(--primary-light); color: var(--primary); }
+    .pill.gap { background: var(--danger-light); color: var(--danger); }
+    .pill.mod { background: var(--accent-light); color: var(--accent); }
+
+    /* ─── Gap table ─── */
+    .gap-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 32px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .gap-table th {
+      background: var(--bg);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 10px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .gap-table td {
+      padding: 10px 16px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .gap-table tr:last-child td { border-bottom: none; }
+    .gap-table tr:hover td { background: var(--bg); }
+    code { font-family: 'SF Mono', Consolas, monospace; font-size: 12px; background: #f1f5f9; padding: 1px 5px; border-radius: 4px; color: #334155; }
+
+    /* ─── Stage cards ─── */
+    .stage {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .stage-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 22px;
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .stage-header:hover { background: var(--bg); }
+    .stage-num {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 800;
+      flex-shrink: 0;
+    }
+    .stage-info { flex: 1; }
+    .stage-name { font-size: 15px; font-weight: 700; }
+    .stage-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .stage-meta {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .stage-time {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .stage-progress {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .stage-toggle {
+      font-size: 18px;
+      color: var(--muted);
+      transition: transform .2s;
+    }
+    details .stage-toggle { transform: rotate(0); }
+    details[open] .stage-toggle { transform: rotate(180deg); }
+    details summary { list-style: none; }
+    details summary::-webkit-details-marker { display: none; }
+
+    .stage-body { padding: 22px; }
+
+    /* colours per stage */
+    .s1 .stage-num { background: #dbeafe; color: #1e40af; }
+    .s2 .stage-num { background: #d1fae5; color: #065f46; }
+    .s3 .stage-num { background: #ede9fe; color: #5b21b6; }
+    .s4 .stage-num { background: #fef3c7; color: #92400e; }
+    .s5 .stage-num { background: #fee2e2; color: #991b1b; }
+    .s6 .stage-num { background: #cffafe; color: #155e75; }
+    .s7 .stage-num { background: #fce7f3; color: #9d174d; }
+    .s8 .stage-num { background: #ecfdf5; color: #047857; }
+    .s9 .stage-num { background: #fef9c3; color: #854d0e; }
+    .s10 .stage-num { background: #f0fdf4; color: #166534; }
+
+    /* ─── Checklist items ─── */
+    .task-group { margin-bottom: 20px; }
+    .task-group-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+      padding-bottom: 4px;
+      border-bottom: 1px dashed var(--border);
+    }
+    .task {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid #f8fafc;
+    }
+    .task:last-child { border-bottom: none; }
+    .task input[type="checkbox"] {
+      width: 16px; height: 16px;
+      accent-color: var(--primary);
+      cursor: pointer;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+    .task label {
+      font-size: 13px;
+      cursor: pointer;
+      line-height: 1.5;
+      flex: 1;
+    }
+    .task input:checked + label {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+    .task-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 7px;
+      border-radius: 100px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      margin-left: 6px;
+    }
+    .tag-db { background: #e0f2fe; color: #0369a1; }
+    .tag-api { background: #d1fae5; color: #065f46; }
+    .tag-ui { background: #fce7f3; color: #9d174d; }
+    .tag-lib { background: #ede9fe; color: #5b21b6; }
+    .tag-sec { background: #fee2e2; color: #991b1b; }
+    .tag-test { background: #fef9c3; color: #854d0e; }
+    .tag-env { background: #f3f4f6; color: #374151; }
+
+    /* ─── Code blocks ─── */
+    .code-block {
+      background: var(--code-bg);
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin: 12px 0;
+      overflow-x: auto;
+    }
+    .code-block pre {
+      color: var(--code-text);
+      font-family: 'SF Mono', Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.7;
+      white-space: pre;
+    }
+    .code-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ─── Info box ─── */
+    .info-box {
+      border-left: 3px solid var(--primary);
+      background: var(--primary-light);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 12px 16px;
+      margin: 12px 0;
+      font-size: 13px;
+    }
+    .info-box.warn { border-color: var(--warning); background: var(--warning-light); }
+    .info-box.success { border-color: var(--success); background: var(--success-light); }
+    .info-box.danger { border-color: var(--danger); background: var(--danger-light); }
+    .info-box.purple { border-color: var(--accent); background: var(--accent-light); }
+    .info-box strong { display: block; margin-bottom: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+
+    /* ─── Map table ─── */
+    .map-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 12.5px;
+    }
+    .map-table th { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); padding: 6px 10px; text-align: left; background: var(--bg); border: 1px solid var(--border); }
+    .map-table td { padding: 7px 10px; border: 1px solid var(--border); vertical-align: top; }
+
+    /* ─── Progress bar ─── */
+    .total-progress {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 32px;
+      box-shadow: var(--shadow);
+    }
+    .total-progress h3 { font-size: 13px; font-weight: 700; margin-bottom: 12px; }
+    .progress-bar-wrap { background: var(--border); border-radius: 100px; height: 10px; overflow: hidden; margin-bottom: 8px; }
+    .progress-bar { height: 100%; background: linear-gradient(90deg, var(--primary), #3b82f6); border-radius: 100px; transition: width .5s; width: 0%; }
+    .progress-label { font-size: 12px; color: var(--muted); }
+
+    /* ─── Footer ─── */
+    .footer {
+      text-align: center;
+      padding: 32px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+    }
+    .footer a { color: var(--primary); text-decoration: none; }
+
+    /* ─── Print styles ─── */
+    @media print {
+      body { background: white; }
+      .stage-toggle { display: none; }
+      details { open: true; }
+      details .stage-body { display: block !important; }
+      .header { border-radius: 0; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- ══════════════ HEADER ══════════════ -->
+  <div class="header">
+    <div class="header-badge">🏦 Integração Asaas · Plano Técnico</div>
+    <h1>Checklist de Implementação — Asaas Payments</h1>
+    <p>Plano de 10 etapas, tecnicamente adaptado ao stack real do Calenvo: Next.js 14 App Router + NextAuth.js + Prisma + TypeScript.</p>
+    <div class="header-meta">
+      <div class="meta-item">📅 Criado: 27 de abril de 2026</div>
+      <div class="meta-item">⚙️ Stack: Next.js 14 · Prisma · NextAuth</div>
+      <div class="meta-item">🎯 Versão: Asaas Sandbox → Produção</div>
+      <div class="meta-item">⏱️ Estimativa total: ~8–12 horas</div>
+    </div>
+  </div>
+
+  <!-- ══════════════ SUMMARY CARDS ══════════════ -->
+  <div class="summary-grid">
+    <div class="summary-card"><div class="num">10</div><div class="label">Etapas</div></div>
+    <div class="summary-card warn"><div class="num">~10h</div><div class="label">Esforço estimado</div></div>
+    <div class="summary-card ok"><div class="num">3</div><div class="label">Novos arquivos de API</div></div>
+    <div class="summary-card purple"><div class="num">2</div><div class="label">Alterações no Schema</div></div>
+    <div class="summary-card"><div class="num">4</div><div class="label">Componentes UI</div></div>
+    <div class="summary-card ok"><div class="num">1</div><div class="label">Lib service</div></div>
+  </div>
+
+  <!-- ══════════════ ANÁLISE TÉCNICA ══════════════ -->
+  <p class="section-title">🔍 Análise Técnica do Projeto Atual</p>
+
+  <div class="analysis-grid">
+    <!-- Stack atual -->
+    <div class="analysis-card">
+      <h3>⚙️ Stack Real do Calenvo</h3>
+      <ul>
+        <li><span class="pill ok">✓</span> Next.js 14 App Router (não NestJS)</li>
+        <li><span class="pill ok">✓</span> NextAuth.js JWT + Prisma Adapter</li>
+        <li><span class="pill ok">✓</span> PostgreSQL + Prisma ORM</li>
+        <li><span class="pill ok">✓</span> Tailwind CSS + Shadcn/UI</li>
+        <li><span class="pill ok">✓</span> API Routes: <code>app/api/*/route.ts</code></li>
+        <li><span class="pill warn">⚠</span> Stripe parcialmente implementado (checkout + webhook)</li>
+        <li><span class="pill warn">⚠</span> Plano Standard com upgrade "simulado" (sem chamada real)</li>
+      </ul>
+    </div>
+    <!-- Modelo de dados atual -->
+    <div class="analysis-card">
+      <h3>🗄️ Modelo de Dados Atual (User = Tenant)</h3>
+      <ul>
+        <li><span class="pill ok">✓</span> <code>User.planType</code>: FREEMIUM / STANDARD / PREMIUM</li>
+        <li><span class="pill ok">✓</span> <code>User.stripeCustomerId</code></li>
+        <li><span class="pill ok">✓</span> <code>User.subscriptionId</code></li>
+        <li><span class="pill ok">✓</span> <code>User.subscriptionStatus</code></li>
+        <li><span class="pill gap">✗</span> <code>User.asaasCustomerId</code> — não existe</li>
+        <li><span class="pill gap">✗</span> <code>User.asaasSubscriptionId</code> — não existe</li>
+        <li><span class="pill gap">✗</span> Modelo <code>AsaasWebhookLog</code> — não existe</li>
+      </ul>
+    </div>
+    <!-- Auth Flow -->
+    <div class="analysis-card">
+      <h3>🔐 Fluxo de Auth / Signup</h3>
+      <ul>
+        <li><span class="pill ok">✓</span> <code>POST /api/signup</code> — cria user FREEMIUM + profissional master</li>
+        <li><span class="pill ok">✓</span> <code>POST /api/stripe/create-checkout</code> — checkout pago (Stripe)</li>
+        <li><span class="pill ok">✓</span> <code>POST /api/stripe/webhook</code> — recebe eventos Stripe</li>
+        <li><span class="pill mod">~</span> <code>app/signup/page.tsx</code> — apenas Freemium atualmente</li>
+        <li><span class="pill gap">✗</span> Signup pago integrado com Asaas — não existe</li>
+        <li><span class="pill gap">✗</span> Retorno de QR Code PIX no signup — não existe</li>
+      </ul>
+    </div>
+    <!-- Endpoints de planos -->
+    <div class="analysis-card">
+      <h3>📡 API de Planos / Assinatura Atual</h3>
+      <ul>
+        <li><span class="pill ok">✓</span> <code>GET /api/plans/usage</code> — uso atual do plano</li>
+        <li><span class="pill ok">✓</span> <code>GET /api/user/plan</code> — plano do usuário</li>
+        <li><span class="pill mod">~</span> <code>app/dashboard/plans/page.tsx</code> — botão upgrade simulado</li>
+        <li><span class="pill gap">✗</span> <code>POST /api/asaas/subscription/cancel</code> — não existe</li>
+        <li><span class="pill gap">✗</span> <code>POST /api/asaas/subscription/upgrade</code> — não existe</li>
+        <li><span class="pill gap">✗</span> <code>GET /api/asaas/subscription/pending-payment</code> — não existe</li>
+        <li><span class="pill gap">✗</span> <code>POST /api/asaas/webhook</code> — não existe</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ══════════════ MAPEAMENTO DOCS → PROJETO ══════════════ -->
+  <p class="section-title">📐 Mapeamento: Documentação Asaas → Calenvo</p>
+
+  <div style="overflow-x:auto; margin-bottom:32px;">
+    <table class="gap-table">
+      <thead>
+        <tr>
+          <th>Conceito (Docs Asaas — NestJS)</th>
+          <th>Equivalente no Calenvo (Next.js)</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>Academy</code> (entidade)</td>
+          <td><code>User</code> com <code>role = MASTER</code></td>
+          <td><span class="pill mod">adaptar</span></td>
+        </tr>
+        <tr>
+          <td><code>AsaasService</code> (NestJS Injectable)</td>
+          <td><code>lib/asaas.ts</code> — classe/funções TypeScript puras</td>
+          <td><span class="pill new">criar</span></td>
+        </tr>
+        <tr>
+          <td><code>AsaasModule</code></td>
+          <td>Não necessário — Next.js não usa módulos</td>
+          <td><span class="pill ok">N/A</span></td>
+        </tr>
+        <tr>
+          <td><code>AsaasController</code> (NestJS)</td>
+          <td><code>app/api/asaas/subscription/*/route.ts</code></td>
+          <td><span class="pill new">criar</span></td>
+        </tr>
+        <tr>
+          <td><code>AsaasWebhookController</code></td>
+          <td><code>app/api/asaas/webhook/route.ts</code></td>
+          <td><span class="pill new">criar</span></td>
+        </tr>
+        <tr>
+          <td><code>AuthService.register()</code></td>
+          <td><code>app/api/signup/route.ts</code> (modificar)</td>
+          <td><span class="pill mod">modificar</span></td>
+        </tr>
+        <tr>
+          <td><code>@UseGuards(JwtAuthGuard)</code></td>
+          <td><code>getServerSession(authOptions)</code> em cada route.ts</td>
+          <td><span class="pill ok">já existe</span></td>
+        </tr>
+        <tr>
+          <td><code>@Roles(MANAGER)</code></td>
+          <td>Verificação manual de <code>session.user.role === 'MASTER'</code></td>
+          <td><span class="pill mod">adaptar</span></td>
+        </tr>
+        <tr>
+          <td><code>academy.isActive</code></td>
+          <td><code>user.isActive</code> — campo já existe no schema</td>
+          <td><span class="pill ok">existe</span></td>
+        </tr>
+        <tr>
+          <td><code>academy.asaasCustomerId</code></td>
+          <td><code>user.asaasCustomerId</code> — adicionar ao schema</td>
+          <td><span class="pill gap">falta</span></td>
+        </tr>
+        <tr>
+          <td><code>AsaasWebhookLog</code> (model)</td>
+          <td><code>AsaasWebhookLog</code> — criar no schema</td>
+          <td><span class="pill gap">falta</span></td>
+        </tr>
+        <tr>
+          <td>Frontend <code>asaas-service.ts</code></td>
+          <td><code>lib/api.ts</code> ou novo <code>lib/asaas-client.ts</code></td>
+          <td><span class="pill new">criar</span></td>
+        </tr>
+        <tr>
+          <td>Stripe checkout + webhook (atual)</td>
+          <td>Manter Stripe; Asaas coexiste para mercado BR</td>
+          <td><span class="pill warn">coexistir</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════ PROGRESS BAR ══════════════ -->
+  <div class="total-progress">
+    <h3>📊 Progresso Geral de Implementação</h3>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="totalBar"></div>
+    </div>
+    <div class="progress-label"><span id="doneCount">0</span> de <span id="totalCount">0</span> tarefas concluídas — <span id="pct">0</span>%</div>
+  </div>
+
+  <!-- ══════════════ ETAPAS ══════════════ -->
+  <p class="section-title">📋 Etapas de Implementação</p>
+
+  <!-- ─── ETAPA 1 ─── -->
+  <div class="stage s1">
+    <details>
+      <summary>
+        <div class="stage-header">
+          <div class="stage-num">1</div>
+          <div class="stage-info">
+            <div class="stage-name">Setup · Variáveis de Ambiente</div>
+            <div class="stage-desc">Configurar credenciais Asaas no ambiente de desenvolvimento e produção</div>
+          </div>
+          <div class="stage-meta">
+            <div class="stage-time">⏱️ ~20 min</div>
+            <span class="pill warn">Pré-requisito</span>
+            <span class="stage-toggle">▾</span>
+          </div>
+        </div>
+      </summary>
+      <div class="stage-body">
+        <div class="info-box">
+          <strong>📌 Objetivo</strong>
+          Obter as credenciais no painel Asaas Sandbox e configurar todas as variáveis necessárias no <code>.env</code> e no Netlify/deployment.
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Conta &amp; Credenciais Asaas</div>
+          <div class="task"><input type="checkbox" id="t1_1"><label for="t1_1">Acessar <a href="https://sandbox.asaas.com" target="_blank">sandbox.asaas.com</a> e criar/acessar conta <span class="task-tag tag-env">env</span></label></div>
+          <div class="task"><input type="checkbox" id="t1_2"><label for="t1_2">Obter a <strong>API Key</strong> em: Configurações → Integração → Chave de API <span class="task-tag tag-env">env</span></label></div>
+          <div class="task"><input type="checkbox" id="t1_3"><label for="t1_3">Criar/obter <strong>Webhook Token</strong> em: Configurações → Notificações → Webhooks <span class="task-tag tag-env">env</span></label></div>
+          <div class="task"><input type="checkbox" id="t1_4"><label for="t1_4">Configurar a URL do webhook no painel Asaas (<code>https://dominio.com/api/asaas/webhook</code>) <span class="task-tag tag-env">env</span></label></div>
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Arquivo .env (local)</div>
+          <div class="code-block">
+            <div class="code-label">📄 .env (adicionar)</div>
+            <pre># ─── Asaas (Pagamentos BR) ───────────────────────────
+ASAAS_API_KEY=$aact_hmlg_SEU_TOKEN_AQUI
+ASAAS_API_URL=https://sandbox.asaas.com/api/v3
+ASAAS_WEBHOOK_TOKEN=whsec_SEU_TOKEN_AQUI</pre>
+          </div>
+          <div class="task"><input type="checkbox" id="t1_5"><label for="t1_5">Adicionar bloco Asaas ao <code>.env</code> local com as credenciais reais do sandbox <span class="task-tag tag-env">env</span></label></div>
+          <div class="task"><input type="checkbox" id="t1_6"><label for="t1_6">Adicionar as mesmas chaves (com valores placeholder) ao <code>.env.example</code> para documentação <span class="task-tag tag-env">env</span></label></div>
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Variáveis no Netlify (produção)</div>
+          <div class="task"><input type="checkbox" id="t1_7"><label for="t1_7">Ir em Netlify → Site → Environment Variables e adicionar as 3 variáveis Asaas <span class="task-tag tag-env">env</span></label></div>
+          <div class="task"><input type="checkbox" id="t1_8"><label for="t1_8">Verificar que <code>NEXT_PUBLIC_APP_URL</code> está configurado corretamente no Netlify <span class="task-tag tag-env">env</span></label></div>
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">ngrok (testes locais de webhook)</div>
+          <div class="code-block">
+            <div class="code-label">💻 Terminal</div>
+            <pre>ngrok http 3000
+# Copiar a URL gerada (ex: https://abc123.ngrok.io)
+# Cadastrar no painel Asaas: https://abc123.ngrok.io/api/asaas/webhook</pre>
+          </div>
+          <div class="task"><input type="checkbox" id="t1_9"><label for="t1_9">Instalar e configurar ngrok para testes locais de webhook <span class="task-tag tag-test">test</span></label></div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ─── ETAPA 2 ─── -->
+  <div class="stage s2">
+    <details>
+      <summary>
+        <div class="stage-header">
+          <div class="stage-num">2</div>
+          <div class="stage-info">
+            <div class="stage-name">Schema Prisma · Extensão do Modelo</div>
+            <div class="stage-desc">Adicionar campos Asaas ao User e criar o modelo AsaasWebhookLog</div>
+          </div>
+          <div class="stage-meta">
+            <div class="stage-time">⏱️ ~25 min</div>
+            <span class="pill new">Novo</span>
+            <span class="stage-toggle">▾</span>
+          </div>
+        </div>
+      </summary>
+      <div class="stage-body">
+        <div class="info-box warn">
+          <strong>⚠️ Atenção</strong>
+          Na documentação Asaas, a entidade é <code>Academy</code>. No Calenvo, o tenant (dono do negócio) é o <code>User</code> com <code>role = MASTER</code>. Todo campo que nos docs vai em <code>Academy</code> vai em <code>User</code>.
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Campos a adicionar no modelo User</div>
+          <div class="code-block">
+            <div class="code-label">📄 prisma/schema.prisma — dentro do model User</div>
+            <pre>model User {
+  // ... campos existentes ...
+
+  // ─── Asaas Integration ───────────────────
+  asaasCustomerId     String?  // ID do cliente no Asaas (cus_...)
+  asaasSubscriptionId String?  // ID da assinatura (sub_...)
+  // Nota: isActive já existe ✓
+  // Nota: planType já existe (FREEMIUM/STANDARD/PREMIUM) ✓
+
+  // ... resto do modelo ...
+}</pre>
+          </div>
+          <div class="task"><input type="checkbox" id="t2_1"><label for="t2_1">Adicionar campo <code>asaasCustomerId String?</code> ao model <code>User</code> em <code>prisma/schema.prisma</code> <span class="task-tag tag-db">db</span></label></div>
+          <div class="task"><input type="checkbox" id="t2_2"><label for="t2_2">Adicionar campo <code>asaasSubscriptionId String?</code> ao model <code>User</code> <span class="task-tag tag-db">db</span></label></div>
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Criar modelo AsaasWebhookLog</div>
+          <div class="code-block">
+            <div class="code-label">📄 prisma/schema.prisma — adicionar ao final</div>
+            <pre>/// Log de idempotência e auditoria de webhooks Asaas
+model AsaasWebhookLog {
+  id         String   @id @default(cuid())
+  asaasEvent String   // ex: "PAYMENT_RECEIVED", "PAYMENT_OVERDUE"
+  paymentId  String?  // ID do payment no Asaas (pay_...)
+  payload    Json     // Payload JSON completo do webhook
+  processed  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([paymentId])
+  @@map("asaas_webhook_logs")
+}</pre>
+          </div>
+          <div class="task"><input type="checkbox" id="t2_3"><label for="t2_3">Adicionar modelo <code>AsaasWebhookLog</code> ao schema com campos: id, asaasEvent, paymentId, payload, processed, createdAt <span class="task-tag tag-db">db</span></label></div>
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Executar migração</div>
+          <div class="code-block">
+            <div class="code-label">💻 Terminal</div>
+            <pre>npx prisma migrate dev --name add_asaas_integration
+npx prisma generate</pre>
+          </div>
+          <div class="task"><input type="checkbox" id="t2_4"><label for="t2_4">Executar <code>npx prisma migrate dev --name add_asaas_integration</code> <span class="task-tag tag-db">db</span></label></div>
+          <div class="task"><input type="checkbox" id="t2_5"><label for="t2_5">Executar <code>npx prisma generate</code> e verificar tipos gerados <span class="task-tag tag-db">db</span></label></div>
+          <div class="task"><input type="checkbox" id="t2_6"><label for="t2_6">Verificar no Prisma Studio que a tabela <code>asaas_webhook_logs</code> foi criada <span class="task-tag tag-db">db</span></label></div>
+          <div class="task"><input type="checkbox" id="t2_7"><label for="t2_7">Verificar que as colunas <code>asaasCustomerId</code> e <code>asaasSubscriptionId</code> existem na tabela <code>users</code> <span class="task-tag tag-db">db</span></label></div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ─── ETAPA 3 ─── -->
+  <div class="stage s3">
+    <details>
+      <summary>
+        <div class="stage-header">
+          <div class="stage-num">3</div>
+          <div class="stage-info">
+            <div class="stage-name">lib/asaas.ts · Serviço de Integração</div>
+            <div class="stage-desc">Criar o serviço TypeScript puro que encapsula todas as chamadas REST ao Asaas</div>
+          </div>
+          <div class="stage-meta">
+            <div class="stage-time">⏱️ ~60 min</div>
+            <span class="pill new">Novo arquivo</span>
+            <span class="stage-toggle">▾</span>
+          </div>
+        </div>
+      </summary>
+      <div class="stage-body">
+        <div class="info-box purple">
+          <strong>🏗️ Padrão de design</strong>
+          A documentação usa NestJS <code>@Injectable()</code>. No Next.js, criamos um módulo TypeScript com uma classe e funções exportadas, usando <code>fetch</code> nativo (sem axios). Isso elimina dependências externas.
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Criar lib/asaas.ts</div>
+          <div class="code-block">
+            <div class="code-label">📄 lib/asaas.ts — estrutura base</div>
+            <pre>const ASAAS_API_URL = process.env.ASAAS_API_URL ?? 'https://sandbox.asaas.com/api/v3'
+const ASAAS_API_KEY = process.env.ASAAS_API_KEY ?? ''
+
+async function asaasFetch(path: string, init: RequestInit = {}) {
+  const res = await fetch(`${ASAAS_API_URL}${path}`, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      access_token: ASAAS_API_KEY,
+      ...init.headers,
+    },
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(JSON.stringify(err))
+  }
+  return res.json()
+}
+
+export const asaas = {
+  createCustomer(data: AsaasCreateCustomerInput) { ... },
+  createSubscription(data: AsaasCreateSubscriptionInput) { ... },
+  cancelSubscription(subscriptionId: string) { ... },
+  getPaymentsBySubscription(subscriptionId: string) { ... },
+  getPixQrCode(paymentId: string) { ... },
+  getSubscription(subscriptionId: string) { ... },
+}</pre>
+          </div>
+          <div class="task"><input type="checkbox" id="t3_1"><label for="t3_1">Criar arquivo <code>lib/asaas.ts</code> com helper interno <code>asaasFetch()</code> <span class="task-tag tag-lib">lib</span></label></div>
+          <div class="task"><input type="checkbox" id="t3_2"><label for="t3_2">Implementar <code>asaas.createCustomer()</code> — <code>POST /customers</code> <span class="task-tag tag-lib">lib</span></label></div>
+          <div class="task"><input type="checkbox" id="t3_3"><label for="t3_3">Implementar <code>asaas.createSubscription()</code> — <code>POST /subscriptions</code> com suporte a PIX e cartão <span class="task-tag tag-lib">lib</span></label></div>
+          <div class="task"><input type="checkbox" id="t3_4"><label for="t3_4">Implementar <code>asaas.cancelSubscription()</code> — <code>DELETE /subscriptions/:id</code> <span class="task-tag tag-lib">lib</span></label></div>
+          <div class="task"><input type="checkbox" id="t3_5"><label for="t3_5">Implementar <code>asaas.getPaymentsBySubscription()</code> — <code>GET /payments?subscription=id</code> <span class="task-tag tag-lib">lib</span></label></div>
+          <div class="task"><input type="checkbox" id="t3_6"><label for="t3_6">Implementar <code>asaas.getPixQrCode()</code> — <code>GET /payments/:id/pixQrCode</code> <span class="task-tag tag-lib">lib</span></label></div>
+          <div class="task"><input type="checkbox" id="t3_7"><label for="t3_7">Implementar <code>asaas.getSubscription()</code> — <code>GET /subscriptions/:id</code> <span class="task-tag tag-lib">lib</span></label></div>
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Tipos TypeScript</div>
+          <div class="task"><input type="checkbox" id="t3_8"><label for="t3_8">Criar interfaces/types para inputs e responses do Asaas (ex: <code>AsaasCustomer</code>, <code>AsaasSubscription</code>, <code>AsaasPayment</code>, <code>AsaasPixQrCode</code>) <span class="task-tag tag-lib">lib</span></label></div>
+          <div class="task"><input type="checkbox" id="t3_9"><label for="t3_9">Tratar erros da API Asaas de forma consistente (erro 4xx vira mensagem amigável) <span class="task-tag tag-sec">sec</span></label></div>
+          <div class="task"><input type="checkbox" id="t3_10"><label for="t3_10">Verificar que <code>ASAAS_API_KEY</code> e <code>ASAAS_API_URL</code> não são expostos no client bundle (uso apenas em server-side) <span class="task-tag tag-sec">sec</span></label></div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ─── ETAPA 4 ─── -->
+  <div class="stage s4">
+    <details>
+      <summary>
+        <div class="stage-header">
+          <div class="stage-num">4</div>
+          <div class="stage-info">
+            <div class="stage-name">Webhook Handler · /api/asaas/webhook</div>
+            <div class="stage-desc">Criar endpoint que recebe eventos Asaas com validação de token e idempotência</div>
+          </div>
+          <div class="stage-meta">
+            <div class="stage-time">⏱️ ~60 min</div>
+            <span class="pill new">Novo arquivo</span>
+            <span class="stage-toggle">▾</span>
+          </div>
+        </div>
+      </summary>
+      <div class="stage-body">
+        <div class="info-box">
+          <strong>📌 Arquivo a criar</strong>
+          <code>app/api/asaas/webhook/route.ts</code> — equivalente ao <code>AsaasWebhookController</code> da documentação.
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Estrutura do Route Handler</div>
+          <div class="code-block">
+            <div class="code-label">📄 app/api/asaas/webhook/route.ts — fluxo esperado</div>
+            <pre>export const dynamic = 'force-dynamic'
+
+export async function POST(req: NextRequest) {
+  // 1. Ler body e validar estrutura
+  const body = await req.json()
+  if (!body?.event || !body?.payment) return Response.json({ received: true })
+
+  // 2. Validar header asaas-access-token
+  const token = req.headers.get('asaas-access-token')
+  if (token !== process.env.ASAAS_WEBHOOK_TOKEN) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { event, payment } = body
+
+  // 3. Gravar log (idempotência)
+  const log = await prisma.asaasWebhookLog.create({
+    data: { asaasEvent: event, paymentId: payment.id, payload: body }
+  })
+
+  // 4. Verificar se já foi processado
+  const dup = await prisma.asaasWebhookLog.findFirst({
+    where: { paymentId: payment.id, asaasEvent: event, processed: true }
+  })
+  if (dup) return Response.json({ received: true }) // skip
+
+  // 5. Encontrar User (pelo externalReference ou asaasCustomerId)
+  const user = await prisma.user.findFirst({
+    where: { OR: [{ id: payment.externalReference }, { asaasCustomerId: payment.customer }] }
+  })
+  if (!user) return Response.json({ received: true })
+
+  // 6. Processar evento → atualizar isActive / planType
+  // ...
+
+  // 7. Marcar log como processado
+  await prisma.asaasWebhookLog.update({ where: { id: log.id }, data: { processed: true } })
+
+  return Response.json({ received: true })
+}</pre>
+          </div>
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Tarefas de implementação</div>
+          <div class="task"><input type="checkbox" id="t4_1"><label for="t4_1">Criar estrutura de pastas <code>app/api/asaas/webhook/</code> e arquivo <code>route.ts</code> <span class="task-tag tag-api">api</span></label></div>
+          <div class="task"><input type="checkbox" id="t4_2"><label for="t4_2">Implementar validação do header <code>asaas-access-token</code> vs <code>ASAAS_WEBHOOK_TOKEN</code> <span class="task-tag tag-sec">sec</span></label></div>
+          <div class="task"><input type="checkbox" id="t4_3"><label for="t4_3">Implementar gravação do log em <code>AsaasWebhookLog</code> antes de processar <span class="task-tag tag-api">api</span></label></div>
+          <div class="task"><input type="checkbox" id="t4_4"><label for="t4_4">Implementar verificação de idempotência (checar <code>processed = true</code> para mesmo <code>paymentId</code> + evento) <span class="task-tag tag-api">api</span></label></div>
+          <div class="task"><input type="checkbox" id="t4_5"><label for="t4_5">Implementar busca do <code>User</code> por <code>payment.externalReference</code> (userId) OU <code>payment.customer</code> (asaasCustomerId) <span class="task-tag tag-api">api</span></label></div>
+          <div class="task"><input type="checkbox" id="t4_6"><label for="t4_6">Implementar lógica de <code>PAYMENT_RECEIVED</code> e <code>PAYMENT_CONFIRMED</code> → <code>user.isActive = true</code> + <code>planType = STANDARD</code> <span class="task-tag tag-api">api</span></label></div>
+          <div class="task"><input type="checkbox" id="t4_7"><label for="t4_7">Implementar lógica de <code>PAYMENT_OVERDUE</code>, <code>PAYMENT_REFUNDED</code>, <code>PAYMENT_CHARGEBACK_REQUESTED</code> → <code>user.isActive = false</code> <span class="task-tag tag-api">api</span></label></div>
+          <div class="task"><input type="checkbox" id="t4_8"><label for="t4_8">Implementar lógica de <code>PAYMENT_DELETED</code> → limpar <code>asaasSubscriptionId</code>, resetar <code>planType = FREEMIUM</code> <span class="task-tag tag-api">api</span></label></div>
+          <div class="task"><input type="checkbox" id="t4_9"><label for="t4_9">Marcar log como <code>processed = true</code> ao finalizar com sucesso <span class="task-tag tag-api">api</span></label></div>
+          <div class="task"><input type="checkbox" id="t4_10"><label for="t4_10">Adicionar <code>export const dynamic = 'force-dynamic'</code> no topo do arquivo <span class="task-tag tag-api">api</span></label></div>
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Tabela de eventos a tratar</div>
+          <table class="map-table">
+            <tr><th>Evento Asaas</th><th>Ação no Calenvo</th></tr>
+            <tr><td><code>PAYMENT_RECEIVED</code></td><td><code>user.isActive = true</code>, <code>planType = STANDARD</code></td></tr>
+            <tr><td><code>PAYMENT_CONFIRMED</code></td><td><code>user.isActive = true</code>, <code>planType = STANDARD</code></td></tr>
+            <tr><td><code>PAYMENT_OVERDUE</code></td><td><code>user.isActive = false</code></td></tr>
+            <tr><td><code>PAYMENT_REFUNDED</code></td><td><code>user.isActive = false</code>, <code>planType = FREEMIUM</code></td></tr>
+            <tr><td><code>PAYMENT_CHARGEBACK_REQUESTED</code></td><td><code>user.isActive = false</code></td></tr>
+            <tr><td><code>PAYMENT_DELETED</code></td><td>Limpar <code>asaasSubscriptionId</code>, <code>planType = FREEMIUM</code></td></tr>
+            <tr><td><code>PAYMENT_PENDING</code></td><td>Log apenas (informativo)</td></tr>
+          </table>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ─── ETAPA 5 ─── -->
+  <div class="stage s5">
+    <details>
+      <summary>
+        <div class="stage-header">
+          <div class="stage-num">5</div>
+          <div class="stage-info">
+            <div class="stage-name">Endpoints de Assinatura · Cancel / Upgrade / Pending</div>
+            <div class="stage-desc">Criar 3 route handlers para gerenciamento de assinatura ativa</div>
+          </div>
+          <div class="stage-meta">
+            <div class="stage-time">⏱️ ~75 min</div>
+            <span class="pill new">3 novos endpoints</span>
+            <span class="stage-toggle">▾</span>
+          </div>
+        </div>
+      </summary>
+      <div class="stage-body">
+
+        <div class="task-group">
+          <div class="task-group-title">app/api/asaas/subscription/cancel/route.ts</div>
+          <div class="code-block">
+            <div class="code-label">📄 Fluxo esperado</div>
+            <pre>POST /api/asaas/subscription/cancel (auth: MASTER)
+
+1. getServerSession(authOptions) → verificar role === 'MASTER'
+2. prisma.user.findUnique({ where: { id: session.user.id } })
+3. Se !user.asaasSubscriptionId → 400
+4. asaas.cancelSubscription(user.asaasSubscriptionId)
+5. prisma.user.update → asaasSubscriptionId: null, planType: 'FREEMIUM'
+6. return { message: 'Assinatura cancelada.' }</pre>
+          </div>
+          <div class="task"><input type="checkbox" id="t5_1"><label for="t5_1">Criar pasta <code>app/api/asaas/subscription/cancel/</code> com <code>route.ts</code> <span class="task-tag tag-api">api</span></label></div>
+          <div class="task"><input type="checkbox" id="t5_2"><label for="t5_2">Autenticar via <code>getServerSession</code> e verificar <code>role === 'MASTER'</code> <span class="task-tag tag-sec">sec</span></label></div>
+          <div class="task"><input type="checkbox" id="t5_3"><label for="t5_3">Chamar <code>asaas.cancelSubscription()</code> e atualizar <code>User</code> no banco <span class="task-tag tag-api">api</span></label></div>
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">app/api/asaas/subscription/upgrade/route.ts</div>
+          <div class="code-block">
+            <div class="code-label">📄 Fluxo esperado</div>
+            <pre">POST /api/asaas/subscription/upgrade (auth: MASTER)
+Body: { newPlanKey: 'STANDARD' | 'PREMIUM', creditCard?, creditCardHolderInfo? }
+
+1. Verificar sessão
+2. Buscar User + definir preço do novo plano (via PLAN_CONFIGS)
+3. Se asaasCustomerId não existe → criar customer primeiro
+4. Se asaasSubscriptionId existe → cancelar assinatura anterior
+5. asaas.createSubscription() com novo valor e billingType
+6. Se PIX: buscar QR Code
+7. prisma.user.update → asaasSubscriptionId, planType
+8. Retornar { message, pixPayload?, pixEncodedImage? }</pre>
+          </div>
+          <div class="task"><input type="checkbox" id="t5_4"><label for="t5_4">Criar pasta <code>app/api/asaas/subscription/upgrade/</code> com <code>route.ts</code> <span class="task-tag tag-api">api</span></label></div>
+          <div class="task"><input type="checkbox" id="t5_5"><label for="t5_5">Suportar upgrade para STANDARD e PREMIUM com preços vindos de <code>PLAN_CONFIGS</code> (<code>lib/types.ts</code>) <span class="task-tag tag-api">api</span></label></div>
+          <div class="task"><input type="checkbox" id="t5_6"><label for="t5_6">Criar customer Asaas automaticamente se <code>asaasCustomerId</code> for null <span class="task-tag tag-api">api</span></label></div>
+          <div class="task"><input type="checkbox" id="t5_7"><label for="t5_7">Aceitar métodos de pagamento PIX e cartão de crédito <span class="task-tag tag-api">api</span></label></div>
+          <div class="task"><input type="checkbox" id="t5_8"><label for="t5_8">Retornar <code>pixPayload</code> e <code>pixEncodedImage</code> para pagamentos PIX <span class="task-tag tag-api">api</span></label></div>
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">app/api/asaas/subscription/pending-payment/route.ts</div>
+          <div class="code-block">
+            <div class="code-label">📄 Fluxo esperado</div>
+            <pre>GET /api/asaas/subscription/pending-payment (auth: MASTER)
+
+1. Verificar sessão
+2. Buscar User.asaasSubscriptionId
+3. asaas.getPaymentsBySubscription() → filtrar status PENDING/OVERDUE
+4. Se PIX → asaas.getPixQrCode()
+5. Retornar { invoiceUrl, billingType, value, dueDate, status, pixPayload, pixEncodedImage }
+</pre>
+          </div>
+          <div class="task"><input type="checkbox" id="t5_9"><label for="t5_9">Criar pasta <code>app/api/asaas/subscription/pending-payment/</code> com <code>route.ts</code> <span class="task-tag tag-api">api</span></label></div>
+          <div class="task"><input type="checkbox" id="t5_10"><label for="t5_10">Retornar <code>null</code> se não houver assinatura ativa ou pagamento pendente <span class="task-tag tag-api">api</span></label></div>
+          <div class="task"><input type="checkbox" id="t5_11"><label for="t5_11">Tratar graciosamente erro de QR Code não disponível ainda (try/catch interno) <span class="task-tag tag-api">api</span></label></div>
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Padrão de resposta e erros</div>
+          <div class="task"><input type="checkbox" id="t5_12"><label for="t5_12">Todos os endpoints retornam <code>{ error: string }</code> em caso de falha, nunca expõem dados internos <span class="task-tag tag-sec">sec</span></label></div>
+          <div class="task"><input type="checkbox" id="t5_13"><label for="t5_13">Adicionar <code>export const dynamic = 'force-dynamic'</code> em todos os novos routes <span class="task-tag tag-api">api</span></label></div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ─── ETAPA 6 ─── -->
+  <div class="stage s6">
+    <details>
+      <summary>
+        <div class="stage-header">
+          <div class="stage-num">6</div>
+          <div class="stage-info">
+            <div class="stage-name">Integrar Asaas no Signup · /api/signup</div>
+            <div class="stage-desc">Modificar o fluxo de cadastro para criar customer/subscription Asaas nos planos pagos</div>
+          </div>
+          <div class="stage-meta">
+            <div class="stage-time">⏱️ ~60 min</div>
+            <span class="pill mod">Modificar existente</span>
+            <span class="stage-toggle">▾</span>
+          </div>
+        </div>
+      </summary>
+      <div class="stage-body">
+        <div class="info-box warn">
+          <strong>⚠️ Decisão de arquitetura</strong>
+          Atualmente <code>/api/signup</code> só cria usuários FREEMIUM. O fluxo pago usa Stripe (<code>/api/stripe/create-checkout</code>). Para Asaas, criaremos uma variante: ou (a) estender o signup existente com campo <code>planKey</code> e dados Asaas, ou (b) criar <code>/api/asaas/signup</code> separado. A opção (b) é mais segura e não quebra o fluxo atual.
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Estratégia: novo endpoint /api/asaas/signup</div>
+          <div class="code-block">
+            <div class="code-label">📄 app/api/asaas/signup/route.ts — fluxo</div>
+            <pre>POST /api/asaas/signup
+Body: {
+  email, password, name, businessName, segmentType, phone,
+  planKey: 'STANDARD' | 'PREMIUM',
+  paymentMethod: 'PIX' | 'CREDIT_CARD',
+  document,          // CPF ou CNPJ (sem máscara)
+  postalCode,        // CEP (8 dígitos)
+  address,
+  addressNumber,
+  creditCard?,       // apenas se CREDIT_CARD
+  creditCardHolderInfo? // apenas se CREDIT_CARD
+}
+
+// Fluxo:
+1. Validar campos obrigatórios (Zod ou manual)
+2. Verificar email não duplicado
+3. Hash password
+4. prisma.$transaction():
+   a. user.create (planType = planKey, isActive = false se plano pago)
+   b. user.create (PROFESSIONAL master automático — igual signup atual)
+   c. businessConfig.create
+5. asaas.createCustomer({ name, email, phone, cpfCnpj: document, externalReference: user.id, ... })
+6. asaas.createSubscription({ customer: cus_id, billingType, value, ... externalReference: user.id })
+7. Se PIX: getPaymentsBySubscription → getPixQrCode
+8. prisma.user.update(asaasCustomerId, asaasSubscriptionId)
+9. Retornar { accessToken?, userId, pixPayload?, pixEncodedImage?, invoiceUrl? }</pre>
+          </div>
+          <div class="task"><input type="checkbox" id="t6_1"><label for="t6_1">Criar <code>app/api/asaas/signup/route.ts</code> com o fluxo completo de cadastro pago <span class="task-tag tag-api">api</span></label></div>
+          <div class="task"><input type="checkbox" id="t6_2"><label for="t6_2">Validar todos os campos obrigatórios (email, password, name, businessName, phone, document, planKey) <span class="task-tag tag-sec">sec</span></label></div>
+          <div class="task"><input type="checkbox" id="t6_3"><label for="t6_3">Usar <code>prisma.$transaction()</code> para garantir atomicidade (user + profissional master + businessConfig) <span class="task-tag tag-db">db</span></label></div>
+          <div class="task"><input type="checkbox" id="t6_4"><label for="t6_4">Criar user com <code>isActive = false</code> para planos pagos (ativação via webhook) <span class="task-tag tag-api">api</span></label></div>
+          <div class="task"><input type="checkbox" id="t6_5"><label for="t6_5">Chamar <code>asaas.createCustomer()</code> passando <code>externalReference: user.id</code> <span class="task-tag tag-api">api</span></label></div>
+          <div class="task"><input type="checkbox" id="t6_6"><label for="t6_6">Chamar <code>asaas.createSubscription()</code> com valor correto conforme <code>PLAN_CONFIGS</code> <span class="task-tag tag-api">api</span></label></div>
+          <div class="task"><input type="checkbox" id="t6_7"><label for="t6_7">Para PIX: buscar QR Code e incluir no retorno <span class="task-tag tag-api">api</span></label></div>
+          <div class="task"><input type="checkbox" id="t6_8"><label for="t6_8">Salvar <code>asaasCustomerId</code> e <code>asaasSubscriptionId</code> no User <span class="task-tag tag-db">db</span></label></div>
+          <div class="task"><input type="checkbox" id="t6_9"><label for="t6_9">Se Asaas falhar: lançar erro e garantir rollback (não criar user sem customer Asaas) <span class="task-tag tag-sec">sec</span></label></div>
+          <div class="task"><input type="checkbox" id="t6_10"><label for="t6_10">Enviar email de boas-vindas (se aplicável — usar <code>lib/email-templates.ts</code>) <span class="task-tag tag-api">api</span></label></div>
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Validações de dados brasileiros</div>
+          <div class="task"><input type="checkbox" id="t6_11"><label for="t6_11">Validar <code>document</code>: CPF (11 dígitos) ou CNPJ (14 dígitos) sem máscara <span class="task-tag tag-sec">sec</span></label></div>
+          <div class="task"><input type="checkbox" id="t6_12"><label for="t6_12">Validar <code>postalCode</code>: 8 dígitos sem hífen <span class="task-tag tag-sec">sec</span></label></div>
+          <div class="task"><input type="checkbox" id="t6_13"><label for="t6_13">Sanitizar dados de cartão de crédito (nunca logar número completo) <span class="task-tag tag-sec">sec</span></label></div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ─── ETAPA 7 ─── -->
+  <div class="stage s7">
+    <details>
+      <summary>
+        <div class="stage-header">
+          <div class="stage-num">7</div>
+          <div class="stage-info">
+            <div class="stage-name">UI · Página de Cadastro Pago com Asaas</div>
+            <div class="stage-desc">Criar a página de signup para planos pagos com suporte a PIX e cartão de crédito</div>
+          </div>
+          <div class="stage-meta">
+            <div class="stage-time">⏱️ ~90 min</div>
+            <span class="pill new">Nova página</span>
+            <span class="stage-toggle">▾</span>
+          </div>
+        </div>
+      </summary>
+      <div class="stage-body">
+        <div class="info-box">
+          <strong>📌 Estratégia de UI</strong>
+          Criar <code>app/signup/pro/page.tsx</code> (ou <code>app/signup/asaas/page.tsx</code>) como página de cadastro para planos pagos via Asaas. Pode ser acessada a partir da página de planos ou landing page.
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Formulário de cadastro pago</div>
+          <div class="task"><input type="checkbox" id="t7_1"><label for="t7_1">Criar <code>app/signup/pro/page.tsx</code> com layout similar ao signup atual <span class="task-tag tag-ui">ui</span></label></div>
+          <div class="task"><input type="checkbox" id="t7_2"><label for="t7_2">Criar componente <code>components/auth/asaas-signup-form.tsx</code> com campos: nome, email, senha, telefone, nome do negócio, segmento, CPF/CNPJ, CEP, endereço <span class="task-tag tag-ui">ui</span></label></div>
+          <div class="task"><input type="checkbox" id="t7_3"><label for="t7_3">Adicionar seletor de plano (Standard / Premium) com preços e features exibidos <span class="task-tag tag-ui">ui</span></label></div>
+          <div class="task"><input type="checkbox" id="t7_4"><label for="t7_4">Adicionar seletor de método de pagamento: PIX ou Cartão de Crédito <span class="task-tag tag-ui">ui</span></label></div>
+          <div class="task"><input type="checkbox" id="t7_5"><label for="t7_5">Condicional: exibir campos de cartão (número, validade, CVV, titular, CPF titular) apenas se método = Cartão <span class="task-tag tag-ui">ui</span></label></div>
+          <div class="task"><input type="checkbox" id="t7_6"><label for="t7_6">Usar máscaras de input para CPF/CNPJ, CEP, cartão (pode usar <code>react-input-mask</code> ou lógica manual) <span class="task-tag tag-ui">ui</span></label></div>
+          <div class="task"><input type="checkbox" id="t7_7"><label for="t7_7">Ao submeter: chamar <code>POST /api/asaas/signup</code> e tratar loading/error com toast <span class="task-tag tag-ui">ui</span></label></div>
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Exibição pós-cadastro (PIX)</div>
+          <div class="task"><input type="checkbox" id="t7_8"><label for="t7_8">Criar componente <code>components/auth/pix-qr-display.tsx</code> para exibir QR Code PIX após cadastro <span class="task-tag tag-ui">ui</span></label></div>
+          <div class="task"><input type="checkbox" id="t7_9"><label for="t7_9">Exibir imagem do QR Code (base64) e código PIX copia-cola <span class="task-tag tag-ui">ui</span></label></div>
+          <div class="task"><input type="checkbox" id="t7_10"><label for="t7_10">Botão "Copiar código PIX" com feedback visual (toast/clipboard) <span class="task-tag tag-ui">ui</span></label></div>
+          <div class="task"><input type="checkbox" id="t7_11"><label for="t7_11">Mensagem informando que o acesso será liberado automaticamente após confirmação do pagamento <span class="task-tag tag-ui">ui</span></label></div>
+          <div class="task"><input type="checkbox" id="t7_12"><label for="t7_12">Para cartão: redirecionar para <code>/login</code> com mensagem de sucesso (acesso quase imediato) <span class="task-tag tag-ui">ui</span></label></div>
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Links e navegação</div>
+          <div class="task"><input type="checkbox" id="t7_13"><label for="t7_13">Adicionar link para <code>/signup/pro</code> na landing page e na página <code>/signup</code> atual <span class="task-tag tag-ui">ui</span></label></div>
+          <div class="task"><input type="checkbox" id="t7_14"><label for="t7_14">Adicionar link "Já tem conta?" → <code>/login</code> <span class="task-tag tag-ui">ui</span></label></div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ─── ETAPA 8 ─── -->
+  <div class="stage s8">
+    <details>
+      <summary>
+        <div class="stage-header">
+          <div class="stage-num">8</div>
+          <div class="stage-info">
+            <div class="stage-name">UI · Dashboard de Planos (Atualização)</div>
+            <div class="stage-desc">Conectar a página de planos existente aos endpoints Asaas reais</div>
+          </div>
+          <div class="stage-meta">
+            <div class="stage-time">⏱️ ~60 min</div>
+            <span class="pill mod">Modificar existente</span>
+            <span class="stage-toggle">▾</span>
+          </div>
+        </div>
+      </summary>
+      <div class="stage-body">
+        <div class="info-box">
+          <strong>📌 Arquivo a modificar</strong>
+          <code>app/dashboard/plans/page.tsx</code> — substituir o <code>handleUpgrade</code> simulado por chamadas reais aos endpoints Asaas.
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Funcionalidades a implementar</div>
+          <div class="task"><input type="checkbox" id="t8_1"><label for="t8_1">Substituir <code>handleUpgrade</code> simulado pela chamada real a <code>POST /api/asaas/subscription/upgrade</code> <span class="task-tag tag-ui">ui</span></label></div>
+          <div class="task"><input type="checkbox" id="t8_2"><label for="t8_2">Adicionar botão "Cancelar Assinatura" com modal de confirmação para usuários com plano pago <span class="task-tag tag-ui">ui</span></label></div>
+          <div class="task"><input type="checkbox" id="t8_3"><label for="t8_3">Criar componente de modal/dialog para cancelamento com aviso sobre perda de recursos <span class="task-tag tag-ui">ui</span></label></div>
+          <div class="task"><input type="checkbox" id="t8_4"><label for="t8_4">Adicionar seção "Pagamento Pendente" que busca <code>GET /api/asaas/subscription/pending-payment</code> <span class="task-tag tag-ui">ui</span></label></div>
+          <div class="task"><input type="checkbox" id="t8_5"><label for="t8_5">Se houver pagamento pendente PIX: exibir QR Code e copia-cola diretamente na página de planos <span class="task-tag tag-ui">ui</span></label></div>
+          <div class="task"><input type="checkbox" id="t8_6"><label for="t8_6">Se houver pagamento pendente com invoice: exibir botão "Pagar agora" abrindo link Asaas <span class="task-tag tag-ui">ui</span></label></div>
+          <div class="task"><input type="checkbox" id="t8_7"><label for="t8_7">Exibir badge de status de pagamento: ATIVO / PENDENTE / VENCIDO na página de planos <span class="task-tag tag-ui">ui</span></label></div>
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Formulário de upgrade com método de pagamento</div>
+          <div class="task"><input type="checkbox" id="t8_8"><label for="t8_8">Criar dialog de upgrade que permite escolher PIX ou Cartão <span class="task-tag tag-ui">ui</span></label></div>
+          <div class="task"><input type="checkbox" id="t8_9"><label for="t8_9">Se PIX: exibir QR Code gerado após submit do upgrade <span class="task-tag tag-ui">ui</span></label></div>
+          <div class="task"><input type="checkbox" id="t8_10"><label for="t8_10">Se Cartão: coletar dados do cartão no dialog antes de submeter <span class="task-tag tag-ui">ui</span></label></div>
+          <div class="task"><input type="checkbox" id="t8_11"><label for="t8_11">Após cancelamento: atualizar UI imediatamente (refetch usage data) e exibir toast de confirmação <span class="task-tag tag-ui">ui</span></label></div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ─── ETAPA 9 ─── -->
+  <div class="stage s9">
+    <details>
+      <summary>
+        <div class="stage-header">
+          <div class="stage-num">9</div>
+          <div class="stage-info">
+            <div class="stage-name">Segurança, Validação &amp; Proteção</div>
+            <div class="stage-desc">Garantir que a integração não introduza vulnerabilidades (OWASP Top 10)</div>
+          </div>
+          <div class="stage-meta">
+            <div class="stage-time">⏱️ ~45 min</div>
+            <span class="pill gap">Crítico</span>
+            <span class="stage-toggle">▾</span>
+          </div>
+        </div>
+      </summary>
+      <div class="stage-body">
+        <div class="info-box danger">
+          <strong>🔒 Itens de Segurança Obrigatórios</strong>
+          Todos os itens desta etapa são obrigatórios antes de ir para produção. Falhas aqui podem expor dados financeiros dos clientes.
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Autenticação e Autorização</div>
+          <div class="task"><input type="checkbox" id="t9_1"><label for="t9_1">Todos os endpoints <code>/api/asaas/subscription/*</code> exigem sessão válida via <code>getServerSession</code> <span class="task-tag tag-sec">sec</span></label></div>
+          <div class="task"><input type="checkbox" id="t9_2"><label for="t9_2">Verificar <code>session.user.role === 'MASTER'</code> em cancel, upgrade e pending-payment <span class="task-tag tag-sec">sec</span></label></div>
+          <div class="task"><input type="checkbox" id="t9_3"><label for="t9_3">Webhook usa validação de token via header <code>asaas-access-token</code> (sem autenticação de sessão) <span class="task-tag tag-sec">sec</span></label></div>
+          <div class="task"><input type="checkbox" id="t9_4"><label for="t9_4">Retornar <code>401</code> imediatamente se token de webhook for inválido ou ausente <span class="task-tag tag-sec">sec</span></label></div>
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Dados sensíveis</div>
+          <div class="task"><input type="checkbox" id="t9_5"><label for="t9_5">Nunca logar número completo do cartão de crédito (mascarar como <code>****1234</code>) <span class="task-tag tag-sec">sec</span></label></div>
+          <div class="task"><input type="checkbox" id="t9_6"><label for="t9_6">Verificar que <code>ASAAS_API_KEY</code> e <code>ASAAS_WEBHOOK_TOKEN</code> nunca aparecem em respostas de API ou logs do cliente <span class="task-tag tag-sec">sec</span></label></div>
+          <div class="task"><input type="checkbox" id="t9_7"><label for="t9_7">Usar apenas variáveis sem prefixo <code>NEXT_PUBLIC_</code> para as credenciais Asaas (server-only) <span class="task-tag tag-sec">sec</span></label></div>
+          <div class="task"><input type="checkbox" id="t9_8"><label for="t9_8">Não armazenar dados completos do cartão no banco de dados (o Asaas é o vault) <span class="task-tag tag-sec">sec</span></label></div>
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Validação de Input (OWASP A03)</div>
+          <div class="task"><input type="checkbox" id="t9_9"><label for="t9_9">Validar CPF/CNPJ: deve ter exatamente 11 ou 14 dígitos numéricos <span class="task-tag tag-sec">sec</span></label></div>
+          <div class="task"><input type="checkbox" id="t9_10"><label for="t9_10">Validar CEP: 8 dígitos numéricos <span class="task-tag tag-sec">sec</span></label></div>
+          <div class="task"><input type="checkbox" id="t9_11"><label for="t9_11">Sanitizar todos os campos de texto livre contra injection <span class="task-tag tag-sec">sec</span></label></div>
+          <div class="task"><input type="checkbox" id="t9_12"><label for="t9_12">Validar <code>planKey</code> contra lista permitida (<code>STANDARD</code>, <code>PREMIUM</code>) — nunca aceitar valor arbitrário <span class="task-tag tag-sec">sec</span></label></div>
+          <div class="task"><input type="checkbox" id="t9_13"><label for="t9_13">Validar <code>paymentMethod</code> contra lista permitida (<code>PIX</code>, <code>CREDIT_CARD</code>) <span class="task-tag tag-sec">sec</span></label></div>
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Idempotência &amp; Consistência</div>
+          <div class="task"><input type="checkbox" id="t9_14"><label for="t9_14">Verificar que webhooks duplicados são ignorados corretamente pelo campo <code>processed</code> <span class="task-tag tag-sec">sec</span></label></div>
+          <div class="task"><input type="checkbox" id="t9_15"><label for="t9_15">Garantir que a transação Prisma no signup é atômica: se Asaas falhar, o usuário não é criado no banco <span class="task-tag tag-sec">sec</span></label></div>
+          <div class="task"><input type="checkbox" id="t9_16"><label for="t9_16">Garantir que usuário com <code>isActive = false</code> não consegue acessar o dashboard (verificar middleware) <span class="task-tag tag-sec">sec</span></label></div>
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Rate Limiting</div>
+          <div class="task"><input type="checkbox" id="t9_17"><label for="t9_17">Avaliar adição de rate limiting no endpoint de signup pago (ex: máx 5 tentativas por IP/hora) <span class="task-tag tag-sec">sec</span></label></div>
+          <div class="task"><input type="checkbox" id="t9_18"><label for="t9_18">Avaliar rate limiting no endpoint de webhook (Asaas pode reenviar em falha) <span class="task-tag tag-sec">sec</span></label></div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ─── ETAPA 10 ─── -->
+  <div class="stage s10">
+    <details>
+      <summary>
+        <div class="stage-header">
+          <div class="stage-num">10</div>
+          <div class="stage-info">
+            <div class="stage-name">Testes, Validação &amp; Deploy</div>
+            <div class="stage-desc">Verificar o funcionamento ponta-a-ponta antes de ir para produção</div>
+          </div>
+          <div class="stage-meta">
+            <div class="stage-time">⏱️ ~90 min</div>
+            <span class="pill ok">Final</span>
+            <span class="stage-toggle">▾</span>
+          </div>
+        </div>
+      </summary>
+      <div class="stage-body">
+
+        <div class="task-group">
+          <div class="task-group-title">Teste do Webhook (curl)</div>
+          <div class="code-block">
+            <div class="code-label">💻 Terminal — teste PAYMENT_RECEIVED</div>
+            <pre>curl -X POST http://localhost:3000/api/asaas/webhook \
+  -H "Content-Type: application/json" \
+  -H "asaas-access-token: $ASAAS_WEBHOOK_TOKEN" \
+  -d '{
+    "event": "PAYMENT_RECEIVED",
+    "payment": {
+      "id": "pay_test_123",
+      "customer": "cus_test_123",
+      "externalReference": "USER_ID_AQUI",
+      "value": 49.90,
+      "status": "CONFIRMED",
+      "billingType": "PIX"
+    }
+  }'
+# Esperado: { "received": true }</pre>
+          </div>
+          <div class="task"><input type="checkbox" id="t10_1"><label for="t10_1">Testar webhook <code>PAYMENT_RECEIVED</code> e confirmar que <code>user.isActive</code> muda para <code>true</code> <span class="task-tag tag-test">test</span></label></div>
+          <div class="task"><input type="checkbox" id="t10_2"><label for="t10_2">Testar webhook <code>PAYMENT_OVERDUE</code> e confirmar que <code>user.isActive</code> muda para <code>false</code> <span class="task-tag tag-test">test</span></label></div>
+          <div class="task"><input type="checkbox" id="t10_3"><label for="t10_3">Testar idempotência: enviar o mesmo webhook 2x e confirmar que o segundo é ignorado <span class="task-tag tag-test">test</span></label></div>
+          <div class="task"><input type="checkbox" id="t10_4"><label for="t10_4">Testar webhook com token inválido e confirmar retorno <code>401</code> <span class="task-tag tag-test">test</span></label></div>
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Teste do Fluxo de Signup PIX (Sandbox)</div>
+          <div class="task"><input type="checkbox" id="t10_5"><label for="t10_5">Fazer um signup completo via <code>POST /api/asaas/signup</code> com método PIX em ambiente sandbox <span class="task-tag tag-test">test</span></label></div>
+          <div class="task"><input type="checkbox" id="t10_6"><label for="t10_6">Verificar que o QR Code retornado (<code>pixEncodedImage</code>, <code>pixPayload</code>) é válido <span class="task-tag tag-test">test</span></label></div>
+          <div class="task"><input type="checkbox" id="t10_7"><label for="t10_7">Verificar no banco que <code>asaasCustomerId</code> e <code>asaasSubscriptionId</code> foram salvos no User <span class="task-tag tag-test">test</span></label></div>
+          <div class="task"><input type="checkbox" id="t10_8"><label for="t10_8">Confirmar que o User foi criado com <code>isActive = false</code> antes do pagamento <span class="task-tag tag-test">test</span></label></div>
+          <div class="task"><input type="checkbox" id="t10_9"><label for="t10_9">Simular pagamento via Asaas sandbox → verificar webhook chega → confirmar <code>isActive = true</code> <span class="task-tag tag-test">test</span></label></div>
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Teste dos Endpoints de Assinatura</div>
+          <div class="task"><input type="checkbox" id="t10_10"><label for="t10_10">Testar <code>GET /api/asaas/subscription/pending-payment</code> com user que tem pagamento pendente <span class="task-tag tag-test">test</span></label></div>
+          <div class="task"><input type="checkbox" id="t10_11"><label for="t10_11">Testar <code>POST /api/asaas/subscription/cancel</code> e confirmar que <code>planType</code> volta para FREEMIUM <span class="task-tag tag-test">test</span></label></div>
+          <div class="task"><input type="checkbox" id="t10_12"><label for="t10_12">Testar <code>POST /api/asaas/subscription/upgrade</code> e confirmar nova assinatura criada no Asaas <span class="task-tag tag-test">test</span></label></div>
+          <div class="task"><input type="checkbox" id="t10_13"><label for="t10_13">Testar endpoints sem autenticação → confirmar retorno <code>401</code> <span class="task-tag tag-test">test</span></label></div>
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Teste da UI</div>
+          <div class="task"><input type="checkbox" id="t10_14"><label for="t10_14">Navegar pelo fluxo de signup pago e verificar exibição do QR Code na UI <span class="task-tag tag-test">test</span></label></div>
+          <div class="task"><input type="checkbox" id="t10_15"><label for="t10_15">Verificar que botão de cancelamento e modal de confirmação funcionam corretamente <span class="task-tag tag-test">test</span></label></div>
+          <div class="task"><input type="checkbox" id="t10_16"><label for="t10_16">Verificar que a página de planos exibe status correto (ATIVO/PENDENTE) <span class="task-tag tag-test">test</span></label></div>
+          <div class="task"><input type="checkbox" id="t10_17"><label for="t10_17">Testar em mobile (responsividade do QR Code e formulário de cadastro) <span class="task-tag tag-test">test</span></label></div>
+        </div>
+
+        <div class="task-group">
+          <div class="task-group-title">Build &amp; Deploy</div>
+          <div class="code-block">
+            <div class="code-label">💻 Terminal</div>
+            <pre>npm run lint        # Sem erros ESLint
+npm run build       # Build de produção com sucesso
+npx prisma generate # Client atualizado</pre>
+          </div>
+          <div class="task"><input type="checkbox" id="t10_18"><label for="t10_18">Executar <code>npm run lint</code> sem erros <span class="task-tag tag-test">test</span></label></div>
+          <div class="task"><input type="checkbox" id="t10_19"><label for="t10_19">Executar <code>npm run build</code> sem erros TypeScript <span class="task-tag tag-test">test</span></label></div>
+          <div class="task"><input type="checkbox" id="t10_20"><label for="t10_20">Executar migração Prisma em produção (Netlify) <span class="task-tag tag-db">db</span></label></div>
+          <div class="task"><input type="checkbox" id="t10_21"><label for="t10_21">Configurar URL do webhook no painel Asaas PRODUÇÃO (<code>https://app.calenvo.com/api/asaas/webhook</code>) <span class="task-tag tag-env">env</span></label></div>
+          <div class="task"><input type="checkbox" id="t10_22"><label for="t10_22">Trocar <code>ASAAS_API_URL</code> para produção (<code>https://asaas.com/api/v3</code>) no Netlify <span class="task-tag tag-env">env</span></label></div>
+          <div class="task"><input type="checkbox" id="t10_23"><label for="t10_23">Fazer deploy e realizar teste ponta-a-ponta em produção com valor real mínimo <span class="task-tag tag-test">test</span></label></div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- ══════════════ COEXISTÊNCIA STRIPE ══════════════ -->
+  <p class="section-title" style="margin-top:32px;">⚡ Considerações de Coexistência — Stripe &amp; Asaas</p>
+
+  <div class="analysis-card" style="margin-bottom:32px;">
+    <h3>🔄 Estratégia de Coexistência</h3>
+    <ul>
+      <li><span class="pill ok">✓</span> Stripe permanece ativo para pagamentos internacionais (cartão internacional)</li>
+      <li><span class="pill new">novo</span> Asaas cobre mercado brasileiro (PIX, boleto, cartão nacional)</li>
+      <li><span class="pill mod">~</span> O modelo <code>User</code> terá campos de ambos: <code>stripeCustomerId</code> + <code>asaasCustomerId</code></li>
+      <li><span class="pill mod">~</span> O <code>planType</code> é atualizado por qualquer gateway (webhook Stripe ou Asaas)</li>
+      <li><span class="pill warn">⚠</span> Cuidado para não ter assinaturas ativas em ambos para o mesmo usuário simultaneamente</li>
+      <li><span class="pill warn">⚠</span> Definir claramente na UI qual gateway é usado (ex: "Pagar com PIX" → Asaas, "Pagar com cartão internacional" → Stripe)</li>
+    </ul>
+  </div>
+
+  <!-- ══════════════ ESTRUTURA DE ARQUIVOS ══════════════ -->
+  <p class="section-title">📁 Estrutura de Arquivos — Resumo das Mudanças</p>
+
+  <div style="overflow-x:auto; margin-bottom:32px;">
+    <table class="gap-table">
+      <thead>
+        <tr>
+          <th>Arquivo</th>
+          <th>Ação</th>
+          <th>Etapa</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>.env</code></td><td>Adicionar 3 vars Asaas</td><td><span class="pill new">E1</span></td></tr>
+        <tr><td><code>prisma/schema.prisma</code></td><td>Adicionar campos User + model AsaasWebhookLog</td><td><span class="pill mod">E2</span></td></tr>
+        <tr><td><code>prisma/migrations/...</code></td><td>Gerada automaticamente</td><td><span class="pill mod">E2</span></td></tr>
+        <tr><td><code>lib/asaas.ts</code></td><td>CRIAR — serviço de integração TypeScript</td><td><span class="pill new">E3</span></td></tr>
+        <tr><td><code>app/api/asaas/webhook/route.ts</code></td><td>CRIAR — handler de webhook com idempotência</td><td><span class="pill new">E4</span></td></tr>
+        <tr><td><code>app/api/asaas/subscription/cancel/route.ts</code></td><td>CRIAR — cancelar assinatura</td><td><span class="pill new">E5</span></td></tr>
+        <tr><td><code>app/api/asaas/subscription/upgrade/route.ts</code></td><td>CRIAR — upgrade de plano</td><td><span class="pill new">E5</span></td></tr>
+        <tr><td><code>app/api/asaas/subscription/pending-payment/route.ts</code></td><td>CRIAR — pagamento pendente</td><td><span class="pill new">E5</span></td></tr>
+        <tr><td><code>app/api/asaas/signup/route.ts</code></td><td>CRIAR — cadastro pago via Asaas</td><td><span class="pill new">E6</span></td></tr>
+        <tr><td><code>app/signup/pro/page.tsx</code></td><td>CRIAR — página de signup pago</td><td><span class="pill new">E7</span></td></tr>
+        <tr><td><code>components/auth/asaas-signup-form.tsx</code></td><td>CRIAR — formulário de cadastro pago</td><td><span class="pill new">E7</span></td></tr>
+        <tr><td><code>components/auth/pix-qr-display.tsx</code></td><td>CRIAR — exibição do QR Code PIX</td><td><span class="pill new">E7</span></td></tr>
+        <tr><td><code>app/dashboard/plans/page.tsx</code></td><td>MODIFICAR — conectar ao Asaas real</td><td><span class="pill mod">E8</span></td></tr>
+        <tr><td><code>middleware.ts</code></td><td>VERIFICAR — bloqueio de <code>isActive = false</code></td><td><span class="pill mod">E9</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════ FOOTER ══════════════ -->
+  <div class="footer">
+    <p><strong>Calenvo · Plano de Implementação Asaas</strong></p>
+    <p style="margin-top:6px;">Criado em 27 de abril de 2026 · Análise técnica do projeto real baseada em Next.js 14 App Router</p>
+    <p style="margin-top:6px;">Referência: <a href="ASAAS_INTEGRATION_GUIDE.md">ASAAS_INTEGRATION_GUIDE.md</a> · <a href="ASAAS_QUICK_START.md">ASAAS_QUICK_START.md</a> · <a href="ASAAS_QUICK_REFERENCE.md">ASAAS_QUICK_REFERENCE.md</a></p>
+  </div>
+
+</div>
+
+<!-- ══════════════ SCRIPTS ══════════════ -->
+<script>
+  // Progress tracking
+  function updateProgress() {
+    const all = document.querySelectorAll('input[type="checkbox"]')
+    const done = document.querySelectorAll('input[type="checkbox"]:checked')
+    const total = all.length
+    const doneCount = done.length
+    const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0
+
+    document.getElementById('totalCount').textContent = total
+    document.getElementById('doneCount').textContent = doneCount
+    document.getElementById('pct').textContent = pct
+    document.getElementById('totalBar').style.width = pct + '%'
+
+    // Persist to localStorage
+    const state = {}
+    all.forEach(cb => { state[cb.id] = cb.checked })
+    localStorage.setItem('asaas_checklist', JSON.stringify(state))
+  }
+
+  // Restore from localStorage
+  function restoreState() {
+    try {
+      const saved = JSON.parse(localStorage.getItem('asaas_checklist') || '{}')
+      Object.entries(saved).forEach(([id, checked]) => {
+        const el = document.getElementById(id)
+        if (el) el.checked = checked
+      })
+    } catch (e) {}
+    updateProgress()
+  }
+
+  // Attach listeners
+  document.addEventListener('DOMContentLoaded', () => {
+    restoreState()
+    document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', updateProgress)
+    })
+  })
+</script>
+</body>
+</html>

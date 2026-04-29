@@ -43,10 +43,10 @@ export async function GET(request: NextRequest) {
       status: 'authenticated',
       session: {
         user: {
+          ...session.user,
           id: userId,
           email: session.user.email,
           name: session.user.name,
-          ...session.user
         }
       },
       userInDatabase: userInDb ? {

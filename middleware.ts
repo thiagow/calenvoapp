@@ -33,6 +33,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/saas-admin', request.url))
   }
 
+  // Block inactive users from accessing the dashboard
+  if (pathname.startsWith('/dashboard') && token && token.isActive === false) {
+    return NextResponse.redirect(new URL('/login?error=InactiveAccount', request.url))
+  }
+
   return NextResponse.next()
 }
 

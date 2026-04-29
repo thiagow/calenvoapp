@@ -71,7 +71,8 @@ export const authOptions: NextAuthOptions = {
           businessName: user.businessName,
           segmentType: user.segmentType,
           planType: user.planType,
-          masterId: user.masterId
+          masterId: user.masterId,
+          isActive: user.isActive
         }
       }
     })
@@ -106,11 +107,12 @@ export const authOptions: NextAuthOptions = {
         if (user) {
           console.log('💾 JWT callback: Storing user data in token')
           token.id = user.id
-          token.role = (user as any).role
-          token.planType = (user as any).planType
-          token.businessName = (user as any).businessName
-          token.segmentType = (user as any).segmentType
-          token.masterId = (user as any).masterId
+          token.role = user.role
+          token.planType = user.planType
+          token.businessName = user.businessName
+          token.segmentType = user.segmentType
+          token.masterId = user.masterId
+          token.isActive = user.isActive
         }
         return token
       } catch (error) {
@@ -124,12 +126,13 @@ export const authOptions: NextAuthOptions = {
         if (token && session?.user) {
           console.log('🔄 Session callback: Creating session from token')
             // Use token.id first, fallback to token.sub
-            ; (session.user as any).id = token.id || token.sub!
-            ; (session.user as any).role = token.role
-            ; (session.user as any).planType = token.planType
-            ; (session.user as any).businessName = token.businessName
-            ; (session.user as any).segmentType = token.segmentType
-            ; (session.user as any).masterId = token.masterId
+            session.user.id = token.id || token.sub!
+            session.user.role = token.role ?? ''
+            session.user.planType = token.planType ?? 'FREEMIUM'
+            session.user.businessName = token.businessName
+            session.user.segmentType = token.segmentType
+            session.user.masterId = token.masterId
+            session.user.isActive = token.isActive
         }
         return session
       } catch (error) {

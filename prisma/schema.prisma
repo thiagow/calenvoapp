@@ -81,10 +81,13 @@ model User {
   phone              String?
   segmentType        SegmentType @default(BEAUTY_SALON)
   planType           PlanType    @default(FREEMIUM)
-  stripeCustomerId   String?
-  subscriptionId     String?
-  subscriptionStatus String?
-  emailVerified      DateTime?
+  stripeCustomerId      String?
+  subscriptionId        String?
+  subscriptionStatus    String?
+  // ─── Asaas Integration ───────────────────
+  asaasCustomerId       String? // ID do cliente no Asaas (cus_...)
+  asaasSubscriptionId   String? // ID da assinatura ativa no Asaas (sub_...)
+  emailVerified         DateTime?
   image              String?
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
@@ -644,4 +647,19 @@ model LoyaltyTransaction {
   @@index([clientId])
   @@index([userId])
   @@index([createdAt])
+}
+
+/// Log de idempotência e auditoria de eventos recebidos via webhook Asaas
+model AsaasWebhookLog {
+  id         String   @id @default(cuid())
+  asaasEvent String   // ex: "PAYMENT_RECEIVED", "PAYMENT_OVERDUE"
+  paymentId  String?  // ID do payment no Asaas (pay_...)
+  payload    Json     // Payload JSON completo do webhook
+  processed  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([paymentId])
+  @@index([asaasEvent])
+  @@index([processed, createdAt])
+  @@map("asaas_webhook_logs")
 }

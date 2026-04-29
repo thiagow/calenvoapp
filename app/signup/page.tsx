@@ -34,11 +34,19 @@ export default function SignupPage() {
           </CardHeader>
           <CardContent>
             <SignupForm />
-            <div className="mt-6 text-center text-sm text-gray-600">
-              Já tem uma conta?{' '}
-              <Link href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
-                Faça login
-              </Link>
+            <div className="mt-6 text-center text-sm text-gray-600 space-y-2">
+              <p>
+                Quer mais recursos?{' '}
+                <Link href="/signup/pro" className="text-blue-600 hover:text-blue-700 font-medium">
+                  Assine um plano pago
+                </Link>
+              </p>
+              <p>
+                Já tem uma conta?{' '}
+                <Link href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+                  Faça login
+                </Link>
+              </p>
             </div>
           </CardContent>
         </Card>

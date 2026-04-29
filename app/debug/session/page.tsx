@@ -74,10 +74,10 @@ export default function SessionDebugPage() {
                 <div className="bg-gray-100 p-4 rounded-md">
                   <pre className="text-xs overflow-auto">
                     {JSON.stringify({
+                      ...session.user,
                       id: (session.user as any).id,
                       email: session.user.email,
                       name: session.user.name,
-                      ...session.user
                     }, null, 2)}
                   </pre>
                 </div>
